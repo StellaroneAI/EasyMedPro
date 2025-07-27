@@ -1,89 +1,112 @@
-# EasyMedPro - Medical Dashboard
+EasyMed - AI-Powered Mobile Healthcare Platform for India
 
-A comprehensive medical practice management dashboard built with React, TypeScript, and Tailwind CSS.
+Overview
 
-## 🏥 Features
+EasyMed is a next-generation, AI-integrated mobile-first healthcare platform specifically designed for India's diverse and evolving healthcare landscape. The platform combines advanced AI technology with comprehensive healthcare management tools to provide patients, families, and healthcare providers with seamless digital health experiences.
 
-- **Dashboard Overview** - Key metrics and statistics
-- **Patient Management** - Complete patient database with search and filtering
-- **Medical Records** - Patient history and record management
-- **Prescription Management** - Medication tracking and management
-- **Today's Schedule** - Appointment scheduling and management
-- **AI Assistant** - Smart suggestions and assistance
-- **Quick Actions** - Fast access to common tasks
+🌟 Key Features
+
+🤖 AI-Powered Health Assistant
+Advanced Symptom Analysis: Natural language processing for symptom evaluation
+Health Risk Assessment: Predictive analytics for chronic illness monitoring
+Personalized Health Insights: AI-driven recommendations based on patient data
+Medical Content Generation: Contextual health information in multiple languages
+
+🗣️ Multilingual Voice Assistant
+
+One-Click Voice Commands: Floating voice button for instant access
+4 Language Support: English, Hindi, Tamil, Telugu with native voice synthesis
+Natural Language Navigation: Voice commands for all app sections
+Healthcare-Specific Commands: "Call 108", "Check symptoms", "Book appointment"
+Smart Intent Recognition: AI-powered understanding of voice inputs
+
+📱 Comprehensive Healthcare Management
+
+Patient Dashboard: Real-time health overview with key metrics
+Appointment Booking: Smart scheduling with healthcare providers
+Health Records: Secure digital storage of medical history
+Family Health Management: Multi-member health profiles under one account
+Prescription Management: Digital prescriptions with medication reminders
+Emergency Services: One-tap access to 108 ambulance services
+
+EasyMed is a React + Tailwind CSS-based MVP for an intelligent healthcare booking and assistant platform.
 
 ## 🚀 Getting Started
 
-### Prerequisites
-- Node.js (v18 or higher)
-- npm or yarn
+<<<<<<< HEAD
+Install dependencies:
 
-### Installation
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/EasyMedPro.git
-   cd EasyMedPro
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-4. Open your browser to:
-   ```
-   http://localhost:3000
-   ```
-
-## 🛠️ Available Scripts
-
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-
-## 📁 Project Structure
-
-```
-src/
-├── components/
-│   ├── dashboard/      # Dashboard components
-│   ├── patients/       # Patient management
-│   ├── records/        # Medical records
-│   └── prescriptions/  # Prescription management
-├── pages/              # Main pages
-└── main.tsx           # App entry point
+```bash
+npm install
 ```
 
-## 🎨 Tech Stack
+Run locally:
 
-- **React 18** - Frontend framework
-- **TypeScript** - Type safety
-- **Tailwind CSS** - Styling
-- **Vite** - Build tool
+```bash
+npm run dev
+=======
+```bash
+npm install
+npm run dev   # or npm start if using Create React App
+>>>>>>> f6d5ef3 (Initial EasyMed MVP commit)
+```
 
-## 📱 Responsive Design
+## 📦 Deploy on Vercel
 
-The dashboard is fully responsive and works on:
-- Desktop computers
-- Tablets
-- Mobile devices
+<<<<<<< HEAD
+You can deploy this app on [Vercel](https://vercel.com/) by clicking:
 
-## 🚀 Deployment
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/import/project)
 
-Deploy to Vercel with one click:
+Or manually:
+1. Push to GitHub.
+2. Connect your repo to Vercel.
+3. Set the build command to: `npm run build`
+4. Set the output directory to: `dist`
+=======
+1. Push this code to GitHub
+2. Go to [Vercel](https://vercel.com)
+3. Import your GitHub repo
+4. Use the following build settings:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/YOUR_USERNAME/EasyMedPro)
+- **Framework Preset**: Create React App
+- **Build Command**: `npm run build`
+- **Output Directory**: `build`
 
-## 📄 License
+### SPA Routing Fix
 
-This project is licensed under the MIT License.
+We've included a `vercel.json` to handle all unmatched routes and send them to `index.html`:
 
-## 🤝 Contributing
+```json
+"routes": [
+  { "src": "/(.*)", "dest": "/" }
+]
+```
+>>>>>>> f6d5ef3 (Initial EasyMed MVP commit)
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+---
+
+## 🛠 Tech Stack
+
+- React
+- Tailwind CSS
+- Lucide Icons
+- Vercel (Hosting)
+<<<<<<< HEAD
+
+Upcoming Features
+Telemedicine integration
+Wearable device connectivity
+Advanced AI diagnostics
+Blockchain health records
+IoT device integration
+Language Expansion
+Bengali language support
+Marathi language integration
+Punjabi voice commands
+Regional dialect support
+Multi-script text handling
+EasyMed - Transforming Healthcare Through AI Innovation
+Built with ❤️ for India's Healthcare Future
+=======
+>>>>>>> f6d5ef3 (Initial EasyMed MVP commit)
