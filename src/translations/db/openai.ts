@@ -8,12 +8,12 @@ const openai = new OpenAI({
 });
 
 export async function getHealthAdvice(prompt: string) {
-  const response = await openai.createChatCompletion({
+  const response = await openai.chat.completions.create({
     model: 'gpt-3.5-turbo',
     messages: [{ role: 'user', content: prompt }],
     max_tokens: 150,
   });
-  return response.data.choices[0].message?.content;
+  return response.choices[0].message?.content;
 }
 
 // Example usage:
