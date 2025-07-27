@@ -1,16 +1,32 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import path from 'path'
+import { resolve } from 'path'
 
 export default defineConfig({
   plugins: [react()],
+  define: {
+    global: 'globalThis',
+  },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './src'),
+      '@': resolve(__dirname, './src'),
     },
   },
   server: {
     port: 3000,
     open: true
+  },
+  optimizeDeps: {
+    exclude: ['mongodb'] // Exclude MongoDB from browser bundling
+  },
+  build: {
+    rollupOptions: {
+      external: ['mongodb', 'crypto', 'util'] // Mark as external for build
+    }
+  },
+  esbuild: {
+    loader: 'tsx',
+    include: /src\/.*\.[tj]sx?$/,
+    exclude: []
   }
 })
