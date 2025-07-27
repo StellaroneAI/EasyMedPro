@@ -63,7 +63,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       } else if (loginMethod === 'phone' && phoneNumber) {
         handleSendOTP();
       } else if (loginMethod === 'email' && email && password) {
-        handleEmailLogin();
+        handleLogin();
       }
     }
   };
@@ -645,6 +645,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {getText('enterOtp')}
+                    </label>
                     <input
                       type="text"
                       value={otp}
@@ -653,7 +654,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                       className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-center text-2xl tracking-widest"
                       placeholder="000000"
                       maxLength={6}
-                    />maxLength={6}
                     />
                   </div>
                   <button
