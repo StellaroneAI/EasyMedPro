@@ -532,6 +532,19 @@ export default function PatientDashboard({ userInfo, onLogout }: PatientDashboar
         onMenuSelect={setActiveSection}
         activeMenu={activeSection}
       />
+
+      {/* Footer Credit */}
+      <footer className="bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100 py-6 mt-12">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center">
+            <p className="text-sm text-gray-600 font-medium">
+              Built with <span className="text-red-500 text-lg animate-pulse">❤️</span> by{' '}
+              <span className="font-bold text-blue-600">Praveen Kumar J</span>{' '}
+              for <span className="font-bold text-green-600">India's Healthcare Future</span>
+            </p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }
