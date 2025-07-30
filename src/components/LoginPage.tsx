@@ -21,6 +21,39 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [generatedOTP, setGeneratedOTP] = useState('');
   const [message, setMessage] = useState('');
 
+  // Text-to-speech function
+  const speakMessage = (text: string) => {
+    if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
+      const utterance = new SpeechSynthesisUtterance(text);
+      
+      // Set language for speech synthesis
+      const langMap: { [key: string]: string } = {
+        english: 'en-US',
+        hindi: 'hi-IN',
+        tamil: 'ta-IN',
+        telugu: 'te-IN',
+        bengali: 'bn-IN',
+        marathi: 'mr-IN',
+        punjabi: 'pa-IN',
+        gujarati: 'gu-IN',
+        kannada: 'kn-IN',
+        malayalam: 'ml-IN',
+        odia: 'or-IN',
+        assamese: 'as-IN'
+      };
+      
+      utterance.lang = langMap[currentLanguage] || 'en-US';
+      utterance.rate = 0.9;
+      utterance.pitch = 1.0;
+      utterance.volume = 0.8;
+      
+      window.speechSynthesis.speak(utterance);
+    }
+  };
+
   // Handle Enter key press
   const handleKeyPress = (event: React.KeyboardEvent) => {
     if (event.key === 'Enter') {
