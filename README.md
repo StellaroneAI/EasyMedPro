@@ -44,7 +44,7 @@ npm install
 Run locally:
 
 ```bash
-npm run dev   # or npm start if using Create React App
+npm run dev
 ```
 
 ---
@@ -55,9 +55,9 @@ npm run dev   # or npm start if using Create React App
 2. Go to [Vercel](https://vercel.com)
 3. Import your GitHub repo
 4. Use the following build settings:
-   - **Framework Preset:** Create React App
+   - **Framework Preset:** Vite
    - **Build Command:** `npm run build`
-   - **Output Directory:** `build`
+   - **Output Directory:** `dist`
 
 ### SPA Routing Fix
 
@@ -75,9 +75,11 @@ If you need SPA routing, add a `vercel.json` file like this:
 
 ## 🛠 Tech Stack
 
-- React
+- React + TypeScript
+- Vite (Build Tool)
 - Tailwind CSS
 - Lucide Icons
+- PWA Support
 - Vercel (Hosting)
 
 ---
