@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
+import { View, StyleSheet, StatusBar } from 'react-native';
 import PatientDashboard from './components/dashboards/PatientDashboard';
 import ASHADashboard from './components/dashboards/ASHADashboard';
 import DoctorDashboard from './components/dashboards/DoctorDashboard';
@@ -8,8 +9,7 @@ import TeamManagement from './components/TeamManagement';
 import SystemStatus from './components/SystemStatus';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { AdminProvider, useAdmin } from './contexts/AdminContext';
-import { LanguageKey } from './translations';
-import './App.css';
+import { ABHAProvider } from './contexts/ABHAContext';
 
 interface User {
   userType: 'patient' | 'asha' | 'doctor' | 'admin';
@@ -81,70 +81,19 @@ function AppContent() {
   // Don't force early return - let the component render the main content
   if (!isLoggedIn || !currentUser) {
     return (
-      <div className="min-h-screen bg-white">
+      <View style={styles.container}>
+        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
         <LoginPage onLogin={handleLogin} />
-      </div>
+      </View>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Admin Header - only show for admin, positioned to not interfere with dashboard */}
-      {currentUser.userType === 'admin' && (
-        <div className="fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 shadow-lg z-50">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold">
-                {currentAdmin?.name?.charAt(0) || currentUser.name?.charAt(0) || 'A'}
-              </div>
-              <div>
-                <h2 className="font-semibold">Welcome, {currentAdmin?.name || currentUser.name}</h2>
-                <p className="text-sm text-blue-100">{currentAdmin?.designation || 'Administrator'}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {/* Language Selector */}
-              <div className="relative">
-                <select 
-                  value={currentLanguage}
-                  onChange={(e) => setLanguage(e.target.value as LanguageKey)}
-                  className="appearance-none bg-white/20 border border-white/30 rounded-lg px-3 py-2 pr-8 text-sm font-medium text-white hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer"
-                >
-                  {languageOptions.map((lang) => (
-                    <option key={lang.code} value={lang.code} className="text-gray-800">
-                      {lang.flag} {lang.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowTeamManagement(true)}
-                className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
-              >
-                <span>👥</span>
-                <span>Manage Team</span>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
-              >
-                <span>🚪</span>
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
+    <View style={styles.container}>
+      <StatusBar barStyle="light-content" backgroundColor="#2563eb" />
+      
       {/* Main Content */}
-      <div className={currentUser.userType === 'admin' ? 'pt-20' : ''}>
-        {/* Render appropriate dashboard based on user type */}
+      <View style={styles.mainContent}>
         {currentUser.userType === 'patient' && (
           <PatientDashboard userInfo={currentUser} onLogout={handleLogout} />
         )}
@@ -167,8 +116,8 @@ function AppContent() {
         {showSystemStatus && (
           <SystemStatus onClose={() => setShowSystemStatus(false)} />
         )}
-      </div>
-    </div>
+      </View>
+    </View>
   );
 }
 
@@ -176,10 +125,22 @@ function App() {
   return (
     <LanguageProvider>
       <AdminProvider>
-        <AppContent />
+        <ABHAProvider>
+          <AppContent />
+        </ABHAProvider>
       </AdminProvider>
     </LanguageProvider>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#f9fafb',
+  },
+  mainContent: {
+    flex: 1,
+  },
+});
 
 export default App;
