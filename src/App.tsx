@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, StatusBar } from 'react-native';
+import { View, StyleSheet } from 'react-native';
+import { StatusBar } from 'expo-status-bar';
+import { NavigationContainer } from '@react-navigation/native';
 import PatientDashboard from './components/dashboards/PatientDashboard';
 import ASHADashboard from './components/dashboards/ASHADashboard';
 import DoctorDashboard from './components/dashboards/DoctorDashboard';
@@ -82,7 +84,7 @@ function AppContent() {
   if (!isLoggedIn || !currentUser) {
     return (
       <View style={styles.container}>
-        <StatusBar barStyle="dark-content" backgroundColor="#ffffff" />
+        <StatusBar style="dark" />
         <LoginPage onLogin={handleLogin} />
       </View>
     );
@@ -90,7 +92,7 @@ function AppContent() {
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#2563eb" />
+      <StatusBar style="light" />
       
       {/* Main Content */}
       <View style={styles.mainContent}>
@@ -123,13 +125,15 @@ function AppContent() {
 
 function App() {
   return (
-    <LanguageProvider>
-      <AdminProvider>
-        <ABHAProvider>
-          <AppContent />
-        </ABHAProvider>
-      </AdminProvider>
-    </LanguageProvider>
+    <NavigationContainer>
+      <LanguageProvider>
+        <AdminProvider>
+          <ABHAProvider>
+            <AppContent />
+          </ABHAProvider>
+        </AdminProvider>
+      </LanguageProvider>
+    </NavigationContainer>
   );
 }
 
