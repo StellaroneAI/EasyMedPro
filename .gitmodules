@@ -1,0 +1,3 @@
+[submodule "EasyMedPro"]
+	path = EasyMedPro
+	url = https://github.com/StellaroneAI/EasyMedPro

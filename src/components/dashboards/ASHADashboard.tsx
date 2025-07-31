@@ -6,7 +6,6 @@ interface ASHADashboardProps {
   userInfo: any;
   onLogout: () => void;
 }
-
 export default function ASHADashboard({ userInfo, onLogout }: ASHADashboardProps) {
   const [activeSection, setActiveSection] = useState('overview');
 
@@ -418,5 +417,44 @@ export default function ASHADashboard({ userInfo, onLogout }: ASHADashboardProps
         </div>
       </div>
     </div>
+
+      {/* Footer Credit */}
+      <footer className="bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100 py-6 mt-12">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center">
+            <p className="text-sm text-gray-600 font-medium">
+              Built with <span className="text-red-500 text-lg animate-pulse">❤️</span> by{' '}
+              <span className="font-bold text-blue-600">Praveen Kumar J</span>{' '}
+              for <span className="font-bold text-green-600">India's Healthcare Future</span>
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>ASHA Dashboard</Text>
+        <Text style={styles.subtitle}>Welcome, {userInfo.name}</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
+          <Text style={styles.logoutButtonText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.content}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Community Health Overview</Text>
+          <Text style={styles.cardText}>Registered Families: 150</Text>
+          <Text style={styles.cardText}>Monthly Checkups: 45</Text>
+          <Text style={styles.cardText}>Vaccination Due: 12</Text>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Today's Tasks</Text>
+          <Text style={styles.cardText}>• Home visit to Family #1234</Text>
+          <Text style={styles.cardText}>• Child vaccination follow-up</Text>
+          <Text style={styles.cardText}>• Pregnancy counseling session</Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }

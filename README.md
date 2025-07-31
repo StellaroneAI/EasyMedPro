@@ -16,7 +16,7 @@ EasyMed is a next-generation, AI-integrated mobile-first healthcare platform spe
 
 ### 🗣️ Multilingual Voice Assistant
 - One-Click Voice Commands: Floating voice button for instant access
-- 4 Language Support: English, Hindi, Tamil, Telugu with native voice synthesis
+- **12 Language Support**: English, Hindi, Tamil, Telugu, Bengali, Marathi, Punjabi, Gujarati, Kannada, Malayalam, Odia, Assamese with native voice synthesis
 - Natural Language Navigation: Voice commands for all app sections
 - Healthcare-Specific Commands: "Call 108", "Check symptoms", "Book appointment"
 - Smart Intent Recognition: AI-powered understanding of voice inputs
@@ -75,6 +75,15 @@ If you need SPA routing, add a `vercel.json` file like this:
 
 ## 🛠 Tech Stack
 
+- **Frontend**: React 18 + TypeScript
+- **Build Tool**: Vite
+- **Styling**: Tailwind CSS
+- **Icons**: Lucide React
+- **Backend Integration**: MongoDB, OpenAI API
+- **PWA**: Service Worker, Web App Manifest
+- **Voice**: Web Speech API (Speech Recognition & Synthesis)
+- **Deployment**: Vercel
+=======
 - React + TypeScript
 - Vite (Build Tool)
 - Tailwind CSS

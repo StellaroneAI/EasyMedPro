@@ -526,5 +526,52 @@ export default function DoctorDashboard({ userInfo, onLogout }: DoctorDashboardP
         </div>
       </div>
     </div>
+
+      {/* Footer Credit */}
+      <footer className="bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100 py-6 mt-12">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="text-center">
+            <p className="text-sm text-gray-600 font-medium">
+              Built with <span className="text-red-500 text-lg animate-pulse">❤️</span> by{' '}
+              <span className="font-bold text-blue-600">Praveen Kumar J</span>{' '}
+              for <span className="font-bold text-green-600">India's Healthcare Future</span>
+            </p>
+          </div>
+        </div>
+      </footer>
+    </div>
+
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>Doctor Dashboard</Text>
+        <Text style={styles.subtitle}>Welcome, {userInfo.name}</Text>
+        <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
+          <Text style={styles.logoutButtonText}>Logout</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.content}>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Today's Schedule</Text>
+          <Text style={styles.cardText}>Total Appointments: 12</Text>
+          <Text style={styles.cardText}>Video Consultations: 8</Text>
+          <Text style={styles.cardText}>In-person Visits: 4</Text>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Pending Actions</Text>
+          <Text style={styles.cardText}>• Review Lab Results: 5</Text>
+          <Text style={styles.cardText}>• Prescription Updates: 3</Text>
+          <Text style={styles.cardText}>• Patient Follow-ups: 7</Text>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Recent Patients</Text>
+          <Text style={styles.cardText}>• John Doe - Diabetes Check</Text>
+          <Text style={styles.cardText}>• Jane Smith - Hypertension Follow-up</Text>
+          <Text style={styles.cardText}>• Bob Johnson - Annual Physical</Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
