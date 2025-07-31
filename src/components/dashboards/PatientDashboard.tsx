@@ -1,5 +1,13 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { useState } from 'react';
+import LanguageSelector from '../LanguageSelector';
+import VoiceInterface from '../VoiceInterface';
+import FloatingMenu from '../FloatingMenu';
+import VitalDashboard from '../VitalDashboard';
+import ConsultationBooking from '../ConsultationBooking';
+import SymptomChecker from '../SymptomChecker';
+import HealthAnalytics from '../HealthAnalytics';
+import MedicationManager from '../MedicationManager';
+import EmergencySystem from '../EmergencySystem';
 
 interface PatientDashboardProps {
   userInfo: any;
@@ -8,6 +16,70 @@ interface PatientDashboardProps {
 
 export default function PatientDashboard({ userInfo, onLogout }: PatientDashboardProps) {
   const [activeSection, setActiveSection] = useState('overview');
+
+  const appointments = [
+    {
+      id: 1,
+      doctor: 'Dr. Rajesh Kumar',
+      specialty: 'General Medicine',
+      date: '2025-01-30',
+      time: '10:00 AM',
+      status: 'Confirmed',
+      type: 'Video Consultation'
+    },
+    {
+      id: 2,
+      doctor: 'Dr. Priya Sharma',
+      specialty: 'Gynecology',
+      date: '2025-02-05',
+      time: '2:30 PM',
+      status: 'Pending',
+      type: 'In-person'
+    }
+  ];
+
+  const healthRecords = [
+    {
+      id: 1,
+      date: '2025-01-20',
+      type: 'Blood Test',
+      doctor: 'Dr. Rajesh Kumar',
+      findings: 'Normal blood parameters',
+      prescription: 'Vitamin D supplements'
+    },
+    {
+      id: 2,
+      date: '2025-01-15',
+      type: 'General Checkup',
+      doctor: 'Dr. Priya Sharma',
+      findings: 'Blood pressure slightly elevated',
+      prescription: 'Low sodium diet, regular exercise'
+    }
+  ];
+
+  const governmentSchemes = [
+    {
+      name: 'Ayushman Bharat',
+      description: 'Health insurance coverage up to ₹5 lakh',
+      eligibility: 'BPL families',
+      status: 'Eligible',
+      coverage: '₹5,00,000'
+    },
+    {
+      name: 'Muthulakshmi Reddy Maternity Assistance',
+      description: 'Financial assistance for pregnant women in Tamil Nadu',
+      eligibility: 'Pregnant women in Tamil Nadu',
+      status: userInfo?.state === 'Tamil Nadu' ? 'Eligible' : 'Not Eligible',
+      coverage: '₹18,000'
+    },
+    {
+      name: 'Janani Suraksha Yojana',
+      description: 'Safe motherhood intervention scheme',
+      eligibility: 'Pregnant women below poverty line',
+      status: 'Eligible',
+      coverage: '₹1,400'
+    }
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -460,6 +532,7 @@ export default function PatientDashboard({ userInfo, onLogout }: PatientDashboar
         onMenuSelect={setActiveSection}
         activeMenu={activeSection}
       />
+    </div>
 
       {/* Footer Credit */}
       <footer className="bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100 py-6 mt-12">
@@ -565,95 +638,3 @@ export default function PatientDashboard({ userInfo, onLogout }: PatientDashboar
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
-  header: {
-    backgroundColor: '#3b82f6',
-    padding: 16,
-    paddingTop: 50,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#bfdbfe',
-    marginBottom: 12,
-  },
-  logoutButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontWeight: '500',
-  },
-  navigation: {
-    backgroundColor: '#fff',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e5e7eb',
-  },
-  navItem: {
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    marginHorizontal: 4,
-    borderRadius: 20,
-  },
-  activeNavItem: {
-    backgroundColor: '#3b82f6',
-  },
-  navText: {
-    fontSize: 14,
-    color: '#6b7280',
-    fontWeight: '500',
-  },
-  activeNavText: {
-    color: '#fff',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#1f2937',
-    marginBottom: 16,
-  },
-  card: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 8,
-  },
-  cardText: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 4,
-  },
-});

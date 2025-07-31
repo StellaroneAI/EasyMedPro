@@ -63,7 +63,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const handleSendOTP = async () => {
     if (phoneNumber.length >= 10) {
       setIsLoading(true);
-      
+
       // Auto-login for admin number
       if (phoneNumber === '9060328119' && activeTab === 'admin') {
         setTimeout(() => {
@@ -72,6 +72,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         }, 1000);
         return;
       }
+
       // Simulate OTP sending
       setTimeout(() => {
         setShowOTP(true);
@@ -92,7 +93,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     try {
       if (activeTab === 'admin') {
         let success = false;
-        let userInfo = {};
         let userInfo: any = {};
 
         // Admin phone login
@@ -104,10 +104,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             role: 'super_admin',
             timestamp: new Date().toISOString()
           };
-        }
-        // Admin email login
-        else if (loginMethod === 'email' && 
-                 (email === 'admin@easymed.in' || email === 'admin@gmail.com') && 
           success = await loginAdmin(phoneNumber, userInfo);
 
         }
@@ -133,8 +129,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           }, 1000);
         } else {
           Alert.alert('Access Denied', 'Use phone: 9060328119 or email: admin@easymed.in / admin123');
-          setIsLoading(false);
-          return;
         }
 
       } else {
@@ -148,11 +142,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             setIsLoading(false);
             return;
           }
+
           if (otp !== '123456' && generatedOTP && otp !== generatedOTP) {
             Alert.alert('Invalid OTP', 'For demo, please enter: 123456');
             setIsLoading(false);
             return;
           }
+
           success = true;
           userInfo = {
             phoneNumber,
@@ -170,7 +166,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             onLogin(activeTab, userInfo);
           }, 1000);
         } else {
-          Alert.alert('Error', 'Please verify your OTP first');
           // This case might need refinement, e.g., if login is attempted without OTP
           if (loginMethod === 'phone' && !showOTP) {
              Alert.alert('Error', 'Please send an OTP first');
@@ -180,8 +175,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     } catch (error) {
       console.log('Login error:', error);
       Alert.alert('Error', 'Login failed. Please try again.');
-    }  
-    setIsLoading(false);
     } finally {
       setIsLoading(false);
     }
@@ -194,48 +187,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         <Text style={styles.subtitle}>{currentTexts.tagline}</Text>
       </View>
 
-      {/* User Type Tabs */}
-      <View style={styles.tabContainer}>
-        {['patient', 'asha', 'doctor', 'admin'].map((type) => (
-          <TouchableOpacity
-            key={type}
-            style={[
-              styles.tab,
-              activeTab === type && styles.activeTab
-            ]}
-            onPress={() => setActiveTab(type as typeof activeTab)}
-          >
-            <Text style={[
-              styles.tabText,
-              activeTab === type && styles.activeTabText
-            ]}>
-              {currentTexts[type as keyof typeof currentTexts]}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      {/* Login Method Selector */}
-      <View style={styles.loginMethodContainer}>
-        <TouchableOpacity
-          style={[
-            styles.loginMethodButton,
-            loginMethod === 'phone' && styles.activeLoginMethod
-          ]}
-          onPress={() => setLoginMethod('phone')}
-        >
-          <Text style={styles.loginMethodText}>{currentTexts.phoneLogin}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={[
-            styles.loginMethodButton,
-            loginMethod === 'email' && styles.activeLoginMethod
-          ]}
-          onPress={() => setLoginMethod('email')}
-        >
-          <Text style={styles.loginMethodText}>{currentTexts.emailLogin}</Text>
-        </TouchableOpacity>
-      </View>
       {/* User Type Tabs */}
       <View style={styles.tabContainer}>
         {(['patient', 'asha', 'doctor', 'admin'] as const).map((type) => (
@@ -278,6 +229,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           <Text style={styles.loginMethodText}>{currentTexts.emailLogin}</Text>
         </TouchableOpacity>
       </View>
+
       {/* Form Fields */}
       <View style={styles.formContainer}>
         {loginMethod === 'phone' ? (
@@ -355,7 +307,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
     backgroundColor: '#f9fafb', // Lighter gray
   },
   header: {
@@ -382,23 +333,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  tab: {
-    flex: 1,
-    minWidth: '45%',
-    margin: 4,
-    padding: 12,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  activeTab: {
-    backgroundColor: '#3b82f6',
-  },
-  tabText: {
-    fontSize: 12,
-    fontWeight: '500',
     marginTop: 24,
     marginBottom: 16,
     justifyContent: 'center',
@@ -430,7 +364,6 @@ const styles = StyleSheet.create({
   },
   loginMethodContainer: {
     flexDirection: 'row',
-    paddingHorizontal: 16,
     paddingHorizontal: 20,
     marginBottom: 24,
   },
@@ -438,12 +371,6 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 4,
     padding: 12,
-    backgroundColor: '#f3f4f6',
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  activeLoginMethod: {
-    backgroundColor: '#3b82f6',
     backgroundColor: '#fff',
     borderRadius: 8,
     alignItems: 'center',
@@ -460,14 +387,12 @@ const styles = StyleSheet.create({
     color: '#374151',
   },
   formContainer: {
-    paddingHorizontal: 16,
     paddingHorizontal: 24,
   },
   input: {
     borderWidth: 1,
     borderColor: '#d1d5db',
     borderRadius: 8,
-    padding: 12,
     padding: 14,
     fontSize: 16,
     marginBottom: 16,
@@ -489,10 +414,6 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   messageContainer: {
-    margin: 16,
-    padding: 12,
-    backgroundColor: '#ecfdf5',
-    borderRadius: 8,
     marginHorizontal: 24,
     marginTop: 16,
     padding: 12,
@@ -504,8 +425,6 @@ const styles = StyleSheet.create({
   messageText: {
     color: '#065f46',
     textAlign: 'center',
-  },
-});
     fontWeight: '500',
   },
 });

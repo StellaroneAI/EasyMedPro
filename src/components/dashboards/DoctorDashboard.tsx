@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { useState } from 'react';
+import LanguageSelector from '../LanguageSelector';
+import VoiceInterface from '../VoiceInterface';
 
 interface DoctorDashboardProps {
   userInfo: any;
@@ -7,6 +8,81 @@ interface DoctorDashboardProps {
 }
 
 export default function DoctorDashboard({ userInfo, onLogout }: DoctorDashboardProps) {
+  const [activeSection, setActiveSection] = useState('overview');
+
+  const appointments = [
+    {
+      id: 1,
+      patient: 'Ramesh Kumar',
+      age: 45,
+      time: '10:00 AM',
+      type: 'Video Consultation',
+      condition: 'Diabetes follow-up',
+      status: 'Confirmed',
+      ashaWorker: 'Kamala ASHA'
+    },
+    {
+      id: 2,
+      patient: 'Lakshmi Devi',
+      age: 28,
+      time: '11:30 AM',
+      type: 'In-person',
+      condition: 'Pregnancy checkup',
+      status: 'Confirmed',
+      ashaWorker: 'Priya ASHA'
+    },
+    {
+      id: 3,
+      patient: 'Suresh Babu',
+      age: 52,
+      time: '2:00 PM',
+      type: 'Video Consultation',
+      condition: 'Hypertension',
+      status: 'Pending',
+      ashaWorker: 'Kamala ASHA'
+    }
+  ];
+
+  const patientQueue = [
+    {
+      id: 1,
+      patient: 'Venkat Rao',
+      condition: 'Chest pain',
+      priority: 'High',
+      waitTime: '15 mins',
+      ashaSupport: true
+    },
+    {
+      id: 2,
+      patient: 'Meera Sundaram',
+      condition: 'Regular checkup',
+      priority: 'Normal',
+      waitTime: '25 mins',
+      ashaSupport: false
+    }
+  ];
+
+  const consultationHistory = [
+    {
+      id: 1,
+      patient: 'Ravi Kumar',
+      date: '2025-01-25',
+      diagnosis: 'Type 2 Diabetes',
+      prescription: 'Metformin 500mg, Diet modification',
+      followUp: '2025-02-25',
+      ashaWorker: 'Kamala ASHA'
+    },
+    {
+      id: 2,
+      patient: 'Sowmya Rani',
+      date: '2025-01-23',
+      diagnosis: 'Pregnancy - Normal',
+      prescription: 'Folic acid, Iron supplements',
+      followUp: '2025-02-23',
+      ashaWorker: 'Priya ASHA'
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-white to-blue-50">
       {/* Modern Header with Gradient */}
@@ -449,6 +525,7 @@ export default function DoctorDashboard({ userInfo, onLogout }: DoctorDashboardP
           </div>
         </div>
       </div>
+    </div>
 
       {/* Footer Credit */}
       <footer className="bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100 py-6 mt-12">
@@ -498,63 +575,3 @@ export default function DoctorDashboard({ userInfo, onLogout }: DoctorDashboardP
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
-  header: {
-    backgroundColor: '#8b5cf6',
-    padding: 16,
-    paddingTop: 50,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#ddd6fe',
-    marginBottom: 12,
-  },
-  logoutButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontWeight: '500',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  card: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 8,
-  },
-  cardText: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 4,
-  },
-});
