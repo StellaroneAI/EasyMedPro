@@ -22,12 +22,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [message, setMessage] = useState('');
 
   // Text-to-speech function
-  const speakMessage = (text: string) => {
-    if ('speechSynthesis' in window) {
+  //const speakMessage = (text: string) => {
+   // if ('speechSynthesis' in window) {
       // Cancel any ongoing speech
-      window.speechSynthesis.cancel();
+      //window.speechSynthesis.cancel();
       
-      const utterance = new SpeechSynthesisUtterance(text);
+      //const utterance = new SpeechSynthesisUtterance(text);
       
       // Set language for speech synthesis
       const langMap: { [key: string]: string } = {
