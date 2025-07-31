@@ -206,7 +206,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         // Regular user login simulation
         if (loginMethod === 'phone' && showOTP) {
           // For phone login with OTP, validate OTP
-          if (otp.length < 4) {
+          if (otp.length < 6) {
             alert('Please enter a valid OTP');
             setIsLoading(false);
             return;
