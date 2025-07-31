@@ -1,4 +1,8 @@
+import React, { useState, useEffect } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+=======
 import { useState } from 'react';
+>>>>>>> main
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAdmin } from '../contexts/AdminContext';
 
@@ -18,6 +22,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [showOTP, setShowOTP] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [generatedOTP, setGeneratedOTP] = useState('');
+  const [message, setMessage] = useState('');
+=======
+>>>>>>> main
 
   const loginTexts = {
     english: {
@@ -29,7 +36,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       admin: "Admin/NGO",
       phoneLogin: "Login with Phone",
       emailLogin: "Login with Email",
-      socialLogin: "Social Login",
       phoneNumber: "Phone Number",
       email: "Email Address",
       password: "Password",
@@ -37,14 +43,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       sendOtp: "Send OTP",
       verifyOtp: "Verify OTP",
       login: "Login",
-      continueWith: "Or continue with",
-      dontHaveAccount: "Don't have an account?",
-      signUp: "Sign Up",
-      terms: "By continuing, you agree to our Terms & Privacy Policy",
-      patientDesc: "Access your health records, book appointments, and manage family health",
-      ashaDesc: "Manage community health programs and patient outreach",
-      doctorDesc: "Manage patients, appointments, and medical consultations",
-      adminDesc: "Oversee healthcare programs and manage system data"
     },
     hindi: {
       welcome: "EasyMed में आपका स्वागत है",
@@ -55,7 +53,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       admin: "एडमिन/एनजीओ",
       phoneLogin: "फोन से लॉगिन करें",
       emailLogin: "ईमेल से लॉगिन करें",
-      socialLogin: "सामाजिक लॉगिन",
       phoneNumber: "फोन नंबर",
       email: "ईमेल पता",
       password: "पासवर्ड",
@@ -63,43 +60,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       sendOtp: "OTP भेजें",
       verifyOtp: "OTP सत्यापित करें",
       login: "लॉगिन",
-      continueWith: "या जारी रखें",
-      dontHaveAccount: "खाता नहीं है?",
-      signUp: "साइन अप करें",
-      terms: "जारी रखकर, आप हमारी शर्तों और गोपनीयता नीति से सहमत हैं",
-      patientDesc: "अपने स्वास्थ्य रिकॉर्ड तक पहुंचें, अपॉइंटमेंट बुक करें और पारिवारिक स्वास्थ्य प्रबंधित करें",
-      ashaDesc: "सामुदायिक स्वास्थ्य कार्यक्रमों और रोगी आउटरीच का प्रबंधन करें",
-      doctorDesc: "रोगियों, अपॉइंटमेंट्स और चिकित्सा परामर्श का प्रबंधन करें",
-      adminDesc: "स्वास्थ्य कार्यक्रमों की देखरेख करें और सिस्टम डेटा प्रबंधित करें"
-    },
-    tamil: {
-      welcome: "EasyMed இல் உங்களை வரவேற்கிறோம்",
-      tagline: "உங்கள் குடும்பத்தின் ஆரோக்கியம், ஒரு தட்டல் தூரத்தில்",
-      patient: "நோயாளி/குடும்பம்",
-      asha: "ஆஷா பணியாளர்",
-      doctor: "மருத்துவர்/சுகாதார வழங்குநர்",
-      admin: "நிர்வாகி/என்ஜிஓ",
-      phoneLogin: "தொலைபேசியில் உள்நுழைக",
-      emailLogin: "மின்னஞ்சலில் உள்நுழைக",
-      socialLogin: "சமூக உள்நுழைவு",
-      phoneNumber: "தொலைபேசி எண்",
-      email: "மின்னஞ்சல் முகவரி",
-      password: "கடவுச்சொல்",
-      enterOtp: "OTP ஐ உள்ளிடவும்",
-      sendOtp: "OTP அனுப்பு",
-      verifyOtp: "OTP சரிபார்க்கவும்",
-      login: "உள்நுழைக",
-      continueWith: "அல்லது தொடரவும்",
-      dontHaveAccount: "கணக்கு இல்லையா?",
-      signUp: "பதிவு செய்யவும்",
-      terms: "தொடர்வதன் மூலம், எங்கள் விதிமுறைகள் மற்றும் தனியுரிமைக் கொள்கையை ஒப்புக்கொள்கிறீர்கள்",
-      patientDesc: "உங்கள் சுகாதார பதிவுகளை அணுகவும், நியமனங்களை முன்பதிவு செய்யவும் மற்றும் குடும்ப சுகாதாரத்தை நிர்வகிக்கவும்",
-      ashaDesc: "சமூக சுகாதார திட்டங்கள் மற்றும் நோயாளி வெளியீட்டை நிர்வகிக்கவும்",
-      doctorDesc: "நோயாளிகள், நியமனங்கள் மற்றும் மருத்துவ ஆலோசனைகளை நிர்வகிக்கவும்",
-      adminDesc: "சுகாதார திட்டங்களை மேற்பார்வையிடுங்கள் மற்றும் கணினி தரவை நிர்வகிக்கவும்"
     }
   };
 
+  const currentTexts = loginTexts[currentLanguage as keyof typeof loginTexts] || loginTexts.english;
+=======
   const getText = (key: keyof typeof loginTexts.english): string => {
     return loginTexts[currentLanguage as keyof typeof loginTexts]?.[key] || loginTexts.english[key];
   };
@@ -134,24 +99,33 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       borderColor: 'border-orange-200'
     }
   ];
+>>>>>>> main
 
   const handleSendOTP = async () => {
     if (phoneNumber.length >= 10) {
       setIsLoading(true);
       
-      // Auto-login for your admin number
+      // Auto-login for admin number
       if (phoneNumber === '9060328119' && activeTab === 'admin') {
         setTimeout(() => {
           setIsLoading(false);
           handleLogin();
         }, 1000);
-        return;
+return;
       }
       
-      // Simulate OTP sending with realistic delay for other numbers
+      // Simulate OTP sending
       setTimeout(() => {
         setShowOTP(true);
         setIsLoading(false);
+        const otpCode = '123456';
+        setGeneratedOTP(otpCode);
+        setMessage(`OTP sent to ${phoneNumber}. For demo: Enter 123456`);
+        Alert.alert('OTP Sent', `For demo: Enter 123456 as your OTP`);
+      }, 1000);
+    } else {
+      Alert.alert('Error', 'Please enter a valid 10-digit phone number');
+=======
         // Generate a random 6-digit OTP for demo
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString();
         setGeneratedOTP(otpCode);
@@ -160,6 +134,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       }, 1500);
     } else {
       alert('Please enter a valid phone number (minimum 10 digits)');
+>>>>>>> main
     }
   };
 
@@ -168,18 +143,56 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     
     try {
       if (activeTab === 'admin') {
-        // Admin login with multiple methods
         let success = false;
         
-        // Method 1: Phone number check
+        // Admin phone login
         if (loginMethod === 'phone' && phoneNumber === '9060328119') {
           success = await loginAdmin(phoneNumber, {
             name: 'Super Admin',
+            role: 'super_admin',
+            timestamp: new Date().toISOString()
+          };
+=======
             email: email
           });
+>>>>>>> main
         }
-        // Method 2: Email and password check for admin
+        // Admin email login
         else if (loginMethod === 'email' && 
+                 (email === 'admin@easymed.in' || email === 'admin@gmail.com') && 
+                 (password === 'admin123' || password === 'dummy123')) {
+          success = true;
+          userInfo = {
+            phoneNumber: '9060328119',
+            email,
+            loginMethod: 'email',
+            name: 'Super Admin (Email)',
+            role: 'super_admin',
+            timestamp: new Date().toISOString()
+          };
+        }
+        
+        if (success) {
+          setMessage('Admin login successful!');
+          setTimeout(() => {
+            onLogin('admin', userInfo);
+          }, 1000);
+          setIsLoading(false);
+          return;
+        } else {
+          Alert.alert('Access Denied', 'Use phone: 9060328119 or email: admin@easymed.in / admin123');
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        // Regular user login with OTP
+        let success = false;
+        let userInfo: any = {};
+        
+        if (loginMethod === 'phone' && showOTP && otp) {
+          if (otp.length < 6) {
+            Alert.alert('Error', 'Please enter the complete 6-digit OTP');
+=======
                  (email === 'admin@easymed.in' || email === 'admin@gmail.com' || email === 'superadmin@easymed.in') && 
                  (password === 'admin123' || password === 'easymed2025' || password === 'admin@123')) {
           success = await loginAdmin(email, {
@@ -203,15 +216,46 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           alert('Access denied. Use one of these methods:\n\n📱 Phone: 9060328119\n📧 Email: admin@easymed.in\n🔑 Password: admin123\n\nOr try: admin@gmail.com / easymed2025');
         }
       } else {
-        // Regular user login simulation
+   // Regular user login simulation
         if (loginMethod === 'phone' && showOTP) {
           // For phone login with OTP, validate OTP
           if (otp.length < 6) {
             alert('Please enter a valid OTP');
+>>>>>>> main
             setIsLoading(false);
             return;
           }
           
+          if (otp !== '123456' && generatedOTP && otp !== generatedOTP) {
+            Alert.alert('Invalid OTP', 'For demo, please enter: 123456');
+            setIsLoading(false);
+            return;
+          }
+          
+          success = true;
+          userInfo = {
+            phoneNumber,
+            phone: phoneNumber,
+            loginMethod: 'phone',
+            name: `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} User`,
+            role: activeTab,
+            timestamp: new Date().toISOString()
+          };
+        }
+        
+        if (success) {
+          setMessage('Login successful!');
+          setTimeout(() => {
+            onLogin(activeTab, userInfo);
+          }, 1000);
+        } else {
+          Alert.alert('Error', 'Please verify your OTP first');
+        }
+      }
+    } catch (error) {
+      console.log('Login error:', error);
+      Alert.alert('Error', 'Login failed. Please try again.');
+=======
           // Check if OTP matches the generated one (for demo)
           if (generatedOTP && otp !== generatedOTP) {
             alert(`Invalid OTP. Please enter the correct OTP.\nHint: Check the console or the alert message for the correct OTP.`);
@@ -236,30 +280,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
       alert('Login failed. Please try again.');
     } finally {
       setTimeout(() => setIsLoading(false), 1000);
+>>>>>>> main
     }
-  };
-
-  const handleSocialLogin = (provider: string) => {
-    setIsLoading(true);
     
-    // Simulate social login
-    setTimeout(() => {
-      const userInfo = {
-        loginMethod: 'social',
-        provider,
-        name: `${provider.charAt(0).toUpperCase() + provider.slice(1)} User`,
-        timestamp: new Date().toISOString()
-      };
-      onLogin(activeTab, userInfo);
-      setIsLoading(false);
-    }, 1500);
-  };
-
-  const handleSignup = () => {
-    alert('Signup functionality will redirect to registration form. For demo, you can login directly with any credentials.');
+    setIsLoading(false);
   };
 
   return (
+    <ScrollView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.title}>{currentTexts.welcome}</Text>
+        <Text style={styles.subtitle}>{currentTexts.tagline}</Text>
+      </View>
+=======
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
@@ -287,68 +320,127 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 <p><strong>🔑 Password:</strong> admin123</p>
                 <p className="text-blue-600 mt-2">Alternative: admin@gmail.com / easymed2025</p>
               </div>
+   </div>
             </div>
           )}
         </div>
+>>>>>>> main
 
-        {/* User Type Selection */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/30 shadow-xl mb-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4 text-center">Select User Type</h3>
-          <div className="grid grid-cols-2 gap-3 mb-4">
-            {userTypes.map((type) => (
-              <button
-                key={type.id}
-                onClick={() => setActiveTab(type.id)}
-                className={`p-4 rounded-2xl border-2 transition-all duration-300 ${
-                  activeTab === type.id
-                    ? `bg-gradient-to-br ${type.bgColor} ${type.borderColor} border-opacity-50 scale-105 shadow-lg`
-                    : 'bg-white/50 border-gray-200 hover:bg-white/80'
-                }`}
-              >
-                <div className="text-center">
-                  <div className={`text-2xl mb-2 ${activeTab === type.id ? 'scale-110' : ''} transition-transform`}>
-                    {type.icon}
-                  </div>
-                  <div className={`text-xs font-semibold ${
-                    activeTab === type.id 
-                      ? `bg-gradient-to-r ${type.color} bg-clip-text text-transparent`
-                      : 'text-gray-600'
-                  }`}>
-                    {getText(type.id)}
-                  </div>
-                </div>
-              </button>
-            ))}
-          </div>
-          
-          {/* User Type Description */}
-          <div className="text-center p-3 bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl">
-            <p className="text-xs text-gray-600">{getText(`${activeTab}Desc` as keyof typeof loginTexts.english)}</p>
-          </div>
-        </div>
+      {/* User Type Tabs */}
+      <View style={styles.tabContainer}>
+        {['patient', 'asha', 'doctor', 'admin'].map((type) => (
+          <TouchableOpacity
+            key={type}
+            style={[
+              styles.tab,
+              activeTab === type && styles.activeTab
+            ]}
+            onPress={() => setActiveTab(type as typeof activeTab)}
+          >
+            <Text style={[
+              styles.tabText,
+              activeTab === type && styles.activeTabText
+            ]}>
+              {currentTexts[type as keyof typeof currentTexts]}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
-        {/* Login Form */}
-        <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/30 shadow-xl">
-          {/* Login Method Tabs */}
-          <div className="flex bg-gray-100 rounded-2xl p-1 mb-6">
-            <button
-              onClick={() => setLoginMethod('phone')}
-              className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all ${
-                loginMethod === 'phone'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600'
-              }`}
+      {/* Login Method Selector */}
+      <View style={styles.loginMethodContainer}>
+        <TouchableOpacity
+          style={[
+            styles.loginMethodButton,
+            loginMethod === 'phone' && styles.activeLoginMethod
+          ]}
+          onPress={() => setLoginMethod('phone')}
+        >
+          <Text style={styles.loginMethodText}>{currentTexts.phoneLogin}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.loginMethodButton,
+            loginMethod === 'email' && styles.activeLoginMethod
+          ]}
+          onPress={() => setLoginMethod('email')}
+        >
+          <Text style={styles.loginMethodText}>{currentTexts.emailLogin}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Form Fields */}
+      <View style={styles.formContainer}>
+        {loginMethod === 'phone' ? (
+          <View>
+            <TextInput
+              style={styles.input}
+              placeholder={currentTexts.phoneNumber}
+              value={phoneNumber}
+              onChangeText={setPhoneNumber}
+              keyboardType="phone-pad"
+              maxLength={10}
+            />
+            
+            {showOTP && (
+              <TextInput
+                style={styles.input}
+                placeholder={currentTexts.enterOtp}
+                value={otp}
+                onChangeText={setOtp}
+                keyboardType="numeric"
+                maxLength={6}
+              />
+            )}
+            
+            <TouchableOpacity
+              style={[styles.button, isLoading && styles.buttonDisabled]}
+              onPress={showOTP ? handleLogin : handleSendOTP}
+              disabled={isLoading}
             >
-              📱 {getText('phoneLogin')}
-            </button>
-            <button
-              onClick={() => setLoginMethod('email')}
-              className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all ${
-                loginMethod === 'email'
-                  ? 'bg-white text-blue-600 shadow-sm'
-                  : 'text-gray-600'
-              }`}
+              <Text style={styles.buttonText}>
+                {isLoading ? 'Loading...' : showOTP ? currentTexts.verifyOtp : currentTexts.sendOtp}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <View>
+            <TextInput
+              style={styles.input}
+              placeholder={currentTexts.email}
+              value={email}
+              onChangeText={setEmail}
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
+            <TextInput
+              style={styles.input}
+              placeholder={currentTexts.password}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+            />
+            
+            <TouchableOpacity
+              style={[styles.button, isLoading && styles.buttonDisabled]}
+              onPress={handleLogin}
+              disabled={isLoading}
             >
+              <Text style={styles.buttonText}>
+                {isLoading ? 'Loading...' : currentTexts.login}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+
+      {message ? (
+        <View style={styles.messageContainer}>
+          <Text style={styles.messageText}>{message}</Text>
+        </View>
+      ) : null}
+    </ScrollView>
+=======
               ✉️ {getText('emailLogin')}
             </button>
           </div>
@@ -374,7 +466,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
               </div>
 
               {!showOTP ? (
-                <button
+     <button
                   onClick={handleSendOTP}
                   disabled={phoneNumber.length < 10 || isLoading}
                   className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-[0.98] transition-all flex items-center justify-center"
@@ -470,7 +562,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 {isLoading ? (
                   <div className="flex items-center space-x-2">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Logging in...</span>
+            <span>Logging in...<span>
                   </div>
                 ) : (
                   getText('login')
@@ -549,5 +641,115 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         </div>
       </div>
     </div>
+>>>>>>> main
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  header: {
+    paddingTop: 60,
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#1f2937',
+    marginBottom: 8,
+  },
+  subtitle: {
+    fontSize: 16,
+    color: '#6b7280',
+    textAlign: 'center',
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+  tab: {
+    flex: 1,
+minWidth: '45%',
+    margin: 4,
+    padding: 12,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  activeTab: {
+    backgroundColor: '#3b82f6',
+  },
+  tabText: {
+    fontSize: 12,
+    fontWeight: '500',
+    color: '#374151',
+    textAlign: 'center',
+  },
+  activeTabText: {
+    color: '#fff',
+  },
+  loginMethodContainer: {
+    flexDirection: 'row',
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+  loginMethodButton: {
+    flex: 1,
+    margin: 4,
+    padding: 12,
+    backgroundColor: '#f3f4f6',
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  activeLoginMethod: {
+    backgroundColor: '#3b82f6',
+  },
+  loginMethodText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#374151',
+  },
+  formContainer: {
+    paddingHorizontal: 16,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: '#d1d5db',
+    borderRadius: 8,
+    padding: 12,
+    fontSize: 16,
+    marginBottom: 16,
+    backgroundColor: '#fff',
+  },
+  button: {
+    backgroundColor: '#3b82f6',
+    padding: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  buttonDisabled: {
+    backgroundColor: '#9ca3af',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  messageContainer: {
+    margin: 16,
+    padding: 12,
+    backgroundColor: '#ecfdf5',
+    borderRadius: 8,
+  },
+  messageText: {
+    color: '#065f46',
+    textAlign: 'center',
+  },
+});
