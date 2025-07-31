@@ -1,5 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { useState } from 'react';
+import LanguageSelector from '../LanguageSelector';
+import VoiceInterface from '../VoiceInterface';
 
 interface AdminDashboardProps {
   userInfo: any;
@@ -7,6 +8,82 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ userInfo, onLogout }: AdminDashboardProps) {
+  const [activeSection, setActiveSection] = useState('overview');
+
+  const systemStats = {
+    totalUsers: 320,
+    patients: 220,
+    ashaWorkers: 55,
+    doctors: 45,
+    appointments: 150,
+    videoConsultations: 45,
+    schemes: 25
+  };
+
+  const recentActivity = [
+    {
+      id: 1,
+      type: 'user_registration',
+      message: 'New patient registration: Kamala Devi',
+      time: '2 minutes ago',
+      icon: '👤'
+    },
+    {
+      id: 2,
+      type: 'appointment',
+      message: 'Video consultation completed: Dr. Rajesh Kumar',
+      time: '15 minutes ago',
+      icon: '📹'
+    },
+    {
+      id: 3,
+      type: 'scheme_application',
+      message: 'Muthulakshmi Reddy scheme application approved',
+      time: '1 hour ago',
+      icon: '🏛️'
+    },
+    {
+      id: 4,
+      type: 'asha_update',
+      message: 'ASHA worker submitted monthly report',
+      time: '2 hours ago',
+      icon: '📋'
+    }
+  ];
+
+  const governmentSchemes = [
+    {
+      name: 'Ayushman Bharat',
+      applications: 156,
+      approved: 142,
+      budget: '₹50,00,000',
+      utilization: '85%'
+    },
+    {
+      name: 'Muthulakshmi Reddy Maternity Assistance',
+      applications: 42,
+      approved: 38,
+      budget: '₹7,20,000',
+      utilization: '90%'
+    },
+    {
+      name: 'Janani Suraksha Yojana',
+      applications: 89,
+      approved: 82,
+      budget: '₹1,20,000',
+      utilization: '92%'
+    }
+  ];
+
+  const stateWiseData = [
+    { state: 'Tamil Nadu', patients: 45, asha: 12, doctors: 8, schemes: 6 },
+    { state: 'Karnataka', patients: 38, asha: 10, doctors: 7, schemes: 5 },
+    { state: 'Andhra Pradesh', patients: 32, asha: 8, doctors: 6, schemes: 4 },
+    { state: 'Kerala', patients: 28, asha: 7, doctors: 5, schemes: 4 },
+    { state: 'Telangana', patients: 25, asha: 6, doctors: 4, schemes: 3 },
+    { state: 'Others', patients: 52, asha: 12, doctors: 15, schemes: 3 }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 via-white to-orange-50">
       {/* Modern Header with Gradient */}
@@ -447,137 +524,6 @@ export default function AdminDashboard({ userInfo, onLogout }: AdminDashboardPro
           </div>
         </div>
       </div>
-
-      {/* Footer Credit */}
-      <footer className="bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100 py-6 mt-12">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center">
-            <p className="text-sm text-gray-600 font-medium">
-              Built with <span className="text-red-500 text-lg animate-pulse">❤️</span> by{' '}
-              <span className="font-bold text-blue-600">Praveen Kumar J</span>{' '}
-              for <span className="font-bold text-green-600">India's Healthcare Future</span>
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
-
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Admin Dashboard</Text>
-        <Text style={styles.subtitle}>Welcome, {userInfo.name}</Text>
-        <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={styles.content}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>System Overview</Text>
-          <Text style={styles.cardText}>Total Users: 1,247</Text>
-          <Text style={styles.cardText}>Active Doctors: 45</Text>
-          <Text style={styles.cardText}>ASHA Workers: 89</Text>
-          <Text style={styles.cardText}>Registered Patients: 1,113</Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Platform Statistics</Text>
-          <Text style={styles.cardText}>Daily Consultations: 156</Text>
-          <Text style={styles.cardText}>Emergency Calls: 12</Text>
-          <Text style={styles.cardText}>System Uptime: 99.8%</Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Recent Activity</Text>
-          <Text style={styles.cardText}>• New doctor registration: Dr. Priya</Text>
-          <Text style={styles.cardText}>• System maintenance completed</Text>
-          <Text style={styles.cardText}>• Database backup successful</Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Admin Actions</Text>
-          <TouchableOpacity style={styles.actionButton}>
-            <Text style={styles.actionButtonText}>Manage Users</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <Text style={styles.actionButtonText}>System Settings</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton}>
-            <Text style={styles.actionButtonText}>View Reports</Text>
-          </TouchableOpacity>
-        </View>
-      </ScrollView>
-    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
-  header: {
-    backgroundColor: '#f59e0b',
-    padding: 16,
-    paddingTop: 50,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#fde68a',
-    marginBottom: 12,
-  },
-  logoutButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontWeight: '500',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  card: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 8,
-  },
-  cardText: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 4,
-  },
-  actionButton: {
-    backgroundColor: '#f59e0b',
-    padding: 12,
-    borderRadius: 6,
-    marginBottom: 8,
-    alignItems: 'center',
-  },
-  actionButtonText: {
-    color: '#fff',
-    fontWeight: '500',
-  },
-});

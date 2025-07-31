@@ -1,11 +1,99 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { useState } from 'react';
+import LanguageSelector from '../LanguageSelector';
+import VoiceInterface from '../VoiceInterface';
 
 interface ASHADashboardProps {
   userInfo: any;
   onLogout: () => void;
 }
+
 export default function ASHADashboard({ userInfo, onLogout }: ASHADashboardProps) {
+  const [activeSection, setActiveSection] = useState('overview');
+
+  const assignedPatients = [
+    {
+      id: 1,
+      name: 'Kamala Devi',
+      age: 28,
+      village: 'Ramanathapuram',
+      condition: 'Pregnancy - 7 months',
+      lastVisit: '2025-01-25',
+      nextVisit: '2025-01-30',
+      priority: 'High'
+    },
+    {
+      id: 2,
+      name: 'Ravi Kumar',
+      age: 45,
+      village: 'Thanjavur',
+      condition: 'Diabetes monitoring',
+      lastVisit: '2025-01-20',
+      nextVisit: '2025-02-03',
+      priority: 'Medium'
+    },
+    {
+      id: 3,
+      name: 'Lakshmi Sundaram',
+      age: 35,
+      village: 'Kumbakonam',
+      condition: 'Hypertension',
+      lastVisit: '2025-01-22',
+      nextVisit: '2025-01-29',
+      priority: 'Medium'
+    }
+  ];
+
+  const healthPrograms = [
+    {
+      name: 'Immunization Drive',
+      date: '2025-02-01',
+      location: 'Community Center',
+      target: '0-5 years children',
+      registered: 25,
+      completed: 0
+    },
+    {
+      name: 'Maternal Health Checkup',
+      date: '2025-01-30',
+      location: 'Primary Health Center',
+      target: 'Pregnant women',
+      registered: 12,
+      completed: 0
+    },
+    {
+      name: 'Diabetes Screening',
+      date: '2025-02-05',
+      location: 'Village Square',
+      target: 'Adults 35+',
+      registered: 18,
+      completed: 0
+    }
+  ];
+
+  const resources = [
+    {
+      type: 'Medicine Stock',
+      item: 'Iron & Folic Acid Tablets',
+      current: 120,
+      required: 200,
+      status: 'Low'
+    },
+    {
+      type: 'Equipment',
+      item: 'Digital Thermometer',
+      current: 2,
+      required: 3,
+      status: 'Adequate'
+    },
+    {
+      type: 'Medicine Stock',
+      item: 'ORS Packets',
+      current: 85,
+      required: 100,
+      status: 'Good'
+    }
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-teal-50">
       {/* Modern Header */}
@@ -329,104 +417,6 @@ export default function ASHADashboard({ userInfo, onLogout }: ASHADashboardProps
           </div>
         </div>
       </div>
-
-      {/* Footer Credit */}
-      <footer className="bg-gradient-to-r from-blue-50 to-indigo-50 border-t border-blue-100 py-6 mt-12">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="text-center">
-            <p className="text-sm text-gray-600 font-medium">
-              Built with <span className="text-red-500 text-lg animate-pulse">❤️</span> by{' '}
-              <span className="font-bold text-blue-600">Praveen Kumar J</span>{' '}
-              for <span className="font-bold text-green-600">India's Healthcare Future</span>
-            </p>
-          </div>
-        </div>
-      </footer>
     </div>
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>ASHA Dashboard</Text>
-        <Text style={styles.subtitle}>Welcome, {userInfo.name}</Text>
-        <TouchableOpacity style={styles.logoutButton} onPress={onLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
-        </TouchableOpacity>
-      </View>
-
-      <ScrollView style={styles.content}>
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Community Health Overview</Text>
-          <Text style={styles.cardText}>Registered Families: 150</Text>
-          <Text style={styles.cardText}>Monthly Checkups: 45</Text>
-          <Text style={styles.cardText}>Vaccination Due: 12</Text>
-        </View>
-
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Today's Tasks</Text>
-          <Text style={styles.cardText}>• Home visit to Family #1234</Text>
-          <Text style={styles.cardText}>• Child vaccination follow-up</Text>
-          <Text style={styles.cardText}>• Pregnancy counseling session</Text>
-        </View>
-      </ScrollView>
-    </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f9fafb',
-  },
-  header: {
-    backgroundColor: '#10b981',
-    padding: 16,
-    paddingTop: 50,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#fff',
-    marginBottom: 4,
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#a7f3d0',
-    marginBottom: 12,
-  },
-  logoutButton: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-  },
-  logoutButtonText: {
-    color: '#fff',
-    fontWeight: '500',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
-  },
-  card: {
-    backgroundColor: '#fff',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-    marginBottom: 8,
-  },
-  cardText: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginBottom: 4,
-  },
-});

@@ -44,7 +44,7 @@ npm install
 Run locally:
 
 ```bash
-npm run dev   # or npm start if using Create React App
+npm run dev
 ```
 
 ---
@@ -83,6 +83,13 @@ If you need SPA routing, add a `vercel.json` file like this:
 - **PWA**: Service Worker, Web App Manifest
 - **Voice**: Web Speech API (Speech Recognition & Synthesis)
 - **Deployment**: Vercel
+=======
+- React + TypeScript
+- Vite (Build Tool)
+- Tailwind CSS
+- Lucide Icons
+- PWA Support
+- Vercel (Hosting)
 
 ---
 
