@@ -8,7 +8,7 @@ import TeamManagement from './components/TeamManagement';
 import SystemStatus from './components/SystemStatus';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { AdminProvider, useAdmin } from './contexts/AdminContext';
-import { LanguageKey } from './translations';
+import { LanguageKey } from './translations/index';
 import './App.css';
 
 interface User {
