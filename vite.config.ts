@@ -22,13 +22,24 @@ export default defineConfig({
     exclude: ['mongodb'] // Exclude MongoDB from browser bundling
   },
   build: {
+    target: 'es2015',
+    minify: 'esbuild',
+    sourcemap: false,
     rollupOptions: {
-      external: ['mongodb', 'crypto', 'util'] // Mark as external for build
-    }
+      external: ['mongodb', 'crypto', 'util'], // Mark as external for build
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom'],
+          translations: ['./src/translations/index.ts', './src/translations/loginTexts.ts']
+        }
+      }
+    },
+    chunkSizeWarningLimit: 1000
   },
   esbuild: {
     loader: 'tsx',
     include: /src\/.*\.[tj]sx?$/,
-    exclude: []
+    exclude: [],
+    target: 'es2015'
   }
 })

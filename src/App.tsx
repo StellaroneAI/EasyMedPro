@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import PatientDashboard from './components/dashboards/PatientDashboard';
-import ASHADashboard from './components/dashboards/ASHADashboard';
-import DoctorDashboard from './components/dashboards/DoctorDashboard';
-import AdminDashboard from './components/dashboards/AdminDashboard';
+import PatientDashboard from './components/PatientDashboard';
+import ASHADashboard from './components/ASHAWorkerHub';
+import DoctorDashboard from './components/dashboards/DoctorSpecificDashboard';
+import AdminDashboard from './components/dashboards/AdminSpecificDashboard';
 import LoginPage from './components/LoginPage';
 import TeamManagement from './components/TeamManagement';
 import SystemStatus from './components/SystemStatus';
