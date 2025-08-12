@@ -7,6 +7,7 @@ import twilioService from '../services/twilioService.js';
 import demoUserService from '../services/demoUserService.js';
 import otpDebugService from '../services/otpDebugService.js';
 import emailOTPService from '../services/emailOTPService.js';
+import firebaseSMSMonitor from '../services/firebaseSMSMonitor.js';
 import { authenticateToken, validateRefreshToken } from '../middleware/auth.js';
 
 const router = express.Router();
@@ -1257,6 +1258,175 @@ router.post('/otp-debug/test-email', authenticateToken, [
     res.status(500).json({
       success: false,
       message: 'Failed to send test email'
+    });
+  }
+});
+
+// Firebase SMS Monitoring Routes
+// Get Firebase SMS statistics
+router.get('/otp-debug/firebase-stats', authenticateToken, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.userType !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+
+    const stats = firebaseSMSMonitor.getSMSStatistics();
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Firebase stats error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get Firebase statistics'
+    });
+  }
+});
+
+// Check Firebase billing status
+router.get('/otp-debug/firebase-billing', authenticateToken, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.userType !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+
+    const billingStatus = await firebaseSMSMonitor.checkFirebaseBilling();
+
+    res.json({
+      success: billingStatus.success,
+      data: billingStatus.success ? billingStatus.data : null,
+      error: billingStatus.error || null
+    });
+  } catch (error) {
+    console.error('Firebase billing check error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to check Firebase billing'
+    });
+  }
+});
+
+// Test Firebase configuration
+router.post('/otp-debug/test-firebase', authenticateToken, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.userType !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+
+    const configTest = await firebaseSMSMonitor.testFirebaseConfig();
+
+    res.json({
+      success: configTest.success,
+      message: configTest.message,
+      data: configTest.data || null
+    });
+  } catch (error) {
+    console.error('Firebase config test error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to test Firebase configuration'
+    });
+  }
+});
+
+// Get Firebase diagnostic report
+router.get('/otp-debug/firebase-report', authenticateToken, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.userType !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+
+    const report = firebaseSMSMonitor.generateFirebaseReport();
+
+    res.json({
+      success: true,
+      data: report
+    });
+  } catch (error) {
+    console.error('Firebase report error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to generate Firebase report'
+    });
+  }
+});
+
+// Get quota status for specific phone number
+router.get('/otp-debug/quota-status/:phoneNumber', authenticateToken, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.userType !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+
+    const { phoneNumber } = req.params;
+    
+    if (!phoneNumber.match(/^[6-9]\d{9}$/)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid phone number format'
+      });
+    }
+
+    const quotaStatus = firebaseSMSMonitor.getQuotaStatus(phoneNumber);
+
+    res.json({
+      success: true,
+      data: quotaStatus
+    });
+  } catch (error) {
+    console.error('Quota status error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get quota status'
+    });
+  }
+});
+
+// Reset SMS usage counters (emergency admin function)
+router.post('/otp-debug/reset-counters', authenticateToken, async (req, res) => {
+  try {
+    // Check if user is admin
+    if (req.user.userType !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Admin access required'
+      });
+    }
+
+    const result = firebaseSMSMonitor.resetUsageCounters();
+
+    res.json({
+      success: true,
+      message: 'Usage counters reset successfully',
+      data: { reset: result }
+    });
+  } catch (error) {
+    console.error('Reset counters error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reset usage counters'
     });
   }
 });

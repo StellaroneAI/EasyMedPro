@@ -34,10 +34,16 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
   const [testMessage, setTestMessage] = useState('');
   const [newWhitelistPhone, setNewWhitelistPhone] = useState('');
   const [diagnosticReport, setDiagnosticReport] = useState<any>(null);
+  const [firebaseStats, setFirebaseStats] = useState<any>(null);
+  const [firebaseReport, setFirebaseReport] = useState<any>(null);
 
   useEffect(() => {
     fetchOTPStats();
-    const interval = setInterval(fetchOTPStats, 30000); // Refresh every 30 seconds
+    fetchFirebaseStats();
+    const interval = setInterval(() => {
+      fetchOTPStats();
+      fetchFirebaseStats();
+    }, 30000); // Refresh every 30 seconds
     return () => clearInterval(interval);
   }, [timeframe]);
 
@@ -61,9 +67,9 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
     }
   };
 
-  const generateDiagnosticReport = async () => {
+  const fetchFirebaseStats = async () => {
     try {
-      const response = await fetch('/api/auth/otp-debug/report', {
+      const response = await fetch('/api/auth/otp-debug/firebase-stats', {
         headers: {
           'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
         }
@@ -71,10 +77,75 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
       
       if (response.ok) {
         const data = await response.json();
-        setDiagnosticReport(data.data);
+        setFirebaseStats(data.data);
       }
     } catch (error) {
-      console.error('Failed to generate diagnostic report:', error);
+      console.error('Failed to fetch Firebase stats:', error);
+    }
+  };
+
+  const generateFirebaseReport = async () => {
+    try {
+      const response = await fetch('/api/auth/otp-debug/firebase-report', {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setFirebaseReport(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to generate Firebase report:', error);
+    }
+  };
+
+  const testFirebaseConfig = async () => {
+    try {
+      const response = await fetch('/api/auth/otp-debug/test-firebase', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        alert(`✅ Firebase test successful!\n\n${data.message}`);
+      } else {
+        alert(`❌ Firebase test failed!\n\n${data.message}`);
+      }
+    } catch (error) {
+      console.error('Firebase test error:', error);
+      alert('Firebase test failed due to network error');
+    }
+  };
+
+  const resetUsageCounters = async () => {
+    if (!confirm('Are you sure you want to reset all SMS usage counters? This action cannot be undone.')) {
+      return;
+    }
+
+    try {
+      const response = await fetch('/api/auth/otp-debug/reset-counters', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+        }
+      });
+      
+      const data = await response.json();
+      if (data.success) {
+        alert('✅ Usage counters reset successfully!');
+        fetchOTPStats();
+        fetchFirebaseStats();
+      } else {
+        alert(`❌ Failed to reset counters: ${data.message}`);
+      }
+    } catch (error) {
+      console.error('Reset counters error:', error);
+      alert('Failed to reset counters due to network error');
     }
   };
 
@@ -216,7 +287,32 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Quick Stats */}
+              {/* Firebase Stats */}
+              {firebaseStats && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <div className="text-orange-600 text-sm font-medium">Firebase Status</div>
+                    <div className={`text-2xl font-bold ${firebaseStats.firebaseStatus.isConfigured ? 'text-green-700' : 'text-red-700'}`}>
+                      {firebaseStats.firebaseStatus.isConfigured ? '✅ Active' : '❌ Not Config'}
+                    </div>
+                    <div className="text-xs text-orange-500">Project: {firebaseStats.firebaseStatus.isConfigured ? 'Connected' : 'Disconnected'}</div>
+                  </div>
+                  <div className="bg-cyan-50 border border-cyan-200 rounded-lg p-4">
+                    <div className="text-cyan-600 text-sm font-medium">Daily Quota</div>
+                    <div className="text-2xl font-bold text-cyan-700">{firebaseStats.quotaStatus.dailyPercentage}%</div>
+                    <div className="text-xs text-cyan-500">
+                      {firebaseStats.totals.dailySMS} / {firebaseStats.limits.dailyLimit} SMS
+                    </div>
+                  </div>
+                  <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                    <div className="text-purple-600 text-sm font-medium">Monthly Quota</div>
+                    <div className="text-2xl font-bold text-purple-700">{firebaseStats.quotaStatus.monthlyPercentage}%</div>
+                    <div className="text-xs text-purple-500">
+                      {firebaseStats.totals.monthlySMS} / {firebaseStats.limits.monthlyLimit} SMS
+                    </div>
+                  </div>
+                </div>
+              )}
               {stats && (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
@@ -311,7 +407,42 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
                 </div>
               </div>
 
-              {/* Emergency Actions */}
+              {/* Firebase & System Actions */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-4 flex items-center text-blue-700">
+                  <span className="mr-2">🔥</span>
+                  Firebase & System Management
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                  <button
+                    onClick={testFirebaseConfig}
+                    className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700"
+                  >
+                    Test Firebase Config
+                  </button>
+                  <button
+                    onClick={generateFirebaseReport}
+                    className="bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700"
+                  >
+                    Firebase Report
+                  </button>
+                  <button
+                    onClick={resetUsageCounters}
+                    className="bg-orange-600 text-white py-2 px-4 rounded-lg hover:bg-orange-700"
+                  >
+                    Reset Counters
+                  </button>
+                  <button
+                    onClick={() => {
+                      fetchOTPStats();
+                      fetchFirebaseStats();
+                    }}
+                    className="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700"
+                  >
+                    Refresh All
+                  </button>
+                </div>
+              </div>
               <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                 <h3 className="text-lg font-semibold mb-4 flex items-center text-red-700">
                   <span className="mr-2">🚨</span>
@@ -331,7 +462,7 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
                     Email Bypass for StellaroneAI
                   </button>
                   <button
-                    onClick={generateDiagnosticReport}
+                    onClick={generateFirebaseReport}
                     className="bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700"
                   >
                     Generate Full Report
@@ -409,6 +540,50 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
                   </table>
                 </div>
               </div>
+
+              {/* Firebase Diagnostic Report */}
+              {firebaseReport && (
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <span className="mr-2">🔥</span>
+                    Firebase Diagnostic Report
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="bg-white p-4 rounded border">
+                      <h4 className="font-semibold mb-2">Configuration Status</h4>
+                      <p className={`text-sm ${firebaseReport.firebaseConfig.configured ? 'text-green-600' : 'text-red-600'}`}>
+                        {firebaseReport.firebaseConfig.configured ? '✅ Configured' : '❌ Not configured'}
+                      </p>
+                      <p className="text-xs text-gray-600">Project: {firebaseReport.firebaseConfig.projectId || 'Not set'}</p>
+                    </div>
+                    <div className="bg-white p-4 rounded border">
+                      <h4 className="font-semibold mb-2">Usage Summary</h4>
+                      <p className="text-sm">Daily: {firebaseReport.smsStatistics.totals.dailySMS} SMS</p>
+                      <p className="text-sm">Monthly: {firebaseReport.smsStatistics.totals.monthlySMS} SMS</p>
+                      <p className="text-sm">Unique Numbers: {firebaseReport.smsStatistics.totals.uniqueNumbers}</p>
+                    </div>
+                  </div>
+                  
+                  {firebaseReport.alerts && firebaseReport.alerts.length > 0 && (
+                    <div className="bg-red-50 border border-red-200 rounded p-4 mb-4">
+                      <h4 className="font-semibold text-red-700 mb-2">⚠️ Alerts</h4>
+                      {firebaseReport.alerts.map((alert: any, index: number) => (
+                        <div key={index} className={`text-sm p-2 rounded mb-2 ${
+                          alert.type === 'CRITICAL' ? 'bg-red-100 text-red-700' :
+                          alert.type === 'WARNING' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-orange-100 text-orange-700'
+                        }`}>
+                          {alert.message}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <pre className="text-xs bg-white p-4 rounded border overflow-x-auto max-h-64">
+                    {JSON.stringify(firebaseReport, null, 2)}
+                  </pre>
+                </div>
+              )}
 
               {/* Diagnostic Report */}
               {diagnosticReport && (
