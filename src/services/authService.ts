@@ -1,9 +1,9 @@
 /**
  * Enhanced Authentication Service for EasyMedPro Frontend
- * Integrates Twilio SMS OTP authentication with existing functionality
+ * Integrates Firebase SMS OTP authentication with existing functionality
  */
 
-import twilioService from './twilioService';
+import firebaseAuthService from './firebaseAuthService';
 
 const API_BASE_URL = '/api';
 
@@ -113,10 +113,10 @@ class AuthenticationService {
     }
   }
 
-  // Send OTP for phone verification using Twilio
+  // Send OTP for phone verification using Firebase
   async sendOTP(phone, userType = 'patient', language = 'english') {
     try {
-      const response = await twilioService.sendOTP(phone, userType, language);
+      const response = await firebaseAuthService.sendOTP(phone, userType, language);
       return response;
     } catch (error) {
       console.error('Send OTP error:', error);
@@ -127,10 +127,10 @@ class AuthenticationService {
     }
   }
 
-  // Verify OTP and complete login using Twilio
+  // Verify OTP and complete login using Firebase
   async verifyOTP(phone, otp, userType = 'patient') {
     try {
-      const response = await twilioService.verifyOTP(phone, otp, userType);
+      const response = await firebaseAuthService.verifyOTP(phone, otp, userType);
 
       if (response.success && response.user && response.token) {
         // Store authentication data
@@ -184,10 +184,10 @@ class AuthenticationService {
     }
   }
 
-  // Refresh access token using Twilio service
+  // Refresh access token using Firebase service
   async refreshAccessToken() {
     try {
-      const response = await twilioService.refreshToken();
+      const response = await firebaseAuthService.refreshToken();
 
       if (response.success && response.token) {
         this.token = response.token;
@@ -207,10 +207,10 @@ class AuthenticationService {
     }
   }
 
-  // Logout using Twilio service
+  // Logout using Firebase service
   async logout() {
     try {
-      twilioService.logout();
+      await firebaseAuthService.logout();
       this.clearAuthData();
       return { success: true, message: 'Logged out successfully' };
     } catch (error) {
@@ -261,20 +261,20 @@ class AuthenticationService {
     }
   }
 
-  // Check if user is authenticated using Twilio service
+  // Check if user is authenticated using Firebase service
   isAuthenticated() {
-    return twilioService.isAuthenticated() && !!(this.token && this.user);
+    return firebaseAuthService.isAuthenticated() && !!(this.token && this.user);
   }
 
-  // Get current user from Twilio service
+  // Get current user from Firebase service
   getCurrentUser() {
-    return twilioService.getCurrentUser() || this.user;
+    return firebaseAuthService.getCurrentUser() || this.user;
   }
 
   // Legacy compatibility methods for existing frontend code
   async authenticateUser(identifier, userType, language = 'english') {
-    // Validate phone number format using Twilio service
-    const phoneValidation = twilioService.validatePhoneNumber(identifier);
+    // Validate phone number format using Firebase service
+    const phoneValidation = firebaseAuthService.validatePhoneNumber(identifier);
     
     if (phoneValidation.isValid) {
       const otpResult = await this.sendOTP(phoneValidation.formatted, userType, language);
