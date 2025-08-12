@@ -1,3 +1,6 @@
+import { useState } from 'react';
+import { useLanguage } from '../../contexts/LanguageContext';
+import OTPDiagnosticPanel from './OTPDiagnosticPanel';
 import React, { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { useAdmin } from '../../contexts/AdminContext';
@@ -19,6 +22,7 @@ interface AdminSpecificDashboardProps {
 
 export default function AdminSpecificDashboard({ userInfo, onLogout }: AdminSpecificDashboardProps) {
   const { t } = useLanguage();
+  const [showOTPDiagnostic, setShowOTPDiagnostic] = useState(false);
   const { currentAdmin, isSuperAdmin } = useAdmin();
   const [activeSection, setActiveSection] = useState('dashboard');
   const [systemStats, setSystemStats] = useState({
@@ -59,6 +63,89 @@ export default function AdminSpecificDashboard({ userInfo, onLogout }: AdminSpec
 
     loadSystemStats();
 
+      {/* Admin Quick Actions */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <button className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-4 rounded-xl hover:shadow-lg transition-all">
+          <span className="text-2xl mb-2 block">👥</span>
+          <span className="font-semibold">User Management</span>
+        </button>
+        
+        <button className="bg-gradient-to-r from-green-500 to-emerald-500 text-white p-4 rounded-xl hover:shadow-lg transition-all">
+          <span className="text-2xl mb-2 block">📊</span>
+          <span className="font-semibold">Analytics Dashboard</span>
+        </button>
+        
+        <button 
+          onClick={() => setShowOTPDiagnostic(true)}
+          className="bg-gradient-to-r from-red-500 to-pink-500 text-white p-4 rounded-xl hover:shadow-lg transition-all"
+        >
+          <span className="text-2xl mb-2 block">🔍</span>
+          <span className="font-semibold">OTP Debug Panel</span>
+        </button>
+        
+        <button className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-4 rounded-xl hover:shadow-lg transition-all">
+          <span className="text-2xl mb-2 block">⚙️</span>
+          <span className="font-semibold">System Settings</span>
+        </button>
+        
+        <button className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white p-4 rounded-xl hover:shadow-lg transition-all">
+          <span className="text-2xl mb-2 block">🔒</span>
+          <span className="font-semibold">Security Management</span>
+        </button>
+      </div>
+
+      {/* StellaroneAI Specific Alert */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-2xl border-2 border-yellow-400">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-bold flex items-center">
+              <span className="mr-2">⚡</span>
+              Emergency OTP Access for StellaroneAI
+            </h3>
+            <p className="text-blue-100 mt-1">
+              Phone: +91 9060328119 | Email: gilboj@gmail.com
+            </p>
+            <p className="text-yellow-200 text-sm mt-2">
+              ✅ Admin whitelist active - OTP bypass enabled for immediate access
+            </p>
+          </div>
+          <button 
+            onClick={() => setShowOTPDiagnostic(true)}
+            className="bg-white/20 hover:bg-white/30 px-6 py-3 rounded-lg font-semibold transition-all flex items-center space-x-2"
+          >
+            <span>🛠️</span>
+            <span>Debug OTP Issues</span>
+          </button>
+        </div>
+      </div>
+
+      {/* Recent Activities */}
+      <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 border border-white/20">
+        <h3 className="text-xl font-bold text-gray-800 mb-4">Recent System Activities</h3>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+            <div>
+              <p className="font-semibold">New ASHA Worker Registration</p>
+              <p className="text-sm text-gray-600">Priya Kumari - Patna District</p>
+            </div>
+            <span className="text-sm font-medium text-blue-600">2 hours ago</span>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+            <div>
+              <p className="font-semibold">System Update Completed</p>
+              <p className="text-sm text-gray-600">EasyMed v2.1.3 deployed successfully</p>
+            </div>
+            <span className="text-sm font-medium text-green-600">5 hours ago</span>
+          </div>
+          <div className="flex items-center justify-between p-3 bg-purple-50 rounded-lg">
+            <div>
+              <p className="font-semibold">Data Backup Completed</p>
+              <p className="text-sm text-gray-600">Daily backup at 2:00 AM</p>
+            </div>
+            <span className="text-sm font-medium text-purple-600">8 hours ago</span>
+          </div>
+        </div>
+      </div>
     // Set up real-time listeners for user changes
     const unsubscribeUsers = firebaseUserManagement.onUsersChange((users) => {
       const stats = {
@@ -368,6 +455,11 @@ function SecurityManagement() {
         <p className="text-gray-600">Security management and audit logging features will be implemented here.</p>
         <p className="text-sm text-gray-500 mt-2">This section will include access logs, security settings, and audit trails.</p>
       </div>
+
+      {/* OTP Diagnostic Panel Modal */}
+      {showOTPDiagnostic && (
+        <OTPDiagnosticPanel onClose={() => setShowOTPDiagnostic(false)} />
+      )}
     </div>
   );
 }
