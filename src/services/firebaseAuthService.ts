@@ -112,19 +112,27 @@ class FirebaseAuthService {
    */
   async sendOTP(phoneNumber: string, userType: string, language: string = 'english'): Promise<SMSResponse> {
     try {
+      console.log('🔥 Firebase sendOTP called:', { phoneNumber, userType, language });
+      
       // Validate phone number
       const validation = this.validatePhoneNumber(phoneNumber);
       if (!validation.isValid) {
+        console.error('❌ Phone validation failed:', validation.error);
         return {
           success: false,
           message: validation.error || 'Invalid phone number'
         };
       }
 
+      console.log('✅ Phone number validated:', validation.formatted);
+
       // Initialize reCAPTCHA
+      console.log('🤖 Initializing reCAPTCHA...');
       const recaptchaVerifier = await this.initializeRecaptcha();
+      console.log('✅ reCAPTCHA initialized successfully');
       
       // Send SMS via Firebase
+      console.log('📱 Sending SMS via Firebase to:', validation.formatted);
       const confirmationResult = await signInWithPhoneNumber(
         this.auth,
         validation.formatted!,
@@ -133,14 +141,15 @@ class FirebaseAuthService {
 
       // Store confirmation result for verification
       this.currentConfirmationResult = confirmationResult;
+      console.log('✅ SMS sent successfully via Firebase');
 
       return {
         success: true,
-        message: `OTP sent successfully to ${validation.formatted}`,
+        message: `Real SMS OTP sent successfully to ${validation.formatted}`,
         confirmationResult
       };
     } catch (error: any) {
-      console.error('Error sending OTP:', error);
+      console.error('🚨 Firebase SMS Error:', error);
       
       // Handle specific Firebase errors
       const authError = error as AuthError;
@@ -148,22 +157,27 @@ class FirebaseAuthService {
       
       switch (authError.code) {
         case 'auth/too-many-requests':
-          errorMessage = 'Too many SMS requests. Please try again later.';
+          errorMessage = 'Too many SMS requests. Please try again later (Firebase rate limit).';
           break;
         case 'auth/invalid-phone-number':
-          errorMessage = 'Invalid phone number format.';
+          errorMessage = 'Invalid phone number format for Firebase.';
           break;
         case 'auth/captcha-check-failed':
-          errorMessage = 'reCAPTCHA verification failed. Please try again.';
+          errorMessage = 'reCAPTCHA verification failed. Please refresh and try again.';
           // Reset reCAPTCHA
           this.recaptchaVerifier = null;
           break;
         case 'auth/quota-exceeded':
-          errorMessage = 'SMS quota exceeded. Please try again later.';
+          errorMessage = 'Firebase SMS quota exceeded. Please try again later.';
+          break;
+        case 'auth/web-storage-unsupported':
+          errorMessage = 'Web storage not supported. Please enable cookies and try again.';
           break;
         default:
-          errorMessage = authError.message || errorMessage;
+          errorMessage = `Firebase Error: ${authError.message || errorMessage}`;
       }
+
+      console.error('🚨 Final error message:', errorMessage);
 
       return {
         success: false,
