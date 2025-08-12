@@ -25,23 +25,10 @@ function AppContent() {
   const [showTeamManagement, setShowTeamManagement] = useState(false);
   const [showSystemStatus, setShowSystemStatus] = useState(true);
   const { currentAdmin, logoutAdmin, loginAdmin } = useAdmin();
-  const { currentLanguage, setLanguage } = useLanguage();
+  const { currentLanguage, setLanguage, getSupportedLanguages } = useLanguage();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
-  const languageOptions = [
-    { code: 'english', name: 'English', flag: '🇺🇸' },
-    { code: 'hindi', name: 'हिंदी', flag: '🇮🇳' },
-    { code: 'tamil', name: 'தமிழ்', flag: '🇮🇳' },
-    { code: 'telugu', name: 'తెలుగు', flag: '🇮🇳' },
-    { code: 'bengali', name: 'বাংলা', flag: '🇮🇳' },
-    { code: 'marathi', name: 'मराठी', flag: '🇮🇳' },
-    { code: 'punjabi', name: 'ਪੰਜਾਬੀ', flag: '🇮🇳' },
-    { code: 'gujarati', name: 'ગુજરાતી', flag: '🇮🇳' },
-    { code: 'kannada', name: 'ಕನ್ನಡ', flag: '🇮🇳' },
-    { code: 'malayalam', name: 'മലയാളം', flag: '🇮🇳' },
-    { code: 'odia', name: 'ଓଡ଼ିଆ', flag: '🇮🇳' },
-    { code: 'assamese', name: 'অসমীয়া', flag: '🇮🇳' }
-  ];
+  const languageOptions = getSupportedLanguages();
 
   const handleLogin = (userType: 'patient' | 'asha' | 'doctor' | 'admin', userInfo: any) => {
     const newUser = {

@@ -1,0 +1,226 @@
+/**
+ * @file rtl-support.css
+ * @description RTL (Right-to-Left) and script-specific styling for Indian languages
+ */
+
+/* RTL Support for Urdu and other RTL languages */
+[dir="rtl"] {
+  direction: rtl;
+  text-align: right;
+}
+
+[dir="rtl"] .language-urdu {
+  font-family: 'Noto Nastaliq Urdu', 'Jameel Noori Nastaleeq', Arial, sans-serif;
+  direction: rtl;
+  text-align: right;
+  unicode-bidi: bidi-override;
+}
+
+/* Indian script font support */
+.language-hindi, .language-sanskrit, .language-maithili, .language-dogri, .language-nepali {
+  font-family: 'Noto Sans Devanagari', 'Mangal', 'Kalimati', 'Utsaah', sans-serif;
+}
+
+.language-tamil {
+  font-family: 'Noto Sans Tamil', 'Latha', 'Vijaya', sans-serif;
+}
+
+.language-telugu {
+  font-family: 'Noto Sans Telugu', 'Gautami', 'Vani', sans-serif;
+}
+
+.language-bengali, .language-assamese {
+  font-family: 'Noto Sans Bengali', 'Vrinda', 'Shonar Bangla', sans-serif;
+}
+
+.language-gujarati {
+  font-family: 'Noto Sans Gujarati', 'Shruti', 'Gujarati Sangam MN', sans-serif;
+}
+
+.language-kannada {
+  font-family: 'Noto Sans Kannada', 'Tunga', 'Kannada Sangam MN', sans-serif;
+}
+
+.language-malayalam {
+  font-family: 'Noto Sans Malayalam', 'Kartika', 'Malayalam Sangam MN', sans-serif;
+}
+
+.language-odia {
+  font-family: 'Noto Sans Oriya', 'Kalinga', sans-serif;
+}
+
+.language-punjabi {
+  font-family: 'Noto Sans Gurmukhi', 'Raavi', 'Gurmukhi MN', sans-serif;
+}
+
+.language-marathi {
+  font-family: 'Noto Sans Devanagari', 'Mangal', 'Shivaji01', sans-serif;
+}
+
+.language-kashmiri {
+  font-family: 'Noto Sans Devanagari', 'Mangal', sans-serif;
+}
+
+.language-sindhi {
+  font-family: 'Noto Sans Arabic', 'Aldhabi', sans-serif;
+  direction: rtl;
+  text-align: right;
+}
+
+.language-manipuri {
+  font-family: 'Noto Sans Meetei Mayek', 'Eeyyek Mukti', sans-serif;
+}
+
+.language-bodo {
+  font-family: 'Noto Sans Devanagari', 'Mangal', sans-serif;
+}
+
+.language-konkani {
+  font-family: 'Noto Sans Devanagari', 'Mangal', sans-serif;
+}
+
+.language-santali {
+  font-family: 'Noto Sans Ol Chiki', sans-serif;
+}
+
+/* Voice interface specific styling */
+.voice-interface-rtl {
+  direction: rtl;
+  text-align: right;
+}
+
+.voice-interface-rtl .voice-button {
+  float: left;
+  margin-left: 0;
+  margin-right: 10px;
+}
+
+/* Language selector dropdown */
+.language-selector {
+  font-family: inherit;
+}
+
+.language-selector option[data-lang="urdu"],
+.language-selector option[data-lang="sindhi"] {
+  direction: rtl;
+  text-align: right;
+}
+
+/* Medical terminology emphasis */
+.medical-term {
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.emergency-text {
+  color: #dc2626;
+  font-weight: bold;
+}
+
+/* Cultural context styling */
+.cultural-greeting {
+  font-style: italic;
+  color: #059669;
+}
+
+/* Responsive text sizes for different scripts */
+@media (max-width: 768px) {
+  .language-tamil,
+  .language-telugu,
+  .language-kannada,
+  .language-malayalam {
+    font-size: 0.95em;
+    line-height: 1.5;
+  }
+  
+  .language-urdu,
+  .language-sindhi {
+    font-size: 1.05em;
+    line-height: 1.6;
+  }
+  
+  .language-manipuri,
+  .language-santali {
+    font-size: 0.9em;
+    line-height: 1.4;
+  }
+}
+
+/* Font loading optimization */
+@font-face {
+  font-family: 'Noto Sans Devanagari';
+  font-display: swap;
+  src: local('Noto Sans Devanagari'), local('NotoSansDevanagari');
+}
+
+@font-face {
+  font-family: 'Noto Nastaliq Urdu';
+  font-display: swap;
+  src: local('Noto Nastaliq Urdu'), local('NotoNastaliqUrdu');
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .medical-term {
+    color: #000080;
+  }
+  
+  .emergency-text {
+    color: #8B0000;
+  }
+  
+  .cultural-greeting {
+    color: #006400;
+  }
+}
+
+/* Accessibility improvements */
+.language-hint {
+  font-size: 0.85em;
+  color: #6b7280;
+  margin-top: 4px;
+}
+
+.language-selector:focus {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Animation for language switching */
+.language-switch-enter {
+  opacity: 0;
+  transform: translateX(10px);
+}
+
+.language-switch-enter-active {
+  opacity: 1;
+  transform: translateX(0);
+  transition: opacity 200ms, transform 200ms;
+}
+
+.language-switch-exit {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.language-switch-exit-active {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition: opacity 200ms, transform 200ms;
+}
+
+/* Print styles */
+@media print {
+  .language-selector {
+    display: none;
+  }
+  
+  [dir="rtl"] {
+    direction: rtl;
+  }
+  
+  .medical-term,
+  .emergency-text {
+    color: #000 !important;
+  }
+}
