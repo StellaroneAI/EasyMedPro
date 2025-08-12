@@ -10,6 +10,7 @@ import { getAuth, connectAuthEmulator } from 'firebase/auth';
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY || "AIzaSyALfzOIwhtgwgTmB2yrjC0hTqX7E3FPMbY",
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN || "easymed-8c074.firebaseapp.com",
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL || "https://easymed-8c074-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID || "easymed-8c074",
   storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET || "easymed-8c074.firebasestorage.app",
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID || "301714324653",

@@ -1,5 +1,7 @@
 {
   "projects": {
+    "default": "easymed-8c074"
+  }
     "default": "easymed-8c074",
     "development": "easymed-8c074",
     "production": "easymed-8c074"

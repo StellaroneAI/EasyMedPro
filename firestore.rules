@@ -1,11 +1,90 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Users can read and write their own user document
     // Users can read/write their own data
+
     match /users/{userId} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // Patients can read/write their own health data
+    match /patients/{patientId} {
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == patientId || 
+         isAuthorizedHealthWorker(request.auth.uid));
+    }
+    
+    // Doctors can access their assigned patients
+    match /doctors/{doctorId} {
+      allow read, write: if request.auth != null && request.auth.uid == doctorId;
+    }
+    
+    // ASHA workers can access community health data
+    match /asha_workers/{ashaId} {
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == ashaId || isAdmin(request.auth.uid));
+    }
+    
+    // Health records with strict access control
+    match /health_records/{recordId} {
+      allow read: if request.auth != null && 
+        (isPatientRecord(request.auth.uid, recordId) || 
+         isAuthorizedProvider(request.auth.uid, recordId));
+      allow write: if request.auth != null && 
+        isAuthorizedProvider(request.auth.uid, recordId);
+    }
+    
+    // Telemedicine sessions
+    match /telemedicine_sessions/{sessionId} {
+      allow read, write: if request.auth != null && 
+        isSessionParticipant(request.auth.uid, sessionId);
+    }
+    
+    // RPM data (Real-time Patient Monitoring)
+    match /rpm_data/{dataId} {
+      allow read, write: if request.auth != null && 
+        (isPatientData(request.auth.uid, dataId) || 
+         isAuthorizedMonitor(request.auth.uid, dataId));
+    }
+    
+    // Admin-only collections
+    match /system_config/{document=**} {
+      allow read, write: if request.auth != null && isAdmin(request.auth.uid);
+    }
+    
+    // Helper functions
+    function isAdmin(uid) {
+      return exists(/databases/$(database)/documents/admins/$(uid));
+    }
+    
+    function isAuthorizedHealthWorker(uid) {
+      return exists(/databases/$(database)/documents/doctors/$(uid)) ||
+             exists(/databases/$(database)/documents/asha_workers/$(uid));
+    }
+    
+    function isPatientRecord(uid, recordId) {
+      return get(/databases/$(database)/documents/health_records/$(recordId)).data.patientId == uid;
+    }
+    
+    function isAuthorizedProvider(uid, recordId) {
+      let record = get(/databases/$(database)/documents/health_records/$(recordId));
+      return record.data.providerId == uid || isAdmin(uid);
+    }
+    
+    function isSessionParticipant(uid, sessionId) {
+      let session = get(/databases/$(database)/documents/telemedicine_sessions/$(sessionId));
+      return uid in session.data.participants;
+    }
+    
+    function isPatientData(uid, dataId) {
+      return get(/databases/$(database)/documents/rpm_data/$(dataId)).data.patientId == uid;
+    }
+    
+    function isAuthorizedMonitor(uid, dataId) {
+      let data = get(/databases/$(database)/documents/rpm_data/$(dataId));
+      return data.data.doctorId == uid || 
+             exists(/databases/$(database)/documents/doctors/$(uid));
     // Health records - users can only access their own
     match /healthRecords/{recordId} {
       allow read, write: if request.auth != null && 

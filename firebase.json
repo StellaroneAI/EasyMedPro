@@ -1,6 +1,7 @@
 {
   "hosting": {
     "public": "dist",
+    "site": "easymed-8c074",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -23,6 +24,33 @@
         ]
       },
       {
+        "source": "**/*.@(eot|otf|ttf|ttc|woff|font.css)",
+        "headers": [
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=7200"
+          }
+        ]
+      },
+      {
+        "source": "**/*.@(js|css)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "max-age=604800"
+          }
+        ]
+      }
+    ]
         "source": "**/*.@(js|css)",
         "headers": [
           {
@@ -52,19 +80,27 @@
     ],
     "cleanUrls": true,
     "trailingSlash": false
+
   },
   "functions": {
     "source": "functions",
     "node": "18",
+    "runtime": "nodejs18"
     "predeploy": [
       "npm --prefix \"$RESOURCE_DIR\" run lint",
       "npm --prefix \"$RESOURCE_DIR\" run build"
     ]
+
   },
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
+  "database": {
+    "rules": "database.rules.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
   "storage": {
     "rules": "storage.rules"
   },

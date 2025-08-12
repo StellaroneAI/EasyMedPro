@@ -7,6 +7,19 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "firebase:deploy": "npm run build && firebase deploy",
+    "firebase:hosting": "npm run build && firebase deploy --only hosting",
+    "capacitor:add:android": "npx cap add android",
+    "capacitor:add:ios": "npx cap add ios", 
+    "capacitor:sync": "npx cap sync",
+    "capacitor:build:android": "npm run build && npx cap sync && npx cap build android",
+    "android:apk": "npm run capacitor:build:android",
+    "ios:build": "npm run build && npx cap sync && npx cap build ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/core": "^6.1.2",
+    "@capacitor/ios": "^6.1.2",
     "build:firebase": "npm run build && firebase deploy --only hosting",
     "build:android": "npm run build && npx cap sync android && npx cap build android",
     "build:ios": "npm run build && npx cap sync ios && npx cap build ios",
@@ -54,6 +67,7 @@
     "twilio": "^5.8.0"
   },
   "devDependencies": {
+    "@capacitor/cli": "^6.1.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/crypto-js": "^4.2.2",
     "@types/jsonwebtoken": "^9.0.10",
@@ -64,6 +78,7 @@
     "@vercel/node": "^5.3.11",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.19",
+    "firebase-tools": "^13.20.2",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.2.2",

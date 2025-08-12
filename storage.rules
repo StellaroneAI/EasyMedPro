@@ -1,6 +1,42 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
+    // Medical documents
+    match /medical_documents/{userId}/{document=**} {
+      allow read, write: if request.auth != null && 
+        (request.auth.uid == userId || isAuthorizedProvider(userId));
+    }
+    
+    // Profile images
+    match /profile_images/{userId}/{image} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Prescription images/PDFs
+    match /prescriptions/{userId}/{prescription=**} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == userId || isAuthorizedProvider(userId));
+      allow write: if request.auth != null && isAuthorizedProvider(userId);
+    }
+    
+    // Lab reports and medical images
+    match /lab_reports/{userId}/{report=**} {
+      allow read: if request.auth != null && 
+        (request.auth.uid == userId || isAuthorizedProvider(userId));
+      allow write: if request.auth != null && isAuthorizedProvider(userId);
+    }
+    
+    // Voice recordings for AI analysis
+    match /voice_recordings/{userId}/{recording} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      allow delete: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Helper function to check if user is an authorized healthcare provider
+    function isAuthorizedProvider(patientId) {
+      return firestore.exists(/databases/(default)/documents/doctors/$(request.auth.uid)) ||
+             firestore.exists(/databases/(default)/documents/asha_workers/$(request.auth.uid)) ||
+             firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid));
     // Users can upload their own health documents, images, and files
     match /users/{userId}/{allPaths=**} {
       allow read, write: if request.auth != null && request.auth.uid == userId;
