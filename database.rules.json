@@ -1,0 +1,29 @@
+{
+  "rules": {
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+    "rpm_data": {
+      "$patientId": {
+        ".read": "auth != null && (auth.uid == $patientId || root.child('doctors').child(auth.uid).exists())",
+        ".write": "auth != null && root.child('doctors').child(auth.uid).exists()",
+        "vitals": {
+          ".validate": "newData.hasChildren(['timestamp', 'heartRate', 'bloodPressure'])"
+        }
+      }
+    },
+    "telemedicine_sessions": {
+      "$sessionId": {
+        ".read": "auth != null && (root.child('telemedicine_sessions').child($sessionId).child('participants').child(auth.uid).exists())",
+        ".write": "auth != null && (root.child('telemedicine_sessions').child($sessionId).child('participants').child(auth.uid).exists())"
+      }
+    },
+    "emergency_alerts": {
+      ".read": "auth != null && (root.child('doctors').child(auth.uid).exists() || root.child('admins').child(auth.uid).exists())",
+      ".write": "auth != null"
+    }
+  }
+}

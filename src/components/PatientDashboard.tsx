@@ -9,7 +9,7 @@ import PatientEducationLibrary from './PatientEducationLibrary';
 import GovernmentNGODashboard from './GovernmentNGODashboard';
 import SidebarMenu from './SidebarMenu';
 import LoginPage from './LoginPage';
-import PatientSpecificDashboard from './dashboards/PatientSpecificDashboard';
+import PatientSpecificDashboard from './dashboards/PatientSpecificDashboard_Enhanced';
 import ASHASpecificDashboard from './dashboards/ASHASpecificDashboard';
 import DoctorSpecificDashboard from './dashboards/DoctorSpecificDashboard';
 import AdminSpecificDashboard from './dashboards/AdminSpecificDashboard';
