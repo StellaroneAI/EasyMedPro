@@ -3,6 +3,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useAdmin } from '../contexts/AdminContext';
 import authService from '../services/authService';
 import firebaseAuthService from '../services/firebaseAuthService';
+import EmergencyAdminAccess from './admin/EmergencyAdminAccess';
 import { loginTexts, type LoginLanguageKey, type LoginTranslationKey } from '../translations/loginTexts';
 
 interface LoginPageProps {
@@ -22,7 +23,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [phoneValidation, setPhoneValidation] = useState<{isValid: boolean; message?: string}>({isValid: false});
-  const [emailValidation, setEmailValidation] = useState<{isValid: boolean; message?: string}>({isValid: false});
 
   // Text-to-speech function
   const speakMessage = (text: string) => {
@@ -494,6 +494,32 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     alert('Signup functionality will redirect to registration form. For demo, you can login directly with any credentials.');
   };
 
+  const handleEmergencyLogin = async (credentials: { identifier: string; password: string }) => {
+    try {
+      const success = await loginAdmin(credentials.identifier, {
+        name: credentials.identifier === '9060328119' ? 'Super Admin' : 'Emergency Admin',
+        phone: credentials.identifier.includes('@') ? '9060328119' : credentials.identifier,
+        email: credentials.identifier.includes('@') ? credentials.identifier : 'admin@easymed.in'
+      }, credentials.password);
+
+      if (success) {
+        onLogin('admin', {
+          name: credentials.identifier === '9060328119' ? 'Super Admin' : 'Emergency Admin',
+          phone: credentials.identifier.includes('@') ? '9060328119' : credentials.identifier,
+          email: credentials.identifier.includes('@') ? credentials.identifier : 'admin@easymed.in'
+        });
+        setShowEmergencyAccess(false);
+      }
+    } catch (error) {
+      console.error('Emergency login failed:', error);
+    }
+  };
+
+  // Show emergency access if requested
+  if (showEmergencyAccess) {
+    return <EmergencyAdminAccess onEmergencyLogin={handleEmergencyLogin} />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
       {/* Hidden reCAPTCHA container for Firebase phone auth */}
@@ -942,6 +968,18 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                 {getText('signUp')}
               </button>
             </p>
+          </div>
+
+          {/* Emergency Admin Access */}
+          <div className="mt-4 text-center">
+            <button 
+              onClick={() => setShowEmergencyAccess(true)}
+              className="text-xs text-red-600 hover:text-red-700 font-medium transition-colors duration-200 flex items-center justify-center space-x-1 mx-auto"
+            >
+              <span>🚨</span>
+              <span>Emergency Admin Access</span>
+            </button>
+            <p className="text-xs text-gray-400 mt-1">For authorized personnel only</p>
           </div>
 
           {/* Terms */}
