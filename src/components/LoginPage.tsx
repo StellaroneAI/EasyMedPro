@@ -23,6 +23,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [phoneValidation, setPhoneValidation] = useState<{isValid: boolean; message?: string}>({isValid: false});
+  const [emailValidation, setEmailValidation] = useState<{isValid: boolean; message?: string}>({isValid: false});
+  const [showEmergencyAccess, setShowEmergencyAccess] = useState(false);
 
   // Text-to-speech function
   const speakMessage = (text: string) => {
