@@ -49,24 +49,6 @@
             "value": "max-age=604800"
           }
         ]
-      }
-    ]
-        "source": "**/*.@(js|css)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "max-age=31536000"
-          }
-        ]
-      },
-      {
-        "source": "**/*.@(jpg|jpeg|gif|png|svg|webp|ico)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "max-age=31536000"
-          }
-        ]
       },
       {
         "source": "/manifest.json",
@@ -80,17 +62,15 @@
     ],
     "cleanUrls": true,
     "trailingSlash": false
-
   },
   "functions": {
     "source": "functions",
     "node": "18",
-    "runtime": "nodejs18"
+    "runtime": "nodejs18",
     "predeploy": [
       "npm --prefix \"$RESOURCE_DIR\" run lint",
       "npm --prefix \"$RESOURCE_DIR\" run build"
     ]
-
   },
   "firestore": {
     "rules": "firestore.rules",
@@ -99,8 +79,6 @@
   "database": {
     "rules": "database.rules.json"
   },
-  "storage": {
-    "rules": "storage.rules"
   "storage": {
     "rules": "storage.rules"
   },
