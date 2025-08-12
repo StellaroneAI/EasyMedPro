@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAdmin } from '../contexts/AdminContext';
-import authService from '../services/authService';
+import { dbService } from '../services/mockDatabase';
 import { loginTexts, type LoginLanguageKey, type LoginTranslationKey } from '../translations/loginTexts';
 
 interface LoginPageProps {
@@ -162,42 +162,30 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     if (phoneNumber.length >= 10) {
       setIsLoading(true);
       
-      try {
-        // Use real authentication service to send OTP
-        const result = await authService.sendOTP(phoneNumber);
-        
-        if (result.success) {
-          setShowOTP(true);
-          setGeneratedOTP(''); // Real OTP is sent via SMS
-          
-          // Set and speak multilingual message
-          const message = otpMessages[currentLanguage as keyof typeof otpMessages] || otpMessages.english;
-          setMessage(message);
-          
-          // Different messages for demo vs production
-          if (process.env.NODE_ENV === 'development') {
-            alert(`📱 OTP sent successfully!\n\nFor demo: Check console for OTP or use 123456\n\n(In production, you would receive this via SMS)`);
-          } else {
-            alert(`📱 OTP sent to ${phoneNumber}\n\nPlease check your SMS for the verification code.`);
-          }
-        } else {
-          // Fallback to demo mode if API fails
-          console.warn('API OTP failed, falling back to demo mode:', result.message);
-          setShowOTP(true);
-          setGeneratedOTP('123456');
-          setMessage('Demo mode: Use OTP 123456');
-          alert(`📱 Demo Mode: Enter 123456 as your OTP\n\n(API Error: ${result.message})`);
-        }
-      } catch (error) {
-        console.error('OTP send error:', error);
-        // Fallback to demo mode
-        setShowOTP(true);
-        setGeneratedOTP('123456');
-        setMessage('Demo mode: Use OTP 123456');
-        alert('📱 Demo Mode: Enter 123456 as your OTP\n\n(Network error occurred)');
-      } finally {
-        setIsLoading(false);
+      // Auto-login for your admin number
+      if (phoneNumber === '9060328119' && activeTab === 'admin') {
+        setTimeout(() => {
+          setIsLoading(false);
+          handleLogin();
+        }, 1000);
+        return;
       }
+      
+      // Simulate OTP sending with realistic delay for other numbers
+      setTimeout(() => {
+        setShowOTP(true);
+        setIsLoading(false);
+        
+        // For demo, use simple OTP: 123456 for any phone number
+        const otpCode = '123456';
+        setGeneratedOTP(otpCode);
+        console.log(`Demo OTP for ${phoneNumber}: ${otpCode}`);
+        
+        // Set and speak multilingual message
+        const message = otpMessages[currentLanguage as keyof typeof otpMessages] || otpMessages.english;
+        setMessage(message);
+        alert(`📱 OTP sent successfully!\n\nFor demo: Enter 123456 as your OTP\n\n(In production, you would receive this via SMS)`);
+      }, 1000);
     } else {
       alert('Please enter a valid 10-digit phone number');
     }
@@ -207,122 +195,217 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setIsLoading(true);
     
     try {
-      let result = { success: false, message: '', user: null, userType: activeTab };
-
       if (activeTab === 'admin') {
-        // Admin login - maintain backward compatibility for specific admin credentials
+        // Admin login with multiple methods
+        let success = false;
+        let userInfo = {};
+        
+        // Method 1: Phone number check
         if (loginMethod === 'phone' && phoneNumber === '9060328119') {
-          // Special case for the main admin phone number
-          result = {
-            success: true,
-            message: 'Admin login successful',
-            user: {
-              id: 'admin_1',
-              name: 'Super Admin',
-              phone: phoneNumber,
-              email: email || 'admin@easymed.in',
-              userType: 'admin',
-              role: 'super_admin'
-            },
-            userType: 'admin'
-          };
-          
-          // Also login to AdminContext for backward compatibility
-          try {
-            await loginAdmin(phoneNumber, result.user, 'admin123');
-          } catch (adminError) {
-            console.log('AdminContext login failed, but proceeding with main login');
-          }
-        } else if (loginMethod === 'email' && 
-                   (email === 'admin@easymed.in' || email === 'admin@gmail.com' || email === 'superadmin@easymed.in' || email === 'praveen@stellaronehealth.com') && 
-                   (password === 'admin123' || password === 'easymed2025' || password === 'admin@123' || password === 'dummy123')) {
-          // Special case for admin email credentials
-          result = {
-            success: true,
-            message: 'Admin login successful',
-            user: {
-              id: 'admin_1',
-              name: email === 'praveen@stellaronehealth.com' ? 'Praveen - StellarOne Health' : 'Super Admin (Email)',
-              phone: '9060328119',
-              email,
-              userType: 'admin',
-              role: 'super_admin'
-            },
-            userType: 'admin'
+          success = true;
+          userInfo = {
+            phoneNumber,
+            email: email || 'admin@easymed.in',
+            loginMethod: 'phone',
+            name: 'Super Admin',
+            role: 'super_admin',
+            timestamp: new Date().toISOString()
           };
           
           // Also login to AdminContext
           try {
-            await loginAdmin(email, result.user, password);
+            await loginAdmin(phoneNumber, userInfo, 'admin123');
           } catch (adminError) {
             console.log('AdminContext login failed, but proceeding with main login');
           }
-        } else {
-          result = {
-            success: false,
-            message: 'Access denied. Use admin credentials: admin@easymed.in / admin123 or phone: 9060328119',
-            user: null,
-            userType: 'admin'
-          };
         }
-      } else {
-        // Regular user login - use real authentication service
-        if (loginMethod === 'phone' && showOTP && otp) {
-          // Phone login with OTP verification
-          console.log('Attempting OTP verification:', { phoneNumber, otp });
-          result = await authService.verifyOTP(phoneNumber, otp);
-        } else if (loginMethod === 'email' && email && password) {
-          // Email/password login
-          console.log('Attempting email login:', { email });
-          result = await authService.loginWithEmail(email, password);
-        } else if (loginMethod === 'phone' && phoneNumber && !showOTP) {
-          // Phone login without OTP - send OTP first
-          alert('Please click "Send OTP" first to receive your verification code.');
+        // Method 2: Email and password check for admin
+        else if (loginMethod === 'email' && 
+                 (email === 'admin@easymed.in' || email === 'admin@gmail.com' || email === 'superadmin@easymed.in' || email === 'praveen@stellaronehealth.com') && 
+                 (password === 'admin123' || password === 'easymed2025' || password === 'admin@123' || password === 'dummy123')) {
+          success = true;
+          userInfo = {
+            phoneNumber: '9060328119',
+            email,
+            loginMethod: 'email',
+            name: email === 'praveen@stellaronehealth.com' ? 'Praveen - StellarOne Health' : 'Super Admin (Email)',
+            role: 'super_admin',
+            timestamp: new Date().toISOString()
+          };
+          
+          // Also login to AdminContext
+          try {
+            await loginAdmin(email, userInfo, password);
+          } catch (adminError) {
+            console.log('AdminContext login failed, but proceeding with main login');
+          }
+        }
+        
+        if (success) {
+          console.log('✅ Admin login successful, calling onLogin with:', { userType: 'admin', userInfo });
+          
+          // Set and speak success message
+          const successMsg = successMessages[currentLanguage as keyof typeof successMessages] || successMessages.english;
+          setMessage(successMsg);
+          
+          setTimeout(() => {
+            onLogin('admin', userInfo);
+          }, 1000);
           setIsLoading(false);
           return;
         } else {
-          result = {
-            success: false,
-            message: 'Please fill in all required fields',
-            user: null,
-            userType: activeTab
-          };
+          alert('Access denied. Use one of these methods:\n\n📱 Phone: 9060328119\n📧 Email: admin@easymed.in, praveen@stellaronehealth.com\n🔑 Password: admin123, dummy123\n\nOr try: admin@gmail.com / easymed2025');
+          setIsLoading(false);
+          return;
         }
-      }
-
-      if (result.success && result.user) {
-        console.log('✅ Login successful:', result);
-        
-        // Set and speak success message
-        const successMsg = successMessages[currentLanguage as keyof typeof successMessages] || successMessages.english;
-        setMessage(successMsg);
-        
-        setTimeout(() => {
-          onLogin(result.userType || activeTab, result.user);
-        }, 1000);
       } else {
-        console.error('❌ Login failed:', result.message);
+        // Enhanced login for Patient, ASHA, and Doctor with database integration
+        let success = false;
+        let userInfo: any = {};
         
-        // Handle different error cases
-        if (result.message.includes('OTP')) {
-          setMessage(result.message);
-        } else if (activeTab === 'admin') {
-          alert('Access denied. Use one of these methods:\n\n📱 Phone: 9060328119\n📧 Email: admin@easymed.in, praveen@stellaronehealth.com\n🔑 Password: admin123, dummy123');
-        } else {
-          // For non-admin users, provide helpful guidance
-          let helpMessage = 'Login failed. ';
-          if (loginMethod === 'phone') {
-            helpMessage += 'For phone login:\n1. Enter your 10-digit phone number\n2. Click "Send OTP"\n3. Enter the OTP received\n4. Click "Verify OTP"';
-          } else {
-            helpMessage += 'Please check your email and password, or try phone login with OTP.';
+        if (loginMethod === 'phone' && showOTP && otp) {
+          // For phone login with OTP, validate OTP
+          console.log('Phone OTP validation:', { phoneNumber, otp, generatedOTP, showOTP });
+          
+          if (otp.length < 6) {
+            alert('Please enter the complete 6-digit OTP');
+            setIsLoading(false);
+            return;
           }
-          alert(helpMessage);
+          
+          // For demo, accept 123456 or the generated OTP
+          if (otp !== '123456' && generatedOTP && otp !== generatedOTP) {
+            alert('❌ Invalid OTP\n\nFor demo, please enter: 123456\n\n(Or check console for actual OTP)');
+            setIsLoading(false);
+            return;
+          }
+          
+          // Try to find user in database
+          try {
+            const dbUser = await dbService.authenticateUser(phoneNumber, activeTab);
+            if (dbUser) {
+              success = true;
+              userInfo = {
+                ...dbUser,
+                phoneNumber,
+                loginMethod: 'phone',
+                role: activeTab,
+                timestamp: new Date().toISOString()
+              };
+            } else {
+              // Create demo user if not found
+              success = true;
+              userInfo = {
+                phoneNumber,
+                phone: phoneNumber,
+                loginMethod: 'phone',
+                name: `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} User`,
+                role: activeTab,
+                timestamp: new Date().toISOString()
+              };
+            }
+          } catch (dbError) {
+            console.log('Database error, using demo login:', dbError);
+            success = true;
+            userInfo = {
+              phoneNumber,
+              phone: phoneNumber,
+              loginMethod: 'phone',
+              name: `${activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} User`,
+              role: activeTab,
+              timestamp: new Date().toISOString()
+            };
+          }
+          
+          console.log('✅ Phone login successful:', userInfo);
+        } else if (loginMethod === 'phone' && !showOTP) {
+          // This shouldn't happen as we show OTP first, but let's handle it
+          alert('📱 Please click "Send OTP" first to receive your verification code.');
+          setIsLoading(false);
+          return;
+        } else if (loginMethod === 'email' && email && password) {
+          // Email + password login for all user types
+          const demoCredentials = {
+            patient: [
+              { email: 'patient@demo.com', password: 'patient123', name: 'Demo Patient' },
+              { email: 'john.doe@gmail.com', password: 'demo123', name: 'John Doe' },
+              { email: 'patient@easymed.in', password: 'patient123', name: 'EasyMed Patient' }
+            ],
+            asha: [
+              { email: 'asha@demo.com', password: 'asha123', name: 'Demo ASHA Worker' },
+              { email: 'asha.worker@gmail.com', password: 'demo123', name: 'ASHA Community Worker' },
+              { email: 'asha@easymed.in', password: 'asha123', name: 'EasyMed ASHA' }
+            ],
+            doctor: [
+              { email: 'doctor@demo.com', password: 'doctor123', name: 'Dr. Demo' },
+              { email: 'dr.smith@gmail.com', password: 'demo123', name: 'Dr. Smith' },
+              { email: 'doctor@easymed.in', password: 'doctor123', name: 'Dr. EasyMed' }
+            ]
+          };
+          
+          // Try database first
+          try {
+            const dbUser = await dbService.authenticateUser(email, activeTab);
+            if (dbUser) {
+              success = true;
+              userInfo = {
+                ...dbUser,
+                email,
+                loginMethod: 'email',
+                role: activeTab,
+                timestamp: new Date().toISOString()
+              };
+            }
+          } catch (dbError) {
+            console.log('Database user not found, trying demo credentials');
+          }
+          
+          // If not found in database, try demo credentials
+          if (!success) {
+            const credentials = demoCredentials[activeTab as keyof typeof demoCredentials];
+            const matchedCredential = credentials?.find(cred => cred.email === email && cred.password === password);
+            
+            if (matchedCredential) {
+              success = true;
+              userInfo = {
+                email,
+                loginMethod: 'email',
+                name: matchedCredential.name,
+                role: activeTab,
+                timestamp: new Date().toISOString()
+              };
+            }
+          }
+        }
+        
+        if (success) {
+          console.log('✅ Login successful, calling onLogin immediately');
+          onLogin(activeTab, userInfo);
+          setIsLoading(false);
+          return;
+        } else {
+          let credentialsList = '';
+          
+          if (activeTab === 'patient') {
+            credentialsList = '📧 patient@demo.com / patient123\n📧 john.doe@gmail.com / demo123\n📧 patient@easymed.in / patient123';
+          } else if (activeTab === 'asha') {
+            credentialsList = '📧 asha@demo.com / asha123\n📧 asha.worker@gmail.com / demo123\n📧 asha@easymed.in / asha123';
+          } else if (activeTab === 'doctor') {
+            credentialsList = '📧 doctor@demo.com / doctor123\n📧 dr.smith@gmail.com / demo123\n📧 doctor@easymed.in / doctor123';
+          }
+          
+          if (loginMethod === 'phone') {
+            alert('📱 Phone Login Steps:\n\n1️⃣ Enter any 10-digit phone number\n2️⃣ Click "Send OTP"\n3️⃣ Enter OTP: 123456\n4️⃣ Click "Verify OTP"\n\n✅ Simple demo login for all user types!');
+          } else {
+            alert(`Try these demo credentials:\n\n${credentialsList}`);
+          }
+          setIsLoading(false);
+          return;
         }
       }
     } catch (error) {
       console.error('Login error:', error);
-      alert('Login failed due to a network error. Please try again.');
-    } finally {
+      alert('Login failed. Please try again.');
       setIsLoading(false);
     }
   };
