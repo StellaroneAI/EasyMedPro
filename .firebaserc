@@ -1,0 +1,17 @@
+{
+  "projects": {
+    "default": "easymed-8c074",
+    "development": "easymed-8c074",
+    "production": "easymed-8c074"
+  },
+  "targets": {
+    "easymed-8c074": {
+      "hosting": {
+        "main": [
+          "easymed-8c074"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

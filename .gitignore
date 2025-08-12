@@ -43,3 +43,23 @@ test-*.mjs
 # Temporary files
 tmp/
 temp/
+
+# Mobile build outputs
+android/app/build/
+android/build/
+ios/App/build/
+ios/App/DerivedData/
+
+# Capacitor
+android/app/src/main/assets/public/
+ios/App/App/public/
+capacitor.config.json
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+
+# Generated icons (exclude development artifacts)
+assets/temp-*
+public/temp-*
