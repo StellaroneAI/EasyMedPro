@@ -6,31 +6,60 @@ const DYNAMIC_CACHE_NAME = 'easymedpro-dynamic-v1.0.0';
 const STATIC_ASSETS = [
   '/',
   '/index.html',
-  '/static/js/bundle.js',
-  '/static/css/main.css',
   '/manifest.json',
   '/favicon.ico',
-  // Add other critical assets
+  '/icon-192.png',
+  '/icon-512.png',
+  // Add Vite build assets dynamically
 ];
 
-// Health data endpoints to cache
+// Health data endpoints to cache for offline access
 const HEALTH_DATA_URLS = [
   '/api/vitals',
   '/api/medications',
   '/api/appointments',
   '/api/health-records',
-  '/api/emergency-contacts'
+  '/api/emergency-contacts',
+  '/api/user-profile',
+  '/api/symptoms',
+  '/api/prescriptions'
 ];
 
-// Install event - cache static assets
+// Install event - cache static assets and discover build assets
 self.addEventListener('install', (event) => {
   console.log('Service Worker: Installing...');
   
   event.waitUntil(
     caches.open(STATIC_CACHE_NAME)
-      .then((cache) => {
+      .then(async (cache) => {
         console.log('Service Worker: Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
+        
+        // Cache the basic static assets
+        await cache.addAll(STATIC_ASSETS);
+        
+        // Discover and cache Vite build assets
+        try {
+          const response = await fetch('/');
+          const html = await response.text();
+          
+          // Extract CSS and JS files from the HTML
+          const cssMatches = html.match(/href="([^"]*\.css[^"]*)"/g) || [];
+          const jsMatches = html.match(/src="([^"]*\.js[^"]*)"/g) || [];
+          
+          const buildAssets = [
+            ...cssMatches.map(match => match.replace(/href="([^"]*)"/, '$1')),
+            ...jsMatches.map(match => match.replace(/src="([^"]*)"/, '$1'))
+          ];
+          
+          if (buildAssets.length > 0) {
+            console.log('Service Worker: Caching build assets:', buildAssets);
+            await cache.addAll(buildAssets);
+          }
+        } catch (error) {
+          console.warn('Service Worker: Could not cache build assets:', error);
+        }
+        
+        return cache;
       })
       .then(() => {
         console.log('Service Worker: Static assets cached');

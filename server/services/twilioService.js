@@ -1,4 +1,6 @@
 import twilio from 'twilio';
+import firebaseSMSMonitor from './firebaseSMSMonitor.js';
+import otpDebugService from './otpDebugService.js';
 
 class TwilioService {
   constructor() {
@@ -19,10 +21,32 @@ class TwilioService {
   async sendOTP(phoneNumber, otp, userName = '') {
     if (!this.client) {
       console.log('📱 Twilio not configured - OTP would be sent to:', phoneNumber, 'OTP:', otp);
+      
+      // Still track usage even in demo mode
+      firebaseSMSMonitor.trackSMSUsage(phoneNumber, true);
+      
       return { success: true, message: 'Demo mode - check console for OTP' };
     }
 
     try {
+      // Check quota limits before sending
+      const quotaCheck = firebaseSMSMonitor.checkQuotaLimits(phoneNumber);
+      if (!quotaCheck.withinLimits) {
+        console.warn('⚠️ SMS quota exceeded for:', phoneNumber, quotaCheck.limits);
+        
+        otpDebugService.logOTPEvent(phoneNumber, 'QUOTA_EXCEEDED', 
+          'SMS quota limits exceeded', false, {
+          quotaLimits: quotaCheck.limits,
+          userName
+        });
+
+        return {
+          success: false,
+          message: 'SMS quota exceeded. Please try again later or use email verification.',
+          quotaExceeded: true
+        };
+      }
+
       const message = `Hello${userName ? ` ${userName}` : ''}! Your EasyMedPro verification code is: ${otp}. This code will expire in 10 minutes. Do not share this code with anyone.`;
       
       const result = await this.client.messages.create({
@@ -32,6 +56,18 @@ class TwilioService {
       });
 
       console.log('✅ OTP SMS sent successfully:', result.sid);
+      
+      // Track successful SMS usage
+      firebaseSMSMonitor.trackSMSUsage(phoneNumber, true);
+      
+      // Log to debug service
+      otpDebugService.logOTPEvent(phoneNumber, 'SMS_SENT', 
+        'Twilio SMS sent successfully', true, {
+        twilioSid: result.sid,
+        userName,
+        provider: 'twilio'
+      });
+
       return {
         success: true,
         message: 'OTP sent successfully',
@@ -39,6 +75,19 @@ class TwilioService {
       };
     } catch (error) {
       console.error('❌ Failed to send OTP SMS:', error);
+      
+      // Track failed SMS attempt
+      firebaseSMSMonitor.trackSMSUsage(phoneNumber, false);
+      
+      // Log to debug service
+      otpDebugService.logOTPEvent(phoneNumber, 'SMS_FAILED', 
+        'Twilio SMS failed', false, {
+        error: error.message,
+        errorCode: error.code,
+        userName,
+        provider: 'twilio'
+      });
+
       return {
         success: false,
         message: 'Failed to send OTP',
