@@ -7,6 +7,7 @@ import LoginPage from './components/LoginPage';
 import TeamManagement from './components/TeamManagement';
 import SystemStatus from './components/SystemStatus';
 import AI4BharatVoiceAssistant from './components/AI4BharatVoiceAssistant';
+import CriticalFixesTester from './components/CriticalFixesTester';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { AdminProvider, useAdmin } from './contexts/AdminContext';
 import { LanguageKey } from './translations/index';
@@ -29,6 +30,19 @@ function AppContent() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const languageOptions = getSupportedLanguages();
+
+  // Check for testing mode via URL parameter
+  const urlParams = new URLSearchParams(window.location.search);
+  const isTestingMode = urlParams.get('test') === 'fixes';
+
+  // If in testing mode, show the testing component
+  if (isTestingMode) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <CriticalFixesTester />
+      </div>
+    );
+  }
 
   const handleLogin = (userType: 'patient' | 'asha' | 'doctor' | 'admin', userInfo: any) => {
     const newUser = {
