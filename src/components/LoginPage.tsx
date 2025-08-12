@@ -13,7 +13,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const { currentLanguage } = useLanguage();
   const { loginAdmin } = useAdmin();
   const [activeTab, setActiveTab] = useState<'patient' | 'asha' | 'doctor' | 'admin'>('patient');
-  const [loginMethod, setLoginMethod] = useState<'phone' | 'email' | 'social'>('phone');
+  const [loginMethod, setLoginMethod] = useState<'phone' | 'email' | 'emailOTP' | 'social'>('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -22,6 +22,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [phoneValidation, setPhoneValidation] = useState<{isValid: boolean; message?: string}>({isValid: false});
+  const [emailValidation, setEmailValidation] = useState<{isValid: boolean; message?: string}>({isValid: false});
 
   // Text-to-speech function
   const speakMessage = (text: string) => {
@@ -114,6 +115,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     }
   }, [phoneNumber]);
 
+  // Validate email in real-time
+  useEffect(() => {
+    if (email.length > 0) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const isValid = emailRegex.test(email);
+      setEmailValidation({
+        isValid,
+        message: isValid ? '' : 'Please enter a valid email address'
+      });
+    } else {
+      setEmailValidation({isValid: false});
+    }
+  }, [email]);
+
   const getText = (key: LoginTranslationKey): string => {
     return loginTexts[currentLanguage as LoginLanguageKey]?.[key] || loginTexts.english[key];
   };
@@ -203,6 +218,52 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     }
   };
 
+  const handleSendEmailOTP = async () => {
+    // Validate email
+    if (!emailValidation.isValid) {
+      alert('Please enter a valid email address');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      const response = await fetch('/api/auth/send-email-otp', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email: email,
+          userType: activeTab
+        })
+      });
+
+      const result = await response.json();
+      
+      if (result.success) {
+        setShowOTP(true);
+        
+        // Set success message
+        const message = `📧 Email OTP sent to ${email}. Please check your inbox and spam folder.`;
+        setMessage(message);
+        
+        // Show success message
+        alert(`📧 Email OTP sent to ${email}\n\nPlease check your email inbox and spam folder for the verification code.\n\nValid for 10 minutes.\n\n${process.env.NODE_ENV === 'development' && result.otp ? `Dev OTP: ${result.otp}` : ''}`);
+      } else {
+        // Show error message
+        setMessage(`Error: ${result.message}`);
+        alert(`❌ Failed to send email OTP: ${result.message}`);
+      }
+    } catch (error) {
+      console.error('Email OTP send error:', error);
+      setMessage('Network error occurred. Please try again.');
+      alert('❌ Network error occurred. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleLogin = async () => {
     setIsLoading(true);
     
@@ -234,7 +295,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             console.log('AdminContext login failed, but proceeding with main login');
           }
         } else if (loginMethod === 'email' && 
-                   (email === 'admin@easymed.in' || email === 'admin@gmail.com' || email === 'superadmin@easymed.in' || email === 'praveen@stellaronehealth.com') && 
+                   (email === 'admin@easymed.in' || email === 'admin@gmail.com' || email === 'superadmin@easymed.in' || email === 'praveen@stellaronehealth.com' || email === 'gilboj@gmail.com') && 
                    (password === 'admin123' || password === 'easymed2025' || password === 'admin@123' || password === 'dummy123')) {
           // Special case for admin email credentials
           result = {
@@ -242,8 +303,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             message: 'Admin login successful',
             user: {
               id: 'admin_1',
-              name: email === 'praveen@stellaronehealth.com' ? 'Praveen - StellarOne Health' : 'Super Admin (Email)',
-              phone: '9060328119',
+              name: email === 'praveen@stellaronehealth.com' ? 'Praveen - StellarOne Health' : 
+                    email === 'gilboj@gmail.com' ? 'StellaroneAI Admin' : 'Super Admin (Email)',
+              phone: email === 'gilboj@gmail.com' ? '9060328119' : '9000000000',
               email,
               userType: 'admin',
               role: 'super_admin'
@@ -257,10 +319,49 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           } catch (adminError) {
             console.log('AdminContext login failed, but proceeding with main login');
           }
+        } else if (loginMethod === 'emailOTP' && showOTP && otp && emailValidation.isValid) {
+          // Admin email OTP verification
+          try {
+            const response = await fetch('/api/auth/verify-email-otp', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                email: email,
+                otp: otp
+              })
+            });
+
+            const emailResult = await response.json();
+            if (emailResult.success) {
+              result = {
+                success: true,
+                message: 'Admin email OTP verification successful',
+                user: emailResult.user,
+                userType: emailResult.user.userType
+              };
+            } else {
+              result = {
+                success: false,
+                message: emailResult.message,
+                user: null,
+                userType: 'admin'
+              };
+            }
+          } catch (error) {
+            console.error('Email OTP verification error:', error);
+            result = {
+              success: false,
+              message: 'Email OTP verification failed',
+              user: null,
+              userType: 'admin'
+            };
+          }
         } else {
           result = {
             success: false,
-            message: 'Access denied. Use admin credentials: admin@easymed.in / admin123 or phone: 9060328119',
+            message: 'Access denied. Use admin credentials: admin@easymed.in / admin123 or phone: 9060328119, or try email OTP for gilboj@gmail.com',
             user: null,
             userType: 'admin'
           };
@@ -271,6 +372,45 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           // Phone login with OTP verification using Firebase
           console.log('Attempting Firebase OTP verification:', { phoneNumber, activeTab });
           result = await authService.verifyOTP(phoneNumber, otp, activeTab);
+        } else if (loginMethod === 'emailOTP' && showOTP && otp) {
+          // Email OTP verification
+          try {
+            const response = await fetch('/api/auth/verify-email-otp', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                email: email,
+                otp: otp
+              })
+            });
+
+            const emailResult = await response.json();
+            if (emailResult.success) {
+              result = {
+                success: true,
+                message: 'Email OTP verification successful',
+                user: emailResult.user,
+                userType: emailResult.user.userType
+              };
+            } else {
+              result = {
+                success: false,
+                message: emailResult.message,
+                user: null,
+                userType: activeTab
+              };
+            }
+          } catch (error) {
+            console.error('Email OTP verification error:', error);
+            result = {
+              success: false,
+              message: 'Email OTP verification failed',
+              user: null,
+              userType: activeTab
+            };
+          }
         } else if (loginMethod === 'email' && email && password) {
           // Email/password login (fallback for non-SMS scenarios)
           console.log('Attempting email login:', { email });
@@ -278,6 +418,11 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         } else if (loginMethod === 'phone' && phoneNumber && !showOTP) {
           // Phone login without OTP - send OTP first
           alert('Please click "Send OTP" first to receive your verification code via SMS.');
+          setIsLoading(false);
+          return;
+        } else if (loginMethod === 'emailOTP' && email && !showOTP) {
+          // Email OTP without OTP - send email OTP first
+          alert('Please click "Send Email OTP" first to receive your verification code via email.');
           setIsLoading(false);
           return;
         } else {
@@ -307,14 +452,16 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         if (result.message.includes('OTP')) {
           setMessage(result.message);
         } else if (activeTab === 'admin') {
-          alert('Access denied. Use one of these methods:\n\n📱 Phone: 9060328119\n📧 Email: admin@easymed.in, praveen@stellaronehealth.com\n🔑 Password: admin123, dummy123');
+          alert('Access denied. Use one of these methods:\n\n📱 Phone: 9060328119\n📧 Email: admin@easymed.in, gilboj@gmail.com\n🔑 Password: admin123, dummy123\n📧 Email OTP: gilboj@gmail.com (bypass enabled)');
         } else {
           // For non-admin users, provide helpful guidance
           let helpMessage = 'Login failed. ';
           if (loginMethod === 'phone') {
             helpMessage += 'For phone login:\n1. Enter your 10-digit phone number\n2. Click "Send OTP"\n3. Enter the OTP received\n4. Click "Verify OTP"';
+          } else if (loginMethod === 'emailOTP') {
+            helpMessage += 'For email OTP login:\n1. Enter your email address\n2. Click "Send Email OTP"\n3. Check your email for the OTP\n4. Enter the OTP and click "Verify"';
           } else {
-            helpMessage += 'Please check your email and password, or try phone login with OTP.';
+            helpMessage += 'Please check your email and password, or try phone/email OTP login.';
           }
           alert(helpMessage);
         }
@@ -421,10 +568,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         {/* Login Form */}
         <div className="bg-white/70 backdrop-blur-sm rounded-3xl p-6 border border-white/30 shadow-xl">
           {/* Login Method Tabs */}
-          <div className="flex bg-gray-100 rounded-2xl p-1 mb-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 bg-gray-100 rounded-2xl p-1 mb-6">
             <button
               onClick={() => setLoginMethod('phone')}
-              className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all ${
+              className={`py-2 px-2 rounded-xl text-xs font-medium transition-all ${
                 loginMethod === 'phone'
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-600'
@@ -434,13 +581,33 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             </button>
             <button
               onClick={() => setLoginMethod('email')}
-              className={`flex-1 py-2 px-3 rounded-xl text-sm font-medium transition-all ${
+              className={`py-2 px-2 rounded-xl text-xs font-medium transition-all ${
                 loginMethod === 'email'
                   ? 'bg-white text-blue-600 shadow-sm'
                   : 'text-gray-600'
               }`}
             >
               ✉️ {getText('emailLogin')}
+            </button>
+            <button
+              onClick={() => setLoginMethod('emailOTP')}
+              className={`py-2 px-2 rounded-xl text-xs font-medium transition-all ${
+                loginMethod === 'emailOTP'
+                  ? 'bg-white text-green-600 shadow-sm'
+                  : 'text-gray-600'
+              }`}
+            >
+              📧 Email OTP
+            </button>
+            <button
+              onClick={() => setLoginMethod('social')}
+              className={`py-2 px-2 rounded-xl text-xs font-medium transition-all ${
+                loginMethod === 'social'
+                  ? 'bg-white text-purple-600 shadow-sm'
+                  : 'text-gray-600'
+              }`}
+            >
+              🌐 Social
             </button>
           </div>
 
@@ -543,6 +710,116 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     className="w-full py-2 text-blue-600 font-medium hover:text-blue-700 transition-colors disabled:opacity-50"
                   >
                     Didn't receive OTP? Resend
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Email OTP Login */}
+          {loginMethod === 'emailOTP' && (
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Email Address for OTP
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    className={`w-full px-4 py-3 bg-white/50 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${
+                      email.length === 0 
+                        ? 'border-gray-200 focus:ring-blue-500' 
+                        : emailValidation.isValid 
+                          ? 'border-green-300 focus:ring-green-500 bg-green-50/50' 
+                          : 'border-red-300 focus:ring-red-500 bg-red-50/50'
+                    }`}
+                    placeholder="your.email@example.com"
+                  />
+                  {email.length > 0 && (
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      {emailValidation.isValid ? '✅' : '❌'}
+                    </span>
+                  )}
+                </div>
+                {/* Email validation message */}
+                {email.length > 0 && !emailValidation.isValid && emailValidation.message && (
+                  <p className="mt-1 text-xs text-red-600 flex items-center">
+                    <span className="mr-1">⚠️</span>
+                    {emailValidation.message}
+                  </p>
+                )}
+                {/* Special message for StellaroneAI */}
+                {email === 'gilboj@gmail.com' && (
+                  <p className="mt-1 text-xs text-green-600 flex items-center">
+                    <span className="mr-1">🔓</span>
+                    Admin email whitelist - bypass enabled
+                  </p>
+                )}
+              </div>
+
+              {!showOTP ? (
+                <button
+                  onClick={handleSendEmailOTP}
+                  disabled={!emailValidation.isValid || isLoading}
+                  className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-[0.98] transition-all flex items-center justify-center"
+                >
+                  {isLoading ? (
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      <span>Sending Email OTP...</span>
+                    </div>
+                  ) : (
+                    <span className="flex items-center space-x-2">
+                      <span>📧</span>
+                      <span>Send Email OTP</span>
+                    </span>
+                  )}
+                </button>
+              ) : (
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Enter Email OTP
+                    </label>
+                    <input
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      onKeyPress={handleKeyPress}
+                      className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent text-center text-2xl tracking-widest"
+                      placeholder="000000"
+                      maxLength={6}
+                    />
+                  </div>
+                  <button
+                    onClick={handleLogin}
+                    disabled={otp.length < 6 || isLoading}
+                    className="w-full py-3 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-[0.98] transition-all flex items-center justify-center"
+                  >
+                    {isLoading ? (
+                      <div className="flex items-center space-x-2">
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                        <span>Verifying...</span>
+                      </div>
+                    ) : (
+                      'Verify Email OTP'
+                    )}
+                  </button>
+                  
+                  {/* Resend Email OTP Button */}
+                  <button
+                    onClick={() => {
+                      setOtp('');
+                      setShowOTP(false);
+                      handleSendEmailOTP();
+                    }}
+                    disabled={isLoading}
+                    className="w-full py-2 text-green-600 font-medium hover:text-green-700 transition-colors disabled:opacity-50"
+                  >
+                    Didn't receive email? Resend OTP
                   </button>
                 </div>
               )}

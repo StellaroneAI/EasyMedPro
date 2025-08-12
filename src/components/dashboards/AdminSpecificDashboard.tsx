@@ -1,4 +1,6 @@
+import { useState } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import OTPDiagnosticPanel from './OTPDiagnosticPanel';
 
 interface AdminSpecificDashboardProps {
   user: {
@@ -9,6 +11,7 @@ interface AdminSpecificDashboardProps {
 
 export default function AdminSpecificDashboard({ user }: AdminSpecificDashboardProps) {
   const { t } = useLanguage();
+  const [showOTPDiagnostic, setShowOTPDiagnostic] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -74,7 +77,7 @@ export default function AdminSpecificDashboard({ user }: AdminSpecificDashboardP
       </div>
 
       {/* Admin Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <button className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white p-4 rounded-xl hover:shadow-lg transition-all">
           <span className="text-2xl mb-2 block">👥</span>
           <span className="font-semibold">User Management</span>
@@ -85,15 +88,48 @@ export default function AdminSpecificDashboard({ user }: AdminSpecificDashboardP
           <span className="font-semibold">Analytics Dashboard</span>
         </button>
         
-        <button className="bg-gradient-to-r from-purple-500 to-pink-500 text-white p-4 rounded-xl hover:shadow-lg transition-all">
+        <button 
+          onClick={() => setShowOTPDiagnostic(true)}
+          className="bg-gradient-to-r from-red-500 to-pink-500 text-white p-4 rounded-xl hover:shadow-lg transition-all"
+        >
+          <span className="text-2xl mb-2 block">🔍</span>
+          <span className="font-semibold">OTP Debug Panel</span>
+        </button>
+        
+        <button className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-4 rounded-xl hover:shadow-lg transition-all">
           <span className="text-2xl mb-2 block">⚙️</span>
           <span className="font-semibold">System Settings</span>
         </button>
         
-        <button className="bg-gradient-to-r from-orange-500 to-red-500 text-white p-4 rounded-xl hover:shadow-lg transition-all">
+        <button className="bg-gradient-to-r from-orange-500 to-yellow-500 text-white p-4 rounded-xl hover:shadow-lg transition-all">
           <span className="text-2xl mb-2 block">🔒</span>
           <span className="font-semibold">Security Management</span>
         </button>
+      </div>
+
+      {/* StellaroneAI Specific Alert */}
+      <div className="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-2xl border-2 border-yellow-400">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-xl font-bold flex items-center">
+              <span className="mr-2">⚡</span>
+              Emergency OTP Access for StellaroneAI
+            </h3>
+            <p className="text-blue-100 mt-1">
+              Phone: +91 9060328119 | Email: gilboj@gmail.com
+            </p>
+            <p className="text-yellow-200 text-sm mt-2">
+              ✅ Admin whitelist active - OTP bypass enabled for immediate access
+            </p>
+          </div>
+          <button 
+            onClick={() => setShowOTPDiagnostic(true)}
+            className="bg-white/20 hover:bg-white/30 px-6 py-3 rounded-lg font-semibold transition-all flex items-center space-x-2"
+          >
+            <span>🛠️</span>
+            <span>Debug OTP Issues</span>
+          </button>
+        </div>
       </div>
 
       {/* Recent Activities */}
@@ -185,6 +221,11 @@ export default function AdminSpecificDashboard({ user }: AdminSpecificDashboardP
           </div>
         </div>
       </div>
+
+      {/* OTP Diagnostic Panel Modal */}
+      {showOTPDiagnostic && (
+        <OTPDiagnosticPanel onClose={() => setShowOTPDiagnostic(false)} />
+      )}
     </div>
   );
 }
