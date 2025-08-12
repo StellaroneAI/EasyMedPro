@@ -8,7 +8,7 @@ import ConsultationBooking from '../ConsultationBooking';
 import RemotePatientMonitoring from '../RemotePatientMonitoring';
 import FamilyManagement from '../FamilyManagement';
 import EmergencySystem from '../EmergencySystem';
-import IoTDeviceIntegration from '../IoTDeviceIntegration';
+import WearableDeviceIntegration from '../WearableDeviceIntegration';
 
 interface PatientSpecificDashboardProps {
   user: {
@@ -201,8 +201,8 @@ export default function PatientSpecificDashboard({ user }: PatientSpecificDashbo
         </button>
       </div>
 
-      {/* IoT Device Integration */}
-      <IoTDeviceIntegration patientId={activeMember.id} />
+      {/* Wearable Device Integration */}
+      <WearableDeviceIntegration patientId={activeMember.id} />
     </div>
   );
 

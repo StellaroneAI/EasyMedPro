@@ -10,7 +10,7 @@ import GovernmentNGODashboard from './GovernmentNGODashboard';
 import SidebarMenu from './SidebarMenu';
 import LoginPage from './LoginPage';
 import PatientSpecificDashboard from './dashboards/PatientSpecificDashboard_Enhanced';
-import ASHASpecificDashboard from './dashboards/ASHASpecificDashboard';
+import ASHASpecificDashboard from './dashboards/ASHASpecificDashboard_Enhanced';
 import DoctorSpecificDashboard from './dashboards/DoctorSpecificDashboard';
 import AdminSpecificDashboard from './dashboards/AdminSpecificDashboard';
 import SymptomChecker from './SymptomChecker';
