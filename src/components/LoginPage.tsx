@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAdmin } from '../contexts/AdminContext';
 import authService from '../services/authService';
-import twilioService from '../services/twilioService';
+import firebaseAuthService from '../services/firebaseAuthService';
 import { loginTexts, type LoginLanguageKey, type LoginTranslationKey } from '../translations/loginTexts';
 
 interface LoginPageProps {
@@ -20,7 +20,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [otp, setOtp] = useState('');
   const [showOTP, setShowOTP] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [generatedOTP, setGeneratedOTP] = useState('');
   const [message, setMessage] = useState('');
   const [phoneValidation, setPhoneValidation] = useState<{isValid: boolean; message?: string}>({isValid: false});
 
@@ -73,14 +72,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
   // Handle OTP verification
   const handleVerifyOTP = async () => {
-    if (otp === generatedOTP || otp === '123456') {
-      await handleLogin();
-    } else {
-      const errorMsg = currentLanguage === 'hindi' ? 'गलत OTP। कृपया पुनः प्रयास करें।' :
-                      currentLanguage === 'tamil' ? 'தவறான OTP. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.' :
-                      'Invalid OTP. Please try again.';
-      setMessage(errorMsg);
-    }
+    await handleLogin();
   };
 
   // Success messages in multiple languages
@@ -112,7 +104,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   // Validate phone number in real-time
   useEffect(() => {
     if (phoneNumber.length > 0) {
-      const validation = twilioService.validatePhoneNumber(phoneNumber);
+      const validation = firebaseAuthService.validatePhoneNumber(phoneNumber);
       setPhoneValidation({
         isValid: validation.isValid,
         message: validation.error
@@ -174,8 +166,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   };
 
   const handleSendOTP = async () => {
-    // Validate phone number using Twilio service
-    const validation = twilioService.validatePhoneNumber(phoneNumber);
+    // Validate phone number using Firebase service
+    const validation = firebaseAuthService.validatePhoneNumber(phoneNumber);
     
     if (!validation.isValid) {
       alert(validation.error || 'Please enter a valid Indian mobile number (10 digits starting with 6-9)');
@@ -185,19 +177,18 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setIsLoading(true);
     
     try {
-      // Use Twilio authentication service to send OTP
+      // Use Firebase authentication service to send OTP
       const result = await authService.sendOTP(validation.formatted!, activeTab, currentLanguage);
       
       if (result.success) {
         setShowOTP(true);
-        setGeneratedOTP(''); // Real OTP is sent via SMS
         
         // Set and speak multilingual message
         const message = otpMessages[currentLanguage as keyof typeof otpMessages] || otpMessages.english;
         setMessage(message);
         
         // Show success message
-        alert(`📱 OTP sent to ${validation.formatted}\n\nPlease check your SMS for the verification code.\n\nValid for 10 minutes.`);
+        alert(`📱 Real SMS OTP sent to ${validation.formatted}\n\nPlease check your phone for the verification code.\n\nValid for 10 minutes.`);
       } else {
         // Show error message
         setMessage(`Error: ${result.message}`);
@@ -275,10 +266,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           };
         }
       } else {
-        // Regular user login - use Twilio authentication service
+        // Regular user login - use Firebase authentication service
         if (loginMethod === 'phone' && showOTP && otp) {
-          // Phone login with OTP verification using Twilio
-          console.log('Attempting Twilio OTP verification:', { phoneNumber, activeTab });
+          // Phone login with OTP verification using Firebase
+          console.log('Attempting Firebase OTP verification:', { phoneNumber, activeTab });
           result = await authService.verifyOTP(phoneNumber, otp, activeTab);
         } else if (loginMethod === 'email' && email && password) {
           // Email/password login (fallback for non-SMS scenarios)
@@ -358,6 +349,9 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+      {/* Hidden reCAPTCHA container for Firebase phone auth */}
+      <div id="recaptcha-container" style={{ display: 'none' }}></div>
+      
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
