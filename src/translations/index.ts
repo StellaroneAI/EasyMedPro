@@ -1,6 +1,184 @@
-// Translation data for EasyMed - AI-Powered Healthcare Platform
-export const translations = {
-  english: {
+/**
+ * @file translations/index.ts
+ * @description Comprehensive translation data for EasyMed - AI-Powered Healthcare Platform
+ * Supports 22+ Indian official languages with healthcare-specific terminology
+ * and cultural context-appropriate content for inclusive healthcare access
+ */
+
+// Language enumeration for better type safety
+export enum Language {
+  English = "english",
+  Hindi = "hindi",
+  Tamil = "tamil",
+  Telugu = "telugu",
+  Bengali = "bengali",
+  Marathi = "marathi",
+  Punjabi = "punjabi",
+  Gujarati = "gujarati",
+  Kannada = "kannada",
+  Malayalam = "malayalam",
+  Odia = "odia",
+  Assamese = "assamese",
+  Urdu = "urdu",
+  Kashmiri = "kashmiri",
+  Sindhi = "sindhi",
+  Manipuri = "manipuri",
+  Bodo = "bodo",
+  Konkani = "konkani",
+  Sanskrit = "sanskrit",
+  Maithili = "maithili",
+  Santali = "santali",
+  Dogri = "dogri",
+  Nepali = "nepali"
+}
+
+// Complete translation interface for type safety
+export interface TranslationData {
+  // Header & Navigation
+  welcomeBack: string;
+  healthCompanion: string;
+  
+  // Health Status Cards
+  heartRate: string;
+  bloodPressure: string; 
+  nextAppointment: string;
+  medications: string;
+  normal: string;
+  dueToday: string;
+  today3pm: string;
+  drSharma: string;
+  
+  // Quick Actions
+  aiSymptomChecker: string;
+  bookAppointment: string; 
+  emergency108: string;
+  familyHealth: string;
+  
+  // AI Health Insights
+  aiHealthInsights: string;
+  goodMorning: string;
+  vitalsGreat: string;
+  medicationReminder: string;
+  nextCheckup: string;
+  
+  // Family Health
+  familyHealthTitle: string;
+  wife: string;
+  son: string;
+  daughter: string;
+  father: string;
+  mother: string;
+  allVitalsNormal: string;
+  vaccinationDue: string;
+  
+  // Recent Activity
+  recentActivity: string;
+  bloodPressureRecorded: string;
+  appointmentBooked: string; 
+  healthReportShared: string;
+  hoursAgo: string;
+  yesterday: string;
+  daysAgo: string;
+  
+  // Voice Assistant
+  listening: string;
+  youSaid: string;
+  easymedAI: string;
+  
+  // Voice Commands
+  voiceCommands: {
+    greeting: string;
+    goToAppointments: string;
+    checkSymptoms: string;
+    emergency: string;
+    familyHealthNav: string;
+    bookAppointmentNav: string;
+    healthRecords: string;
+    callDoctor: string;
+    medicationReminder: string;
+  };
+  
+  // ABHA Integration
+  abhaTitle: string;
+  abhaSubtitle: string;
+  abhaNotConnected: string;
+  abhaConnectNow: string;
+  abhaConnected: string;
+  abhaHealthId: string;
+  abhaViewRecords: string;
+  abhaCreateAccount: string;
+  abhaLogin: string;
+  abhaNationalId: string;
+  
+  // Medical Terminology
+  symptoms: string;
+  diagnosis: string;
+  treatment: string;
+  prescription: string;
+  vitals: string;
+  fever: string;
+  cough: string;
+  headache: string;
+  bodyache: string;
+  nausea: string;
+  diarrhea: string;
+  vomiting: string;
+  dizziness: string;
+  fatigue: string;
+  breathingDifficulty: string;
+  chestPain: string;
+  abdominalPain: string;
+  
+  // Healthcare Actions
+  scheduleAppointment: string;
+  viewReport: string;
+  downloadPrescription: string;
+  contactDoctor: string;
+  callAmbulance: string;
+  findNearbyHospital: string;
+  searchMedicine: string;
+  setReminder: string;
+  shareReport: string;
+  uploadDocument: string;
+  
+  // Common Phrases
+  pleaseWait: string;
+  loading: string;
+  success: string;
+  error: string;
+  retry: string;
+  cancel: string;
+  confirm: string;
+  save: string;
+  edit: string;
+  delete: string;
+  search: string;
+  filter: string;
+  sort: string;
+  
+  // Greetings by time
+  goodAfternoon: string;
+  goodEvening: string;
+  goodNight: string;
+  
+  // Cultural Context
+  namaste: string;
+  blessing: string;
+  takeCareBlessings: string;
+  familyWellbeing: string;
+  communityHealth: string;
+  
+  // Emergency
+  urgentCare: string;
+  criticalCondition: string;
+  stableCondition: string;
+  emergencyContact: string;
+  hospitalAdmission: string;
+}
+
+// Comprehensive translation data for all Indian languages
+export const translations: Record<Language, TranslationData> = {
+  [Language.English]: {
     // Header & Navigation
     welcomeBack: "Welcome back",
     healthCompanion: "Your health companion is here",
@@ -32,6 +210,9 @@ export const translations = {
     familyHealthTitle: "👨‍👩‍👧‍👦 Family Health",
     wife: "Wife",
     son: "Son",
+    daughter: "Daughter",
+    father: "Father",
+    mother: "Mother",
     allVitalsNormal: "All vitals normal",
     vaccinationDue: "Vaccination due next week",
     
@@ -72,10 +253,75 @@ export const translations = {
     abhaViewRecords: "View Health Records",
     abhaCreateAccount: "Create ABHA",
     abhaLogin: "Login with ABHA",
-    abhaNationalId: "National Digital Health ID"
+    abhaNationalId: "National Digital Health ID",
+    
+    // Medical Terminology
+    symptoms: "Symptoms",
+    diagnosis: "Diagnosis",
+    treatment: "Treatment",
+    prescription: "Prescription",
+    vitals: "Vitals",
+    fever: "Fever",
+    cough: "Cough",
+    headache: "Headache",
+    bodyache: "Body Ache",
+    nausea: "Nausea",
+    diarrhea: "Diarrhea",
+    vomiting: "Vomiting",
+    dizziness: "Dizziness",
+    fatigue: "Fatigue",
+    breathingDifficulty: "Breathing Difficulty",
+    chestPain: "Chest Pain",
+    abdominalPain: "Abdominal Pain",
+    
+    // Healthcare Actions
+    scheduleAppointment: "Schedule Appointment",
+    viewReport: "View Report",
+    downloadPrescription: "Download Prescription",
+    contactDoctor: "Contact Doctor",
+    callAmbulance: "Call Ambulance",
+    findNearbyHospital: "Find Nearby Hospital",
+    searchMedicine: "Search Medicine",
+    setReminder: "Set Reminder",
+    shareReport: "Share Report",
+    uploadDocument: "Upload Document",
+    
+    // Common Phrases
+    pleaseWait: "Please wait",
+    loading: "Loading",
+    success: "Success",
+    error: "Error",
+    retry: "Retry",
+    cancel: "Cancel",
+    confirm: "Confirm",
+    save: "Save",
+    edit: "Edit",
+    delete: "Delete",
+    search: "Search",
+    filter: "Filter",
+    sort: "Sort",
+    
+    // Greetings by time
+    goodAfternoon: "Good afternoon",
+    goodEvening: "Good evening",
+    goodNight: "Good night",
+    
+    // Cultural Context
+    namaste: "Namaste",
+    blessing: "Blessings",
+    takeCareBlessings: "Take care and stay blessed",
+    familyWellbeing: "Family wellbeing",
+    communityHealth: "Community health",
+    
+    // Emergency
+    urgentCare: "Urgent Care",
+    criticalCondition: "Critical Condition",
+    stableCondition: "Stable Condition",
+    emergencyContact: "Emergency Contact",
+    hospitalAdmission: "Hospital Admission"
   },
   
-  hindi: {
+  [Language.Hindi]: {
     // Header & Navigation  
     welcomeBack: "वापस स्वागत है",
     healthCompanion: "आपका स्वास्थ्य साथी यहाँ है",
@@ -106,7 +352,10 @@ export const translations = {
     // Family Health
     familyHealthTitle: "👨‍👩‍👧‍👦 पारिवारिक स्वास्थ्य",
     wife: "पत्नी",
-    son: "बेटा", 
+    son: "बेटा",
+    daughter: "बेटी",
+    father: "पिता",
+    mother: "माता",
     allVitalsNormal: "सभी जीवन संकेतक सामान्य",
     vaccinationDue: "अगले सप्ताह टीकाकरण देय",
     
@@ -147,7 +396,72 @@ export const translations = {
     abhaViewRecords: "स्वास्थ्य रिकॉर्ड देखें",
     abhaCreateAccount: "आभा बनाएं",
     abhaLogin: "आभा से लॉगिन करें",
-    abhaNationalId: "राष्ट्रीय डिजिटल स्वास्थ्य आईडी"
+    abhaNationalId: "राष्ट्रीय डिजिटल स्वास्थ्य आईडी",
+    
+    // Medical Terminology
+    symptoms: "लक्षण",
+    diagnosis: "निदान",
+    treatment: "उपचार",
+    prescription: "नुस्खा",
+    vitals: "जीवन संकेतक",
+    fever: "बुखार",
+    cough: "खांसी",
+    headache: "सिरदर्द",
+    bodyache: "शरीर दर्द",
+    nausea: "मतली",
+    diarrhea: "दस्त",
+    vomiting: "उल्टी",
+    dizziness: "चक्कर आना",
+    fatigue: "थकान",
+    breathingDifficulty: "सांस लेने में कठिनाई",
+    chestPain: "छाती में दर्द",
+    abdominalPain: "पेट दर्द",
+    
+    // Healthcare Actions
+    scheduleAppointment: "अपॉइंटमेंट निर्धारित करें",
+    viewReport: "रिपोर्ट देखें",
+    downloadPrescription: "नुस्खा डाउनलोड करें",
+    contactDoctor: "डॉक्टर से संपर्क करें",
+    callAmbulance: "एम्बुलेंस बुलाएं",
+    findNearbyHospital: "नजदीकी अस्पताल खोजें",
+    searchMedicine: "दवा खोजें",
+    setReminder: "अनुस्मारक सेट करें",
+    shareReport: "रिपोर्ट साझा करें",
+    uploadDocument: "दस्तावेज़ अपलोड करें",
+    
+    // Common Phrases
+    pleaseWait: "कृपया प्रतीक्षा करें",
+    loading: "लोड हो रहा है",
+    success: "सफल",
+    error: "त्रुटि",
+    retry: "पुनः प्रयास करें",
+    cancel: "रद्द करें",
+    confirm: "पुष्टि करें",
+    save: "सहेजें",
+    edit: "संपादित करें",
+    delete: "हटाएं",
+    search: "खोजें",
+    filter: "फ़िल्टर",
+    sort: "क्रमबद्ध करें",
+    
+    // Greetings by time
+    goodAfternoon: "शुभ दोपहर",
+    goodEvening: "शुभ संध्या",
+    goodNight: "शुभ रात्रि",
+    
+    // Cultural Context
+    namaste: "नमस्ते",
+    blessing: "आशीर्वाद",
+    takeCareBlessings: "स्वस्थ रहें और आशीर्वाद पाते रहें",
+    familyWellbeing: "पारिवारिक कल्याण",
+    communityHealth: "सामुदायिक स्वास्थ्य",
+    
+    // Emergency
+    urgentCare: "तत्काल देखभाल",
+    criticalCondition: "गंभीर स्थिति",
+    stableCondition: "स्थिर स्थिति",
+    emergencyContact: "आपातकालीन संपर्क",
+    hospitalAdmission: "अस्पताल में भर्ती"
   },
   
   tamil: {

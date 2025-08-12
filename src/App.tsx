@@ -39,7 +39,18 @@ function AppContent() {
     { code: 'kannada', name: 'ಕನ್ನಡ', flag: '🇮🇳' },
     { code: 'malayalam', name: 'മലയാളം', flag: '🇮🇳' },
     { code: 'odia', name: 'ଓଡ଼ିଆ', flag: '🇮🇳' },
-    { code: 'assamese', name: 'অসমীয়া', flag: '🇮🇳' }
+    { code: 'assamese', name: 'অসমীয়া', flag: '🇮🇳' },
+    { code: 'urdu', name: 'اردو', flag: '🇮🇳' },
+    { code: 'kashmiri', name: 'कॉशुर', flag: '🇮🇳' },
+    { code: 'sindhi', name: 'سنڌي', flag: '🇮🇳' },
+    { code: 'manipuri', name: 'ꯃꯤꯇꯩꯂꯣꯟ', flag: '🇮🇳' },
+    { code: 'bodo', name: 'बर'', flag: '🇮🇳' },
+    { code: 'konkani', name: 'कोंकणी', flag: '🇮🇳' },
+    { code: 'sanskrit', name: 'संस्कृतम्', flag: '🇮🇳' },
+    { code: 'maithili', name: 'मैथिली', flag: '🇮🇳' },
+    { code: 'santali', name: 'ᱥᱟᱱᱛᱟᱲᱤ', flag: '🇮🇳' },
+    { code: 'dogri', name: 'डोगरी', flag: '🇮🇳' },
+    { code: 'nepali', name: 'नेपाली', flag: '🇮🇳' }
   ];
 
   const handleLogin = (userType: 'patient' | 'asha' | 'doctor' | 'admin', userInfo: any) => {
