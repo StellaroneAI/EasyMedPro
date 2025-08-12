@@ -34,3 +34,12 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
+
+# Test files (don't include in deployment)
+test-*.cjs
+test-*.js
+test-*.mjs
+
+# Temporary files
+tmp/
+temp/

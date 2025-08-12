@@ -6,20 +6,6 @@
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto-js';
-import { RateLimiterMemory } from 'rate-limiter-flexible';
-
-// Rate limiter for verification attempts
-const verifyLimiter = new RateLimiterMemory({
-  keyGenerator: (req) => req.ip || 'unknown',
-  points: 10, // Number of attempts
-  duration: 900, // Per 15 minutes
-});
-
-// OTP storage (same as send-otp - should be shared storage in production)
-const otpStorage = new Map();
-
-// User database simulation (in production, use MongoDB/PostgreSQL)
-const userDatabase = new Map();
 
 /**
  * Validate Indian phone number
@@ -34,6 +20,26 @@ function validateIndianPhoneNumber(phoneNumber: string): { isValid: boolean; for
   }
   
   return { isValid: false };
+}
+
+/**
+ * Verify OTP session token (stateless verification)
+ */
+function verifyOTPSession(sessionToken: string): { valid: boolean; session?: any; error?: string } {
+  try {
+    const jwtSecret = process.env.JWT_SECRET || 'fallback-secret-key-for-development';
+    const decoded = jwt.verify(sessionToken, jwtSecret) as any;
+    
+    // Check if session is expired
+    const now = Date.now();
+    if (now > decoded.expiresAt) {
+      return { valid: false, error: 'OTP session expired' };
+    }
+    
+    return { valid: true, session: decoded };
+  } catch (error) {
+    return { valid: false, error: 'Invalid session token' };
+  }
 }
 
 /**
@@ -64,34 +70,24 @@ function generateTokens(user: any) {
 }
 
 /**
- * Create or update user in database
+ * Create or get user data (stateless approach)
  */
 function createOrUpdateUser(phoneNumber: string, userType: string): any {
-  const existingUser = userDatabase.get(phoneNumber);
+  // In a stateless approach, we create a new user object each time
+  // In production, this would query/create in a database
+  const userId = crypto.SHA256(phoneNumber + userType).toString().substring(0, 24);
   
-  if (existingUser) {
-    // Update last login
-    existingUser.lastLogin = new Date().toISOString();
-    existingUser.loginCount = (existingUser.loginCount || 0) + 1;
-    userDatabase.set(phoneNumber, existingUser);
-    return existingUser;
-  } else {
-    // Create new user
-    const newUser = {
-      id: crypto.SHA256(phoneNumber + Date.now()).toString().substring(0, 24),
-      phone: phoneNumber,
-      userType,
-      name: `${userType.charAt(0).toUpperCase() + userType.slice(1)} User`,
-      isVerified: true,
-      createdAt: new Date().toISOString(),
-      lastLogin: new Date().toISOString(),
-      loginCount: 1,
-      isActive: true
-    };
-    
-    userDatabase.set(phoneNumber, newUser);
-    return newUser;
-  }
+  return {
+    id: userId,
+    phone: phoneNumber,
+    userType,
+    name: `${userType.charAt(0).toUpperCase() + userType.slice(1)} User`,
+    isVerified: true,
+    createdAt: new Date().toISOString(),
+    lastLogin: new Date().toISOString(),
+    loginCount: 1,
+    isActive: true
+  };
 }
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
@@ -104,16 +100,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   try {
-    // Rate limiting
-    await verifyLimiter.consume(req.ip || 'unknown');
-
-    const { phoneNumber, otp, userType } = req.body;
+    const { phoneNumber, otp, userType, sessionToken } = req.body;
 
     // Validate required fields
-    if (!phoneNumber || !otp || !userType) {
+    if (!phoneNumber || !otp || !userType || !sessionToken) {
       return res.status(400).json({
         success: false,
-        message: 'Phone number, OTP, and user type are required'
+        message: 'Phone number, OTP, user type, and session token are required'
       });
     }
 
@@ -127,64 +120,45 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     const formattedPhone = phoneValidation.formatted!;
-    const otpKey = `otp_${formattedPhone}`;
-    const attemptKey = `attempts_${formattedPhone}`;
 
-    // Get stored OTP data
-    const storedOTPData = otpStorage.get(otpKey);
-    if (!storedOTPData) {
+    // Verify OTP session token
+    const sessionResult = verifyOTPSession(sessionToken);
+    if (!sessionResult.valid) {
       return res.status(400).json({
         success: false,
-        message: 'OTP not found or expired. Please request a new OTP.'
+        message: sessionResult.error || 'Invalid or expired session'
       });
     }
 
-    // Check if OTP is expired
-    const now = Date.now();
-    if (now > storedOTPData.expiresAt) {
-      otpStorage.delete(otpKey);
-      otpStorage.delete(attemptKey);
+    const otpSession = sessionResult.session!;
+
+    // Verify phone number matches session
+    if (otpSession.phone !== formattedPhone) {
       return res.status(400).json({
         success: false,
-        message: 'OTP has expired. Please request a new OTP.'
+        message: 'Phone number does not match session'
       });
     }
 
-    // Check attempt count
-    let attempts = otpStorage.get(attemptKey) || 0;
-    const maxAttempts = parseInt(process.env.SMS_MAX_RETRY_ATTEMPTS || '3');
-    
-    if (attempts >= maxAttempts) {
-      otpStorage.delete(otpKey);
-      otpStorage.delete(attemptKey);
-      return res.status(429).json({
+    // Verify user type matches session
+    if (otpSession.userType !== userType) {
+      return res.status(400).json({
         success: false,
-        message: 'Maximum verification attempts exceeded. Please request a new OTP.'
+        message: 'User type does not match session'
       });
     }
 
     // Verify OTP
     const hashedInputOTP = crypto.SHA256(otp.toString()).toString();
-    if (hashedInputOTP !== storedOTPData.otp) {
-      attempts++;
-      otpStorage.set(attemptKey, attempts);
-      
-      const remainingAttempts = maxAttempts - attempts;
+    if (hashedInputOTP !== otpSession.otpHash) {
       return res.status(400).json({
         success: false,
-        message: `Invalid OTP. ${remainingAttempts} attempts remaining.`,
-        remainingAttempts
+        message: 'Invalid OTP. Please try again.'
       });
     }
 
-    // OTP is valid - clean up
-    otpStorage.delete(otpKey);
-    otpStorage.delete(attemptKey);
-
-    // Create or update user
+    // OTP is valid - create user and generate tokens
     const user = createOrUpdateUser(formattedPhone, userType);
-
-    // Generate JWT tokens
     const tokens = generateTokens(user);
 
     // Log successful authentication (without sensitive data)
@@ -205,20 +179,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       }
     });
 
-  } catch (rateLimiterRes) {
-    if (rateLimiterRes?.remainingHits !== undefined) {
-      return res.status(429).json({
-        success: false,
-        message: 'Too many verification attempts. Please try again later.',
-        retryAfter: Math.round(rateLimiterRes.msBeforeNext / 1000)
-      });
-    }
-
-    console.error('Error verifying OTP:', rateLimiterRes);
+  } catch (error) {
+    console.error('Error verifying OTP:', error);
     return res.status(500).json({
       success: false,
       message: 'Failed to verify OTP. Please try again.',
-      error: process.env.NODE_ENV === 'development' ? rateLimiterRes.message : undefined
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
   }
 }

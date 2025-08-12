@@ -108,6 +108,12 @@ class TwilioService {
       });
 
       const result = await response.json();
+      
+      // Store session token if OTP sent successfully
+      if (result.success && result.sessionToken) {
+        localStorage.setItem('easymed_otp_session', result.sessionToken);
+      }
+      
       return result;
     } catch (error) {
       console.error('Error sending OTP:', error);
@@ -133,6 +139,15 @@ class TwilioService {
         };
       }
 
+      // Get session token from localStorage
+      const sessionToken = localStorage.getItem('easymed_otp_session');
+      if (!sessionToken) {
+        return {
+          success: false,
+          message: 'No OTP session found. Please request a new OTP.'
+        };
+      }
+
       const response = await fetch(`${this.baseUrl}/sms/verify-otp`, {
         method: 'POST',
         headers: {
@@ -141,7 +156,8 @@ class TwilioService {
         body: JSON.stringify({
           phoneNumber: validation.formatted,
           otp,
-          userType
+          userType,
+          sessionToken
         }),
       });
 
@@ -156,6 +172,8 @@ class TwilioService {
         if (result.user) {
           localStorage.setItem('easymed_user', JSON.stringify(result.user));
         }
+        // Clear OTP session token
+        localStorage.removeItem('easymed_otp_session');
       }
 
       return result;
@@ -213,6 +231,7 @@ class TwilioService {
     localStorage.removeItem('easymed_token');
     localStorage.removeItem('easymed_refresh_token');
     localStorage.removeItem('easymed_user');
+    localStorage.removeItem('easymed_otp_session'); // Clear OTP session as well
   }
 
   /**
