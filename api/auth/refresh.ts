@@ -5,9 +5,25 @@
 
 import { VercelRequest, VercelResponse } from '@vercel/node';
 import jwt from 'jsonwebtoken';
+import crypto from 'crypto-js';
 
-// User database simulation (should match verify-otp)
-const userDatabase = new Map();
+/**
+ * Get user data from refresh token (stateless approach)
+ */
+function getUserFromRefreshToken(decoded: any): any {
+  // In a stateless approach, we recreate user data from the token
+  // In production, this would query a database
+  const userId = crypto.SHA256(decoded.phone + 'user').toString().substring(0, 24);
+  
+  return {
+    id: userId,
+    phone: decoded.phone,
+    userType: decoded.userType || 'patient', // Default if not in token
+    name: `User`, // Would be fetched from database in production
+    isVerified: true,
+    isActive: true
+  };
+}
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // Only allow POST requests
@@ -41,8 +57,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Get user data
-    const user = userDatabase.get(decoded.phone);
+    // Get user data (in production, query database)
+    const user = getUserFromRefreshToken(decoded);
     if (!user || !user.isActive) {
       return res.status(401).json({
         success: false,
