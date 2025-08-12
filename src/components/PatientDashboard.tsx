@@ -18,6 +18,7 @@ import HealthAnalytics from './HealthAnalytics';
 import MedicationManager from './MedicationManager';
 import EmergencySystem from './EmergencySystem';
 import AIHealthAssistant from './AIHealthAssistant';
+import AI4BharatMedicalAssistant from './AI4BharatMedicalAssistant';
 import PWAFeatures from './PWAFeatures';
 import IoTDeviceIntegration from './IoTDeviceIntegration';
 import GeneticHealthInsights from './GeneticHealthInsights';
@@ -60,6 +61,7 @@ export default function PatientDashboard({ user }: PatientDashboardProps) {
   const { currentLanguage, setLanguage, t } = useLanguage();
   const [currentSection, setCurrentSection] = useState('dashboard');
   const [showChat, setShowChat] = useState(false);
+  const [showMedicalAssistant, setShowMedicalAssistant] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [sidebarHovered, setSidebarHovered] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -158,6 +160,9 @@ export default function PatientDashboard({ user }: PatientDashboardProps) {
         break;
       case 'chat':
         setShowChat(true);
+        break;
+      case 'medicalAssistant':
+        setShowMedicalAssistant(true);
         break;
       default:
         console.log(`Action: ${action}`);
@@ -358,8 +363,17 @@ export default function PatientDashboard({ user }: PatientDashboardProps) {
               <button
                 onClick={() => setShowChat(true)}
                 className="p-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                title="AI Chat Assistant"
               >
                 <span className="text-xl">🤖</span>
+              </button>
+              
+              <button
+                onClick={() => setShowMedicalAssistant(true)}
+                className="p-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white rounded-2xl shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-300"
+                title="AI4Bharat Medical Assistant"
+              >
+                <span className="text-xl">🩺</span>
               </button>
             </div>
           </div>
@@ -373,6 +387,20 @@ export default function PatientDashboard({ user }: PatientDashboardProps) {
 
       {/* Chat Assistant */}
       {showChat && <AIChatAssistant isOpen={showChat} onClose={() => setShowChat(false)} chatType="GENERAL_HEALTH" />}
+
+      {/* AI4Bharat Medical Assistant */}
+      {showMedicalAssistant && (
+        <AI4BharatMedicalAssistant
+          isOpen={showMedicalAssistant}
+          onClose={() => setShowMedicalAssistant(false)}
+          patientInfo={{
+            age: patientData.age,
+            gender: 'male', // This would come from patient data
+            medicalHistory: patientData.chronicConditions
+          }}
+          ruralMode={true} // Enable rural optimizations for patients
+        />
+      )}
 
       {/* Floating Elements */}
       <MovableFloatingButton onQuickAction={handleQuickAction} />

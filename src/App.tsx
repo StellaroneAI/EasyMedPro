@@ -6,6 +6,7 @@ import AdminDashboard from './components/dashboards/AdminSpecificDashboard';
 import LoginPage from './components/LoginPage';
 import TeamManagement from './components/TeamManagement';
 import SystemStatus from './components/SystemStatus';
+import AI4BharatVoiceAssistant from './components/AI4BharatVoiceAssistant';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { AdminProvider, useAdmin } from './contexts/AdminContext';
 import { LanguageKey } from './translations/index';
@@ -157,6 +158,20 @@ function AppContent() {
         {currentUser.userType === 'admin' && (
           <AdminDashboard userInfo={currentUser} onLogout={handleLogout} />
         )}
+        
+        {/* AI4Bharat Enhanced Voice Assistant */}
+        <AI4BharatVoiceAssistant 
+          userName={currentUser.name}
+          enableMedicalContext={currentUser.userType === 'patient' || currentUser.userType === 'asha'}
+          ruralMode={currentUser.userType === 'asha' || currentUser.userType === 'patient'}
+          onCommand={(command, language) => {
+            console.log(`Voice command received: ${command} (${language})`);
+          }}
+          onNavigate={(target) => {
+            console.log(`Navigation requested: ${target}`);
+            // Handle navigation based on target
+          }}
+        />
         
         {/* Team Management Modal */}
         {showTeamManagement && (
