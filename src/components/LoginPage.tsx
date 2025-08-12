@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAdmin } from '../contexts/AdminContext';
 import authService from '../services/authService';
+import twilioService from '../services/twilioService';
 import { loginTexts, type LoginLanguageKey, type LoginTranslationKey } from '../translations/loginTexts';
 
 interface LoginPageProps {
@@ -21,6 +22,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [generatedOTP, setGeneratedOTP] = useState('');
   const [message, setMessage] = useState('');
+  const [phoneValidation, setPhoneValidation] = useState<{isValid: boolean; message?: string}>({isValid: false});
 
   // Text-to-speech function
   const speakMessage = (text: string) => {
@@ -107,6 +109,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     }
   }, [message, currentLanguage]);
 
+  // Validate phone number in real-time
+  useEffect(() => {
+    if (phoneNumber.length > 0) {
+      const validation = twilioService.validatePhoneNumber(phoneNumber);
+      setPhoneValidation({
+        isValid: validation.isValid,
+        message: validation.error
+      });
+    } else {
+      setPhoneValidation({isValid: false});
+    }
+  }, [phoneNumber]);
+
   const getText = (key: LoginTranslationKey): string => {
     return loginTexts[currentLanguage as LoginLanguageKey]?.[key] || loginTexts.english[key];
   };
@@ -159,47 +174,41 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   };
 
   const handleSendOTP = async () => {
-    if (phoneNumber.length >= 10) {
-      setIsLoading(true);
+    // Validate phone number using Twilio service
+    const validation = twilioService.validatePhoneNumber(phoneNumber);
+    
+    if (!validation.isValid) {
+      alert(validation.error || 'Please enter a valid Indian mobile number (10 digits starting with 6-9)');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // Use Twilio authentication service to send OTP
+      const result = await authService.sendOTP(validation.formatted!, activeTab, currentLanguage);
       
-      try {
-        // Use real authentication service to send OTP
-        const result = await authService.sendOTP(phoneNumber);
-        
-        if (result.success) {
-          setShowOTP(true);
-          setGeneratedOTP(''); // Real OTP is sent via SMS
-          
-          // Set and speak multilingual message
-          const message = otpMessages[currentLanguage as keyof typeof otpMessages] || otpMessages.english;
-          setMessage(message);
-          
-          // Different messages for demo vs production
-          if (process.env.NODE_ENV === 'development') {
-            alert(`📱 OTP sent successfully!\n\nFor demo: Check console for OTP or use 123456\n\n(In production, you would receive this via SMS)`);
-          } else {
-            alert(`📱 OTP sent to ${phoneNumber}\n\nPlease check your SMS for the verification code.`);
-          }
-        } else {
-          // Fallback to demo mode if API fails
-          console.warn('API OTP failed, falling back to demo mode:', result.message);
-          setShowOTP(true);
-          setGeneratedOTP('123456');
-          setMessage('Demo mode: Use OTP 123456');
-          alert(`📱 Demo Mode: Enter 123456 as your OTP\n\n(API Error: ${result.message})`);
-        }
-      } catch (error) {
-        console.error('OTP send error:', error);
-        // Fallback to demo mode
+      if (result.success) {
         setShowOTP(true);
-        setGeneratedOTP('123456');
-        setMessage('Demo mode: Use OTP 123456');
-        alert('📱 Demo Mode: Enter 123456 as your OTP\n\n(Network error occurred)');
-      } finally {
-        setIsLoading(false);
+        setGeneratedOTP(''); // Real OTP is sent via SMS
+        
+        // Set and speak multilingual message
+        const message = otpMessages[currentLanguage as keyof typeof otpMessages] || otpMessages.english;
+        setMessage(message);
+        
+        // Show success message
+        alert(`📱 OTP sent to ${validation.formatted}\n\nPlease check your SMS for the verification code.\n\nValid for 10 minutes.`);
+      } else {
+        // Show error message
+        setMessage(`Error: ${result.message}`);
+        alert(`❌ Failed to send OTP: ${result.message}`);
       }
-    } else {
-      alert('Please enter a valid 10-digit phone number');
+    } catch (error) {
+      console.error('OTP send error:', error);
+      setMessage('Network error occurred. Please try again.');
+      alert('❌ Network error occurred. Please check your connection and try again.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -266,18 +275,18 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           };
         }
       } else {
-        // Regular user login - use real authentication service
+        // Regular user login - use Twilio authentication service
         if (loginMethod === 'phone' && showOTP && otp) {
-          // Phone login with OTP verification
-          console.log('Attempting OTP verification:', { phoneNumber, otp });
-          result = await authService.verifyOTP(phoneNumber, otp);
+          // Phone login with OTP verification using Twilio
+          console.log('Attempting Twilio OTP verification:', { phoneNumber, activeTab });
+          result = await authService.verifyOTP(phoneNumber, otp, activeTab);
         } else if (loginMethod === 'email' && email && password) {
-          // Email/password login
+          // Email/password login (fallback for non-SMS scenarios)
           console.log('Attempting email login:', { email });
           result = await authService.loginWithEmail(email, password);
         } else if (loginMethod === 'phone' && phoneNumber && !showOTP) {
           // Phone login without OTP - send OTP first
-          alert('Please click "Send OTP" first to receive your verification code.');
+          alert('Please click "Send OTP" first to receive your verification code via SMS.');
           setIsLoading(false);
           return;
         } else {
@@ -455,26 +464,47 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                     value={phoneNumber}
                     onChange={(e) => setPhoneNumber(e.target.value)}
                     onKeyPress={handleKeyPress}
-                    className="w-full pl-16 pr-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className={`w-full pl-16 pr-12 py-3 bg-white/50 border rounded-xl focus:outline-none focus:ring-2 focus:border-transparent transition-colors ${
+                      phoneNumber.length === 0 
+                        ? 'border-gray-200 focus:ring-blue-500' 
+                        : phoneValidation.isValid 
+                          ? 'border-green-300 focus:ring-green-500 bg-green-50/50' 
+                          : 'border-red-300 focus:ring-red-500 bg-red-50/50'
+                    }`}
                     placeholder="9876543210"
                     maxLength={10}
                   />
+                  {phoneNumber.length > 0 && (
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      {phoneValidation.isValid ? '✅' : '❌'}
+                    </span>
+                  )}
                 </div>
+                {/* Phone validation message */}
+                {phoneNumber.length > 0 && !phoneValidation.isValid && phoneValidation.message && (
+                  <p className="mt-1 text-xs text-red-600 flex items-center">
+                    <span className="mr-1">⚠️</span>
+                    {phoneValidation.message}
+                  </p>
+                )}
               </div>
 
               {!showOTP ? (
                 <button
                   onClick={handleSendOTP}
-                  disabled={phoneNumber.length < 10 || isLoading}
+                  disabled={!phoneValidation.isValid || isLoading}
                   className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-xl font-semibold disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg transform hover:scale-[0.98] transition-all flex items-center justify-center"
                 >
                   {isLoading ? (
                     <div className="flex items-center space-x-2">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                      <span>{phoneNumber === '9060328119' && activeTab === 'admin' ? 'Logging in...' : 'Sending...'}</span>
+                      <span>Sending OTP via SMS...</span>
                     </div>
                   ) : (
-                    phoneNumber === '9060328119' && activeTab === 'admin' ? 'Auto Login' : getText('sendOtp')
+                    <span className="flex items-center space-x-2">
+                      <span>📱</span>
+                      <span>{getText('sendOtp')}</span>
+                    </span>
                   )}
                 </button>
               ) : (

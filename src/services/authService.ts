@@ -1,9 +1,11 @@
 /**
- * Real Authentication Service for EasyMedPro Frontend
- * Replaces the mock database with actual API calls to the backend
+ * Enhanced Authentication Service for EasyMedPro Frontend
+ * Integrates Twilio SMS OTP authentication with existing functionality
  */
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api';
+import twilioService from './twilioService';
+
+const API_BASE_URL = '/api';
 
 class AuthenticationService {
   constructor() {
@@ -111,14 +113,10 @@ class AuthenticationService {
     }
   }
 
-  // Send OTP for phone verification
-  async sendOTP(phone) {
+  // Send OTP for phone verification using Twilio
+  async sendOTP(phone, userType = 'patient', language = 'english') {
     try {
-      const response = await this.apiCall('/auth/send-otp', {
-        method: 'POST',
-        body: { phone }
-      });
-
+      const response = await twilioService.sendOTP(phone, userType, language);
       return response;
     } catch (error) {
       console.error('Send OTP error:', error);
@@ -129,16 +127,17 @@ class AuthenticationService {
     }
   }
 
-  // Verify OTP and complete login
-  async verifyOTP(phone, otp) {
+  // Verify OTP and complete login using Twilio
+  async verifyOTP(phone, otp, userType = 'patient') {
     try {
-      const response = await this.apiCall('/auth/verify-otp', {
-        method: 'POST',
-        body: { phone, otp }
-      });
+      const response = await twilioService.verifyOTP(phone, otp, userType);
 
-      if (response.success && response.user && response.tokens) {
-        this.storeAuthData(response.user, response.tokens);
+      if (response.success && response.user && response.token) {
+        // Store authentication data
+        this.user = response.user;
+        this.token = response.token;
+        this.refreshToken = response.refreshToken;
+
         return {
           success: true,
           message: response.message,
@@ -185,21 +184,13 @@ class AuthenticationService {
     }
   }
 
-  // Refresh access token
+  // Refresh access token using Twilio service
   async refreshAccessToken() {
     try {
-      if (!this.refreshToken) {
-        return { success: false, message: 'No refresh token available' };
-      }
+      const response = await twilioService.refreshToken();
 
-      const response = await this.apiCall('/auth/refresh', {
-        method: 'POST',
-        body: { refreshToken: this.refreshToken }
-      });
-
-      if (response.success && response.accessToken) {
-        this.token = response.accessToken;
-        localStorage.setItem('easymed_token', response.accessToken);
+      if (response.success && response.token) {
+        this.token = response.token;
         return { success: true };
       }
 
@@ -216,22 +207,17 @@ class AuthenticationService {
     }
   }
 
-  // Logout
+  // Logout using Twilio service
   async logout() {
     try {
-      if (this.refreshToken) {
-        await this.apiCall('/auth/logout', {
-          method: 'POST',
-          body: { refreshToken: this.refreshToken }
-        });
-      }
+      twilioService.logout();
+      this.clearAuthData();
+      return { success: true, message: 'Logged out successfully' };
     } catch (error) {
       console.error('Logout error:', error);
-    } finally {
       this.clearAuthData();
+      return { success: true, message: 'Logged out successfully' };
     }
-
-    return { success: true, message: 'Logged out successfully' };
   }
 
   // Get current user profile
@@ -275,25 +261,27 @@ class AuthenticationService {
     }
   }
 
-  // Check if user is authenticated
+  // Check if user is authenticated using Twilio service
   isAuthenticated() {
-    return !!(this.token && this.user);
+    return twilioService.isAuthenticated() && !!(this.token && this.user);
   }
 
-  // Get current user
+  // Get current user from Twilio service
   getCurrentUser() {
-    return this.user;
+    return twilioService.getCurrentUser() || this.user;
   }
 
   // Legacy compatibility methods for existing frontend code
-  async authenticateUser(identifier, userType) {
-    // For phone numbers, send OTP first
-    if (/^[6-9]\d{9}$/.test(identifier)) {
-      const otpResult = await this.sendOTP(identifier);
+  async authenticateUser(identifier, userType, language = 'english') {
+    // Validate phone number format using Twilio service
+    const phoneValidation = twilioService.validatePhoneNumber(identifier);
+    
+    if (phoneValidation.isValid) {
+      const otpResult = await this.sendOTP(phoneValidation.formatted, userType, language);
       if (otpResult.success) {
         return {
           requiresOTP: true,
-          phone: identifier,
+          phone: phoneValidation.formatted,
           userType: userType,
           message: 'OTP sent to your phone'
         };
