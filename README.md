@@ -4,9 +4,7 @@
 
 EasyMed is a next-generation, AI-integrated mobile-first healthcare platform specifically designed for India's diverse and evolving healthcare landscape. The platform combines advanced AI technology with comprehensive healthcare management tools to provide patients, families, and healthcare providers with seamless digital health experiences.
 
----
-
-## 🌟 Key Features
+🌟 **Key Features**
 
 ### 🤖 AI-Powered Health Assistant
 - Advanced Symptom Analysis: Natural language processing for symptom evaluation
@@ -16,7 +14,7 @@ EasyMed is a next-generation, AI-integrated mobile-first healthcare platform spe
 
 ### 🗣️ Multilingual Voice Assistant
 - One-Click Voice Commands: Floating voice button for instant access
-- **12 Language Support**: English, Hindi, Tamil, Telugu, Bengali, Marathi, Punjabi, Gujarati, Kannada, Malayalam, Odia, Assamese with native voice synthesis
+- 4 Language Support: English, Hindi, Tamil, Telugu with native voice synthesis
 - Natural Language Navigation: Voice commands for all app sections
 - Healthcare-Specific Commands: "Call 108", "Check symptoms", "Book appointment"
 - Smart Intent Recognition: AI-powered understanding of voice inputs
@@ -44,47 +42,40 @@ npm install
 Run locally:
 
 ```bash
-npm run dev
+npm run dev   # or npm start if using Create React App
 ```
 
 ---
 
 ## 📦 Deploy on Vercel
 
-1. Push this code to GitHub
-2. Go to [Vercel](https://vercel.com)
-3. Import your GitHub repo
+1. Push this code to GitHub.
+2. Go to [Vercel](https://vercel.com).
+3. Import your GitHub repo.
 4. Use the following build settings:
-   - **Framework Preset:** Vite
-   - **Build Command:** `npm run build`
-   - **Output Directory:** `dist`
+   - **Framework Preset**: Create React App
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `build`
 
-### SPA Routing Fix
-
-If you need SPA routing, add a `vercel.json` file like this:
+**SPA Routing Fix:**  
+We've included a `vercel.json` to handle all unmatched routes and send them to `index.html`:
 
 ```json
-{
-  "routes": [
-    { "src": "/(.*)", "dest": "/" }
-  ]
-}
+"routes": [
+  { "src": "/(.*)", "dest": "/" }
+]
 ```
 
 ---
 
 ## 🛠 Tech Stack
 
-- **Frontend**: React 18 + TypeScript
-- **Build Tool**: Vite
-- **Styling**: Tailwind CSS
-- **Icons**: Lucide React
-- **Backend Integration**: MongoDB, OpenAI API
-- **PWA**: Service Worker, Web App Manifest
-- **Voice**: Web Speech API (Speech Recognition & Synthesis)
-- **Deployment**: Vercel
+- React
+- Tailwind CSS
+- Lucide Icons
+- Vercel (Hosting)
 
 ---
 
-**EasyMed – Transforming Healthcare Through AI Innovation**  
-**Built with ❤️ by Praveen Kumar J for India's Healthcare Future**
+EasyMed - Transforming Healthcare Through AI Innovation  
+Built with ❤️ for India's Healthcare Future
