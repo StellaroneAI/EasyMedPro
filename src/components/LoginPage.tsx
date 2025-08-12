@@ -194,7 +194,16 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     setIsLoading(true);
     
     try {
-      // Use Firebase authentication service to send OTP
+      // Special case for admin phone number - skip Firebase SMS for testing
+      if (activeTab === 'admin' && phoneNumber === '9060328119') {
+        setShowOTP(true);
+        setMessage('Admin phone detected. Use OTP: 123456 for testing.');
+        alert('📱 Admin phone detected. For testing, use OTP: 123456');
+        setIsLoading(false);
+        return;
+      }
+
+      // Use Firebase authentication service to send OTP for all other cases
       const result = await authService.sendOTP(validation.formatted!, activeTab, currentLanguage);
       
       if (result.success) {
@@ -272,34 +281,74 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
     try {
       let result = { success: false, message: '', user: null, userType: activeTab };
 
-      if (activeTab === 'admin') {
-        // Admin login - maintain backward compatibility for specific admin credentials
-        if (loginMethod === 'phone' && phoneNumber === '9060328119') {
-          // Special case for the main admin phone number
+      // Handle all user types uniformly through Firebase authentication
+      if (loginMethod === 'phone' && showOTP && otp) {
+        // Special case for admin phone number with test OTP
+        if (activeTab === 'admin' && phoneNumber === '9060328119' && otp === '123456') {
           result = {
             success: true,
-            message: 'Admin login successful',
+            message: 'Admin phone verification successful',
             user: {
               id: 'admin_1',
               name: 'Super Admin',
-              phone: phoneNumber,
-              email: email || 'admin@easymed.in',
+              phone: '+919060328119',
+              email: 'admin@easymed.in',
               userType: 'admin',
-              role: 'super_admin'
+              role: 'super_admin',
+              phoneVerified: true
             },
             userType: 'admin'
           };
-          
-          // Also login to AdminContext for backward compatibility
-          try {
-            await loginAdmin(phoneNumber, result.user, 'admin123');
-          } catch (adminError) {
-            console.log('AdminContext login failed, but proceeding with main login');
+        } else {
+          // Phone login with OTP verification using Firebase (works for all user types)
+          console.log('Attempting Firebase OTP verification:', { phoneNumber, activeTab });
+          result = await authService.verifyOTP(phoneNumber, otp, activeTab);
+        }
+      } else if (loginMethod === 'emailOTP' && showOTP && otp) {
+        // Email OTP verification
+        try {
+          const response = await fetch('/api/auth/verify-email-otp', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              email: email,
+              otp: otp
+            })
+          });
+
+          const emailResult = await response.json();
+          if (emailResult.success) {
+            result = {
+              success: true,
+              message: 'Email OTP verification successful',
+              user: emailResult.user,
+              userType: emailResult.user.userType
+            };
+          } else {
+            result = {
+              success: false,
+              message: emailResult.message,
+              user: null,
+              userType: activeTab
+            };
           }
-        } else if (loginMethod === 'email' && 
-                   (email === 'admin@easymed.in' || email === 'admin@gmail.com' || email === 'superadmin@easymed.in' || email === 'praveen@stellaronehealth.com' || email === 'gilboj@gmail.com') && 
-                   (password === 'admin123' || password === 'easymed2025' || password === 'admin@123' || password === 'dummy123')) {
-          // Special case for admin email credentials
+        } catch (error) {
+          console.error('Email OTP verification error:', error);
+          result = {
+            success: false,
+            message: 'Email OTP verification failed',
+            user: null,
+            userType: activeTab
+          };
+        }
+      } else if (loginMethod === 'email' && email && password) {
+        // Email/password login - check for admin backdoor credentials first
+        if (activeTab === 'admin' && 
+            (email === 'admin@easymed.in' || email === 'admin@gmail.com' || email === 'superadmin@easymed.in' || email === 'praveen@stellaronehealth.com' || email === 'gilboj@gmail.com') && 
+            (password === 'admin123' || password === 'easymed2025' || password === 'admin@123' || password === 'dummy123')) {
+          // Special case for admin email credentials (backwards compatibility)
           result = {
             success: true,
             message: 'Admin login successful',
@@ -321,124 +370,41 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           } catch (adminError) {
             console.log('AdminContext login failed, but proceeding with main login');
           }
-        } else if (loginMethod === 'emailOTP' && showOTP && otp && emailValidation.isValid) {
-          // Admin email OTP verification
-          try {
-            const response = await fetch('/api/auth/verify-email-otp', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                email: email,
-                otp: otp
-              })
-            });
-
-            const emailResult = await response.json();
-            if (emailResult.success) {
-              result = {
-                success: true,
-                message: 'Admin email OTP verification successful',
-                user: emailResult.user,
-                userType: emailResult.user.userType
-              };
-            } else {
-              result = {
-                success: false,
-                message: emailResult.message,
-                user: null,
-                userType: 'admin'
-              };
-            }
-          } catch (error) {
-            console.error('Email OTP verification error:', error);
-            result = {
-              success: false,
-              message: 'Email OTP verification failed',
-              user: null,
-              userType: 'admin'
-            };
-          }
         } else {
-          result = {
-            success: false,
-            message: 'Access denied. Use admin credentials: admin@easymed.in / admin123 or phone: 9060328119, or try email OTP for gilboj@gmail.com',
-            user: null,
-            userType: 'admin'
-          };
-        }
-      } else {
-        // Regular user login - use Firebase authentication service
-        if (loginMethod === 'phone' && showOTP && otp) {
-          // Phone login with OTP verification using Firebase
-          console.log('Attempting Firebase OTP verification:', { phoneNumber, activeTab });
-          result = await authService.verifyOTP(phoneNumber, otp, activeTab);
-        } else if (loginMethod === 'emailOTP' && showOTP && otp) {
-          // Email OTP verification
-          try {
-            const response = await fetch('/api/auth/verify-email-otp', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                email: email,
-                otp: otp
-              })
-            });
-
-            const emailResult = await response.json();
-            if (emailResult.success) {
-              result = {
-                success: true,
-                message: 'Email OTP verification successful',
-                user: emailResult.user,
-                userType: emailResult.user.userType
-              };
-            } else {
-              result = {
-                success: false,
-                message: emailResult.message,
-                user: null,
-                userType: activeTab
-              };
-            }
-          } catch (error) {
-            console.error('Email OTP verification error:', error);
-            result = {
-              success: false,
-              message: 'Email OTP verification failed',
-              user: null,
-              userType: activeTab
-            };
-          }
-        } else if (loginMethod === 'email' && email && password) {
-          // Email/password login (fallback for non-SMS scenarios)
-          console.log('Attempting email login:', { email });
+          // Regular email/password login through Firebase
+          console.log('Attempting email login:', { email, userType: activeTab });
           result = await authService.loginWithEmail(email, password);
-        } else if (loginMethod === 'phone' && phoneNumber && !showOTP) {
-          // Phone login without OTP - send OTP first
-          alert('Please click "Send OTP" first to receive your verification code via SMS.');
-          setIsLoading(false);
-          return;
-        } else if (loginMethod === 'emailOTP' && email && !showOTP) {
-          // Email OTP without OTP - send email OTP first
-          alert('Please click "Send Email OTP" first to receive your verification code via email.');
-          setIsLoading(false);
-          return;
-        } else {
-          result = {
-            success: false,
-            message: 'Please fill in all required fields',
-            user: null,
-            userType: activeTab
-          };
         }
+      } else if (loginMethod === 'phone' && phoneNumber && !showOTP) {
+        // Phone login without OTP - send OTP first
+        alert('Please click "Send OTP" first to receive your verification code via SMS.');
+        setIsLoading(false);
+        return;
+      } else if (loginMethod === 'emailOTP' && email && !showOTP) {
+        // Email OTP without OTP - send email OTP first
+        alert('Please click "Send Email OTP" first to receive your verification code via email.');
+        setIsLoading(false);
+        return;
+      } else {
+        result = {
+          success: false,
+          message: 'Please fill in all required fields',
+          user: null,
+          userType: activeTab
+        };
       }
 
       if (result.success && result.user) {
         console.log('✅ Login successful:', result);
+        
+        // For admin users, also authenticate in AdminContext if needed
+        if (result.user.userType === 'admin') {
+          try {
+            await loginAdmin(result.user.phone || result.user.email, result.user, 'admin123');
+          } catch (adminError) {
+            console.log('AdminContext login error:', adminError);
+          }
+        }
         
         // Set and speak success message
         const successMsg = successMessages[currentLanguage as keyof typeof successMessages] || successMessages.english;
@@ -453,17 +419,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         // Handle different error cases
         if (result.message.includes('OTP')) {
           setMessage(result.message);
-        } else if (activeTab === 'admin') {
-          alert('Access denied. Use one of these methods:\n\n📱 Phone: 9060328119\n📧 Email: admin@easymed.in, gilboj@gmail.com\n🔑 Password: admin123, dummy123\n📧 Email OTP: gilboj@gmail.com (bypass enabled)');
         } else {
-          // For non-admin users, provide helpful guidance
+          // Provide helpful guidance for all user types
           let helpMessage = 'Login failed. ';
           if (loginMethod === 'phone') {
-            helpMessage += 'For phone login:\n1. Enter your 10-digit phone number\n2. Click "Send OTP"\n3. Enter the OTP received\n4. Click "Verify OTP"';
+            helpMessage += 'For phone login:\n1. Enter your 10-digit phone number\n2. Click "Send OTP"\n3. Enter the OTP received via SMS\n4. Click "Verify OTP"\n\nTest phone numbers:\n• Admin: 9060328119\n• Doctor: 9611044219\n• ASHA: 7550392336\n• Patient: 9514070205';
           } else if (loginMethod === 'emailOTP') {
             helpMessage += 'For email OTP login:\n1. Enter your email address\n2. Click "Send Email OTP"\n3. Check your email for the OTP\n4. Enter the OTP and click "Verify"';
-          } else {
-            helpMessage += 'Please check your email and password, or try phone/email OTP login.';
+          } else if (loginMethod === 'email') {
+            if (activeTab === 'admin') {
+              helpMessage += 'For admin email login, use:\n• admin@easymed.in / admin123\n• praveen@stellaronehealth.com / dummy123\n• Or try phone login with: 9060328119';
+            } else {
+              helpMessage += 'Please check your email and password, or try phone/email OTP login instead.';
+            }
           }
           alert(helpMessage);
         }

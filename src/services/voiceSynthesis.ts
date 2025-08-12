@@ -12,32 +12,32 @@ export interface VoiceConfig {
   volume?: number;
 }
 
-// Language to voice mapping for Indian languages
+// Language to voice mapping for Indian languages with improved settings
 const INDIAN_LANGUAGE_VOICES: Record<string, VoiceConfig> = {
-  english: { lang: 'en-IN', rate: 1.0, pitch: 1.0 },
-  hindi: { lang: 'hi-IN', rate: 0.9, pitch: 1.0 },
-  tamil: { lang: 'ta-IN', rate: 0.9, pitch: 1.0 },
-  telugu: { lang: 'te-IN', rate: 0.9, pitch: 1.0 },
-  bengali: { lang: 'bn-IN', rate: 0.9, pitch: 1.0 },
-  marathi: { lang: 'mr-IN', rate: 0.9, pitch: 1.0 },
-  punjabi: { lang: 'pa-IN', rate: 0.9, pitch: 1.0 },
-  gujarati: { lang: 'gu-IN', rate: 0.9, pitch: 1.0 },
-  kannada: { lang: 'kn-IN', rate: 0.9, pitch: 1.0 },
-  malayalam: { lang: 'ml-IN', rate: 0.9, pitch: 1.0 },
-  odia: { lang: 'or-IN', rate: 0.9, pitch: 1.0 },
-  assamese: { lang: 'as-IN', rate: 0.9, pitch: 1.0 },
-  urdu: { lang: 'ur-IN', rate: 0.9, pitch: 1.0 },
-  // Fallback to Hindi for languages without direct support
-  kashmiri: { lang: 'hi-IN', rate: 0.8, pitch: 1.0 },
-  sindhi: { lang: 'ur-IN', rate: 0.8, pitch: 1.0 },
-  manipuri: { lang: 'hi-IN', rate: 0.8, pitch: 1.0 },
-  bodo: { lang: 'as-IN', rate: 0.8, pitch: 1.0 },
-  konkani: { lang: 'hi-IN', rate: 0.8, pitch: 1.0 },
-  sanskrit: { lang: 'hi-IN', rate: 0.7, pitch: 0.9 },
-  maithili: { lang: 'hi-IN', rate: 0.8, pitch: 1.0 },
-  santali: { lang: 'hi-IN', rate: 0.8, pitch: 1.0 },
-  dogri: { lang: 'hi-IN', rate: 0.8, pitch: 1.0 },
-  nepali: { lang: 'ne-NP', rate: 0.9, pitch: 1.0 },
+  english: { lang: 'en-IN', rate: 1.0, pitch: 1.0, volume: 0.9 },
+  hindi: { lang: 'hi-IN', rate: 0.9, pitch: 0.95, volume: 0.9 },
+  tamil: { lang: 'ta-IN', rate: 0.85, pitch: 0.9, volume: 0.9 },
+  telugu: { lang: 'te-IN', rate: 0.85, pitch: 0.9, volume: 0.9 },
+  bengali: { lang: 'bn-IN', rate: 0.9, pitch: 0.95, volume: 0.9 },
+  marathi: { lang: 'mr-IN', rate: 0.9, pitch: 0.95, volume: 0.9 },
+  punjabi: { lang: 'pa-IN', rate: 0.9, pitch: 0.95, volume: 0.9 },
+  gujarati: { lang: 'gu-IN', rate: 0.9, pitch: 0.95, volume: 0.9 },
+  kannada: { lang: 'kn-IN', rate: 0.85, pitch: 0.9, volume: 0.9 },
+  malayalam: { lang: 'ml-IN', rate: 0.85, pitch: 0.9, volume: 0.9 },
+  odia: { lang: 'or-IN', rate: 0.9, pitch: 0.95, volume: 0.9 },
+  assamese: { lang: 'as-IN', rate: 0.9, pitch: 0.95, volume: 0.9 },
+  urdu: { lang: 'ur-IN', rate: 0.9, pitch: 0.95, volume: 0.9 },
+  // Improved fallback configurations for languages without direct support
+  kashmiri: { lang: 'hi-IN', rate: 0.85, pitch: 0.95, volume: 0.9 },
+  sindhi: { lang: 'ur-IN', rate: 0.85, pitch: 0.95, volume: 0.9 },
+  manipuri: { lang: 'hi-IN', rate: 0.85, pitch: 0.95, volume: 0.9 },
+  bodo: { lang: 'as-IN', rate: 0.85, pitch: 0.95, volume: 0.9 },
+  konkani: { lang: 'hi-IN', rate: 0.85, pitch: 0.95, volume: 0.9 },
+  sanskrit: { lang: 'hi-IN', rate: 0.75, pitch: 0.85, volume: 0.9 },
+  maithili: { lang: 'hi-IN', rate: 0.85, pitch: 0.95, volume: 0.9 },
+  santali: { lang: 'hi-IN', rate: 0.85, pitch: 0.95, volume: 0.9 },
+  dogri: { lang: 'hi-IN', rate: 0.85, pitch: 0.95, volume: 0.9 },
+  nepali: { lang: 'ne-NP', rate: 0.9, pitch: 0.95, volume: 0.9 },
 };
 
 class VoiceSynthesisService {
@@ -74,30 +74,44 @@ class VoiceSynthesisService {
       return null;
     }
 
-    // Try to find exact language match
+    // Prioritize local/offline voices for better quality and reliability
     let voice = this.voices.find(v => 
-      v.lang === config.lang && v.localService
+      v.lang === config.lang && v.localService && !v.name.includes('eSpeak')
     );
+
+    if (!voice) {
+      // Try to find exact language match (any voice)
+      voice = this.voices.find(v => 
+        v.lang === config.lang && !v.name.includes('eSpeak')
+      );
+    }
 
     if (!voice) {
       // Try to find language family match (e.g., 'hi' from 'hi-IN')
       const langCode = config.lang.split('-')[0];
       voice = this.voices.find(v => 
-        v.lang.startsWith(langCode) && v.localService
+        v.lang.startsWith(langCode) && v.localService && !v.name.includes('eSpeak')
       );
     }
 
     if (!voice) {
-      // Try to find any voice with the language code
+      // Try to find any voice with the language code (excluding poor quality voices)
       voice = this.voices.find(v => 
-        v.lang.startsWith(config.lang.split('-')[0])
+        v.lang.startsWith(config.lang.split('-')[0]) && !v.name.includes('eSpeak')
       );
     }
 
     if (!voice) {
-      // Fallback to default English voice
+      // Fallback to best English voice for Indian accent
       voice = this.voices.find(v => 
-        v.lang.startsWith('en') && v.localService
+        (v.lang === 'en-IN' || v.lang === 'en-US') && v.localService && !v.name.includes('eSpeak')
+      );
+    }
+
+    if (!voice) {
+      // Last resort: any English voice
+      voice = this.voices.find(v => 
+        v.lang.startsWith('en') && !v.name.includes('eSpeak')
       ) || this.voices[0];
     }
 
@@ -109,6 +123,8 @@ class VoiceSynthesisService {
   }
 
   public async speak(text: string, options?: Partial<VoiceConfig>): Promise<void> {
+    if (!text.trim()) return;
+
     if (!this.isInitialized) {
       await this.initializeVoices();
     }
@@ -126,18 +142,56 @@ class VoiceSynthesisService {
 
     if (voice) {
       utterance.voice = voice;
+      console.log(`Using voice: ${voice.name} (${voice.lang}) for language: ${this.currentLanguage}`);
+    } else {
+      console.warn(`No suitable voice found for language: ${this.currentLanguage}, using default`);
     }
 
     utterance.lang = config.lang;
-    utterance.rate = config.rate || 1.0;
-    utterance.pitch = config.pitch || 1.0;
-    utterance.volume = config.volume || 1.0;
+    utterance.rate = Math.max(0.5, Math.min(2.0, config.rate || 1.0)); // Clamp rate between 0.5-2.0
+    utterance.pitch = Math.max(0.5, Math.min(2.0, config.pitch || 1.0)); // Clamp pitch between 0.5-2.0
+    utterance.volume = Math.max(0.1, Math.min(1.0, config.volume || 0.9)); // Clamp volume between 0.1-1.0
 
     return new Promise((resolve, reject) => {
-      utterance.onend = () => resolve();
-      utterance.onerror = (event) => reject(new Error(`Speech synthesis error: ${event.error}`));
+      let hasEnded = false;
       
-      this.synth.speak(utterance);
+      const cleanup = () => {
+        if (!hasEnded) {
+          hasEnded = true;
+          resolve();
+        }
+      };
+
+      utterance.onend = cleanup;
+      utterance.onerror = (event) => {
+        if (!hasEnded) {
+          hasEnded = true;
+          console.error(`Speech synthesis error: ${event.error}`);
+          // Don't reject on error, just resolve to prevent UI blocking
+          resolve();
+        }
+      };
+
+      // Fallback timeout to prevent hanging
+      const timeout = setTimeout(() => {
+        if (!hasEnded) {
+          console.warn('Speech synthesis timeout, cleaning up...');
+          this.synth.cancel();
+          cleanup();
+        }
+      }, Math.max(5000, text.length * 100)); // Dynamic timeout based on text length
+
+      utterance.onstart = () => {
+        clearTimeout(timeout);
+      };
+      
+      try {
+        this.synth.speak(utterance);
+      } catch (error) {
+        clearTimeout(timeout);
+        console.error('Error starting speech synthesis:', error);
+        cleanup();
+      }
     });
   }
 
