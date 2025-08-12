@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import RemotePatientMonitoring from '../RemotePatientMonitoring';
 import TelemedicineConsultation from '../TelemedicineConsultation';
+import LanguageSelector from '../LanguageSelector';
 
 interface DoctorSpecificDashboardProps {
   user: {
@@ -356,7 +357,18 @@ export default function DoctorSpecificDashboard({ user }: DoctorSpecificDashboar
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-6xl mx-auto px-4 py-6">
+      {/* Header with Language Selector */}
+      <div className="bg-white border-b border-gray-200 px-4 py-3">
+        <div className="max-w-6xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">👨‍⚕️ Doctor Dashboard</h1>
+            <p className="text-gray-600">Welcome, Dr. {user.name}</p>
+          </div>
+          <LanguageSelector />
+        </div>
+      </div>
+      
+      <div className="max-w-6xl mx-auto px-4 py-6 pb-20">
         {renderTabContent()}
       </div>
       <TabNavigation />

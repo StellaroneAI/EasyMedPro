@@ -206,16 +206,13 @@ class FirebaseAuthService {
       // Get Firebase auth token
       const idToken = await user.getIdToken();
       
-      // Create user object
-      const userData = {
-        id: user.uid,
-        name: user.displayName || `${userType.charAt(0).toUpperCase() + userType.slice(1)} User`,
-        phone: user.phoneNumber,
-        email: user.email,
-        userType: userType,
-        phoneVerified: true,
-        firebaseUid: user.uid
-      };
+      // Try to fetch user profile from Firebase Realtime Database
+      let userData = await this.fetchUserProfile(user.phoneNumber!, userType);
+      
+      // If no profile exists, create a default one
+      if (!userData) {
+        userData = await this.createUserProfile(user, userType);
+      }
 
       // Clear confirmation result
       this.currentConfirmationResult = null;
@@ -263,6 +260,116 @@ class FirebaseAuthService {
         error: authError.code
       };
     }
+  }
+
+  /**
+   * Fetch user profile from Firebase Realtime Database
+   */
+  private async fetchUserProfile(phoneNumber: string, userType: string): Promise<any | null> {
+    try {
+      const { getDatabase, ref, get } = await import('firebase/database');
+      const db = getDatabase();
+      
+      // Try to find user by phone number in the users collection
+      const usersRef = ref(db, 'users');
+      const snapshot = await get(usersRef);
+      
+      if (snapshot.exists()) {
+        const users = snapshot.val();
+        // Find user with matching phone number and user type
+        for (const userId in users) {
+          const userData = users[userId];
+          if (userData.phone === phoneNumber && userData.userType === userType) {
+            return {
+              ...userData,
+              id: userId,
+              firebaseUid: this.auth.currentUser?.uid
+            };
+          }
+        }
+      }
+      
+      return null;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Create a default user profile for test users
+   */
+  private async createUserProfile(user: any, userType: string): Promise<any> {
+    const testUserProfiles = {
+      '+919060328119': {
+        name: 'Super Admin',
+        userType: 'admin',
+        role: 'super_admin',
+        phone: '+919060328119'
+      },
+      '+919611044219': {
+        name: 'Dr. Rajesh Kumar',
+        userType: 'doctor',
+        role: 'doctor',
+        phone: '+919611044219',
+        specialization: ['General Medicine'],
+        experience: 10
+      },
+      '+917550392336': {
+        name: 'Sunita Devi',
+        userType: 'asha',
+        role: 'asha_worker',
+        phone: '+917550392336',
+        assignedArea: 'Block 1, District Health',
+        experience: 5
+      },
+      '+919514070205': {
+        name: 'Priya Sharma',
+        userType: 'patient',
+        role: 'patient',
+        phone: '+919514070205',
+        age: 32,
+        gender: 'female'
+      }
+    };
+
+    const phoneNumber = user.phoneNumber;
+    const testProfile = testUserProfiles[phoneNumber as keyof typeof testUserProfiles];
+    
+    if (testProfile) {
+      // Use the predefined test profile
+      return {
+        id: user.uid,
+        name: testProfile.name,
+        phone: phoneNumber,
+        email: user.email,
+        userType: testProfile.userType,
+        role: testProfile.role,
+        phoneVerified: true,
+        firebaseUid: user.uid,
+        ...testProfile
+      };
+    }
+
+    // Create a generic profile for other phone numbers
+    const defaultNames = {
+      admin: 'Admin User',
+      doctor: 'Dr. User',
+      asha: 'ASHA Worker',
+      patient: 'Patient User'
+    };
+
+    return {
+      id: user.uid,
+      name: defaultNames[userType as keyof typeof defaultNames] || 'User',
+      phone: phoneNumber,
+      email: user.email,
+      userType: userType,
+      role: userType,
+      phoneVerified: true,
+      firebaseUid: user.uid,
+      createdAt: new Date().toISOString()
+    };
   }
 
   /**
