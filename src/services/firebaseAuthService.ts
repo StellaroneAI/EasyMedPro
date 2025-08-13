@@ -85,19 +85,41 @@ class FirebaseAuthService {
     
     // Check for Indian phone number patterns
     if (digits.length === 10 && digits.match(/^[6-9]\d{9}$/)) {
-      return { 
-        isValid: true, 
-        formatted: `+91${digits}` 
+      // Standard 10 digit mobile number
+      return {
+        isValid: true,
+        formatted: `+91${digits}`
       };
-    } else if (digits.length === 12 && digits.startsWith('91') && digits.substring(2).match(/^[6-9]\d{9}$/)) {
-      return { 
-        isValid: true, 
-        formatted: `+${digits}` 
+    } else if (
+      digits.length === 11 &&
+      digits.startsWith('0') &&
+      digits.substring(1).match(/^[6-9]\d{9}$/)
+    ) {
+      // Number with leading zero (0XXXXXXXXXX)
+      return {
+        isValid: true,
+        formatted: `+91${digits.substring(1)}`
       };
-    } else if (digits.length === 13 && digits.startsWith('91') && digits.substring(3).match(/^[6-9]\d{9}$/)) {
-      return { 
-        isValid: true, 
-        formatted: `+${digits.substring(1)}` 
+    } else if (
+      digits.length === 12 &&
+      digits.startsWith('91') &&
+      digits.substring(2).match(/^[6-9]\d{9}$/)
+    ) {
+      // Number with country code (91XXXXXXXXXX)
+      return {
+        isValid: true,
+        formatted: `+${digits}`
+      };
+    } else if (
+      digits.length === 13 &&
+      digits.startsWith('0') &&
+      digits.substring(1, 3) === '91' &&
+      digits.substring(3).match(/^[6-9]\d{9}$/)
+    ) {
+      // Number with leading zero and country code (0 91XXXXXXXXXX)
+      return {
+        isValid: true,
+        formatted: `+${digits.substring(1)}`
       };
     }
 
