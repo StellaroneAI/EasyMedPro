@@ -5,6 +5,7 @@ import DashboardScreen from './src/screens/Dashboard';
 import PatientDashboardScreen from './src/screens/PatientDashboard';
 
 const Tab = createBottomTabNavigator();
+import RootNavigator from './src/navigation/RootNavigator';
 
 export default function App() {
   return (
@@ -13,6 +14,7 @@ export default function App() {
         <Tab.Screen name="Dashboard" component={DashboardScreen} />
         <Tab.Screen name="Patient" component={PatientDashboardScreen} />
       </Tab.Navigator>
+      <RootNavigator />
     </NavigationContainer>
   );
 }

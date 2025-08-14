@@ -14,6 +14,7 @@ import {
   UserCredential
 } from 'firebase/auth';
 import auth from './firebaseConfig';
+import { storage } from '../storage';
 
 interface SMSResponse {
   success: boolean;
@@ -239,13 +240,13 @@ class FirebaseAuthService {
       // Clear confirmation result
       this.currentConfirmationResult = null;
       
-      // Store user data in localStorage
-      localStorage.setItem('easymed_user', JSON.stringify(userData));
-      localStorage.setItem('easymed_token', idToken);
-      
+      // Store user data using cross-platform storage
+      await storage.setItem('easymed_user', JSON.stringify(userData));
+      await storage.setItem('easymed_token', idToken);
+
       // Get refresh token if available
       if (user.refreshToken) {
-        localStorage.setItem('easymed_refresh_token', user.refreshToken);
+        await storage.setItem('easymed_refresh_token', user.refreshToken);
       }
 
       return {
@@ -397,15 +398,16 @@ class FirebaseAuthService {
   /**
    * Check if user is authenticated
    */
-  isAuthenticated(): boolean {
-    return !!(this.auth.currentUser && localStorage.getItem('easymed_token'));
+  async isAuthenticated(): Promise<boolean> {
+    const token = await storage.getItem('easymed_token');
+    return !!(this.auth.currentUser && token);
   }
 
   /**
    * Get current user
    */
-  getCurrentUser(): any {
-    const userStr = localStorage.getItem('easymed_user');
+  async getCurrentUser(): Promise<any> {
+    const userStr = await storage.getItem('easymed_user');
     return userStr ? JSON.parse(userStr) : this.auth.currentUser;
   }
 
@@ -415,9 +417,9 @@ class FirebaseAuthService {
   async logout(): Promise<void> {
     try {
       await this.auth.signOut();
-      localStorage.removeItem('easymed_user');
-      localStorage.removeItem('easymed_token');
-      localStorage.removeItem('easymed_refresh_token');
+      await storage.removeItem('easymed_user');
+      await storage.removeItem('easymed_token');
+      await storage.removeItem('easymed_refresh_token');
       
       // Clear confirmation result
       this.currentConfirmationResult = null;
@@ -428,10 +430,10 @@ class FirebaseAuthService {
       }
     } catch (error) {
       console.error('Error during logout:', error);
-      // Clear localStorage anyway
-      localStorage.removeItem('easymed_user');
-      localStorage.removeItem('easymed_token');
-      localStorage.removeItem('easymed_refresh_token');
+      // Clear storage anyway
+      await storage.removeItem('easymed_user');
+      await storage.removeItem('easymed_token');
+      await storage.removeItem('easymed_refresh_token');
     }
   }
 
@@ -449,7 +451,7 @@ class FirebaseAuthService {
       }
 
       const idToken = await user.getIdToken(true); // Force refresh
-      localStorage.setItem('easymed_token', idToken);
+      await storage.setItem('easymed_token', idToken);
 
       return {
         success: true,

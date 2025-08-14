@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { storage } from '@core/storage';
 import { translations, LanguageKey, TranslationKey, Language } from '../translations/index';
 import { gujaratiTranslation, kannadaTranslation, malayalamTranslation } from '../translations/languages/comprehensive';
 import { urduTranslation, odiaTranslation, assameseTranslation } from '../translations/languages/additionalLanguages';
@@ -35,16 +36,12 @@ const extendedTranslations = {
 const RTL_LANGUAGES = ['urdu', 'sindhi'];
 
 export function LanguageProvider({ children }: LanguageProviderProps) {
-  const [currentLanguage, setCurrentLanguage] = useState<LanguageKey>(() => {
-    // Check for saved language preference
-    const saved = localStorage.getItem('easymed-language');
-    return (saved as LanguageKey) || 'english';
-  });
+  const [currentLanguage, setCurrentLanguage] = useState<LanguageKey>('english');
 
   const setLanguage = (language: LanguageKey) => {
     setCurrentLanguage(language);
-    // Store preference in localStorage for persistence
-    localStorage.setItem('easymed-language', language);
+    // Store preference using cross-platform storage
+    void storage.setItem('easymed-language', language);
     
     // Update document direction for RTL languages
     if (RTL_LANGUAGES.includes(language)) {
@@ -63,9 +60,14 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     document.body.classList.add(`language-${language}`);
   };
 
-  // Set initial direction and language on mount
+  // Load saved language and set initial direction on mount
   useEffect(() => {
-    setLanguage(currentLanguage);
+    const init = async () => {
+      const saved = await storage.getItem('easymed-language');
+      const lang = (saved as LanguageKey) || currentLanguage;
+      setLanguage(lang);
+    };
+    init();
   }, []);
 
   const t = (key: TranslationKey): string => {

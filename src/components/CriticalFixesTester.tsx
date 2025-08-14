@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { voiceSynthesis } from '../services/voiceSynthesis';
+import { storage } from '@core/storage';
 
 /**
  * Testing Component for Critical Fixes Verification
@@ -60,11 +61,11 @@ export default function CriticalFixesTester() {
     }
   };
 
-  const testUserRoleData = (): boolean => {
+  const testUserRoleData = async (): Promise<boolean> => {
     try {
-      const userData = localStorage.getItem('easymed_user');
+      const userData = await storage.getItem('easymed_user');
       if (!userData) return false;
-      
+
       const user = JSON.parse(userData);
       return !!(user && user.userType && user.name);
     } catch {

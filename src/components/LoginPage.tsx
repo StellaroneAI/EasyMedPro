@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAdmin } from '../contexts/AdminContext';
-import authService from '../services/authService';
-import firebaseAuthService from '../services/firebaseAuthService';
+import authService from '@core/services/authService';
+import firebaseAuthService from '@core/services/firebaseAuthService';
 import EmergencyAdminAccess from './admin/EmergencyAdminAccess';
 import { loginTexts, type LoginLanguageKey, type LoginTranslationKey } from '../translations/loginTexts';
 
