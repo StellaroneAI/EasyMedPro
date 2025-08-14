@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
+import { storage } from '@core/storage';
 import VoiceAssistant from './VoiceAssistant';
 import AIChatAssistant from './AIChatAssistant';
 import MovableFloatingButton from './MovableFloatingButton';
@@ -348,9 +349,13 @@ export default function PatientDashboard({ user }: PatientDashboardProps) {
               
               {/* Logout Button */}
               <button
-                onClick={() => {
-                  // Clear local storage and reload page to reset state
-                  localStorage.clear();
+                onClick={async () => {
+                  // Clear stored data and reload page to reset state
+                  await storage.removeItem('easymed_user');
+                  await storage.removeItem('easymed_token');
+                  await storage.removeItem('easymed_refresh_token');
+                  await storage.removeItem('abha_profile');
+                  await storage.removeItem('abha_tokens');
                   window.location.reload();
                 }}
                 className="p-2 bg-red-500 hover:bg-red-600 text-white rounded-lg transition-all duration-200 flex items-center space-x-2 text-sm"

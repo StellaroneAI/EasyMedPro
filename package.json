@@ -3,6 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
+  "workspaces": ["packages/*"],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -63,6 +64,8 @@
     "expo-av": "^14.0.2",
     "expo-speech": "^11.5.0",
     "react-native-voice": "^3.2.0"
+    "@react-native-async-storage/async-storage": "^1.21.0",
+    "twilio": "^5.8.0"
   },
   "devDependencies": {
     "@capacitor/cli": "^6.1.2",

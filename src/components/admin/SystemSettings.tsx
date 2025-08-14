@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAdmin } from '../../contexts/AdminContext';
+import { storage } from '@core/storage';
 
 interface SystemSettings {
   general: {
@@ -99,16 +100,19 @@ export default function SystemSettings() {
   const [isLoading, setIsLoading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
-  // Load settings from localStorage on mount
+  // Load settings from storage on mount
   useEffect(() => {
-    const savedSettings = localStorage.getItem('easymed_system_settings');
-    if (savedSettings) {
-      try {
-        setSettings(JSON.parse(savedSettings));
-      } catch (error) {
-        console.error('Error loading system settings:', error);
+    const loadSettings = async () => {
+      const savedSettings = await storage.getItem('easymed_system_settings');
+      if (savedSettings) {
+        try {
+          setSettings(JSON.parse(savedSettings));
+        } catch (error) {
+          console.error('Error loading system settings:', error);
+        }
       }
-    }
+    };
+    loadSettings();
   }, []);
 
   const handleSettingChange = (category: keyof SystemSettings, key: string, value: any) => {
@@ -135,8 +139,8 @@ export default function SystemSettings() {
 
     setIsLoading(true);
     try {
-      // Save to localStorage (in real app, save to Firebase/database)
-      localStorage.setItem('easymed_system_settings', JSON.stringify(settings));
+      // Save to storage (in real app, save to Firebase/database)
+      await storage.setItem('easymed_system_settings', JSON.stringify(settings));
       
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
