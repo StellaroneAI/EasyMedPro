@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { storage } from '@core/storage';
 
 interface AdminUser {
   id: string;
@@ -18,7 +19,7 @@ interface AdminContextType {
   isAdminAuthenticated: boolean;
   isSuperAdmin: boolean;
   loginAdmin: (identifier: string, userInfo?: any, password?: string) => Promise<boolean>;
-  logoutAdmin: () => void;
+  logoutAdmin: () => Promise<void>;
   addTeamMember: (memberData: Omit<AdminUser, 'id' | 'createdAt'>) => Promise<boolean>;
   updateTeamMember: (id: string, updates: Partial<AdminUser>) => Promise<boolean>;
   removeTeamMember: (id: string) => Promise<boolean>;
@@ -84,29 +85,32 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
   const [adminTeam, setAdminTeam] = useState<AdminUser[]>([]);
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState(false);
 
-  // Load admin data from localStorage on mount
+  // Load admin data from storage on mount
   useEffect(() => {
-    const savedAdmin = localStorage.getItem('easymed_admin');
-    const savedTeam = localStorage.getItem('easymed_admin_team');
-    
-    if (savedAdmin) {
-      try {
-        const admin = JSON.parse(savedAdmin);
-        setCurrentAdmin(admin);
-        setIsAdminAuthenticated(true);
-      } catch (error) {
-        console.error('Error loading admin data:', error);
+    const loadData = async () => {
+      const savedAdmin = await storage.getItem('easymed_admin');
+      const savedTeam = await storage.getItem('easymed_admin_team');
+
+      if (savedAdmin) {
+        try {
+          const admin = JSON.parse(savedAdmin);
+          setCurrentAdmin(admin);
+          setIsAdminAuthenticated(true);
+        } catch (error) {
+          console.error('Error loading admin data:', error);
+        }
       }
-    }
-    
-    if (savedTeam) {
-      try {
-        const team = JSON.parse(savedTeam);
-        setAdminTeam(team);
-      } catch (error) {
-        console.error('Error loading team data:', error);
+
+      if (savedTeam) {
+        try {
+          const team = JSON.parse(savedTeam);
+          setAdminTeam(team);
+        } catch (error) {
+          console.error('Error loading team data:', error);
+        }
       }
-    }
+    };
+    loadData();
   }, []);
 
   const isSuperAdmin = currentAdmin?.phone === SUPER_ADMIN_PHONE || 
@@ -130,7 +134,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
 
         setCurrentAdmin(superAdmin);
         setIsAdminAuthenticated(true);
-        localStorage.setItem('easymed_admin', JSON.stringify(superAdmin));
+        await storage.setItem('easymed_admin', JSON.stringify(superAdmin));
         return true;
       }
 
@@ -152,7 +156,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
         
         setCurrentAdmin(superAdmin);
         setIsAdminAuthenticated(true);
-        localStorage.setItem('easymed_admin', JSON.stringify(superAdmin));
+        await storage.setItem('easymed_admin', JSON.stringify(superAdmin));
         return true;
       }
 
@@ -161,7 +165,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       if (teamMemberByPhone) {
         setCurrentAdmin(teamMemberByPhone);
         setIsAdminAuthenticated(true);
-        localStorage.setItem('easymed_admin', JSON.stringify(teamMemberByPhone));
+        await storage.setItem('easymed_admin', JSON.stringify(teamMemberByPhone));
         return true;
       }
 
@@ -170,7 +174,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       if (teamMemberByEmail) {
         setCurrentAdmin(teamMemberByEmail);
         setIsAdminAuthenticated(true);
-        localStorage.setItem('easymed_admin', JSON.stringify(teamMemberByEmail));
+        await storage.setItem('easymed_admin', JSON.stringify(teamMemberByEmail));
         
         return true;
       }
@@ -182,10 +186,10 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const logoutAdmin = () => {
+  const logoutAdmin = async () => {
     setCurrentAdmin(null);
     setIsAdminAuthenticated(false);
-    localStorage.removeItem('easymed_admin');
+    await storage.removeItem('easymed_admin');
   };
 
   const addTeamMember = async (memberData: Omit<AdminUser, 'id' | 'createdAt'>): Promise<boolean> => {
@@ -208,7 +212,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       
       const updatedTeam = [...adminTeam, newMember];
       setAdminTeam(updatedTeam);
-      localStorage.setItem('easymed_admin_team', JSON.stringify(updatedTeam));
+      await storage.setItem('easymed_admin_team', JSON.stringify(updatedTeam));
       
       return true;
     } catch (error) {
@@ -234,7 +238,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       );
       
       setAdminTeam(updatedTeam);
-      localStorage.setItem('easymed_admin_team', JSON.stringify(updatedTeam));
+      await storage.setItem('easymed_admin_team', JSON.stringify(updatedTeam));
       
       return true;
     } catch (error) {
@@ -251,7 +255,7 @@ export function AdminProvider({ children }: { children: React.ReactNode }) {
       
       const updatedTeam = adminTeam.filter(member => member.id !== id);
       setAdminTeam(updatedTeam);
-      localStorage.setItem('easymed_admin_team', JSON.stringify(updatedTeam));
+      await storage.setItem('easymed_admin_team', JSON.stringify(updatedTeam));
       
       return true;
     } catch (error) {

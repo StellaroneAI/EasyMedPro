@@ -3,7 +3,8 @@
  * Handles SMS OTP authentication for Indian healthcare users
  */
 
-import { loginTexts } from '../translations/loginTexts';
+import { loginTexts } from '@/translations/loginTexts';
+import { storage } from '../storage';
 
 interface SMSResponse {
   success: boolean;
@@ -111,7 +112,7 @@ class TwilioService {
       
       // Store session token if OTP sent successfully
       if (result.success && result.sessionToken) {
-        localStorage.setItem('easymed_otp_session', result.sessionToken);
+        await storage.setItem('easymed_otp_session', result.sessionToken);
       }
       
       return result;
@@ -139,8 +140,8 @@ class TwilioService {
         };
       }
 
-      // Get session token from localStorage
-      const sessionToken = localStorage.getItem('easymed_otp_session');
+      // Get session token from storage
+      const sessionToken = await storage.getItem('easymed_otp_session');
       if (!sessionToken) {
         return {
           success: false,
@@ -165,15 +166,15 @@ class TwilioService {
       
       // Store tokens if verification successful
       if (result.success && result.token) {
-        localStorage.setItem('easymed_token', result.token);
+        await storage.setItem('easymed_token', result.token);
         if (result.refreshToken) {
-          localStorage.setItem('easymed_refresh_token', result.refreshToken);
+          await storage.setItem('easymed_refresh_token', result.refreshToken);
         }
         if (result.user) {
-          localStorage.setItem('easymed_user', JSON.stringify(result.user));
+          await storage.setItem('easymed_user', JSON.stringify(result.user));
         }
         // Clear OTP session token
-        localStorage.removeItem('easymed_otp_session');
+        await storage.removeItem('easymed_otp_session');
       }
 
       return result;
@@ -192,7 +193,7 @@ class TwilioService {
    */
   async refreshToken(): Promise<{ success: boolean; token?: string; error?: string }> {
     try {
-      const refreshToken = localStorage.getItem('easymed_refresh_token');
+      const refreshToken = await storage.getItem('easymed_refresh_token');
       if (!refreshToken) {
         return {
           success: false,
@@ -211,7 +212,7 @@ class TwilioService {
       const result = await response.json();
       
       if (result.success && result.token) {
-        localStorage.setItem('easymed_token', result.token);
+        await storage.setItem('easymed_token', result.token);
       }
 
       return result;
@@ -228,25 +229,25 @@ class TwilioService {
    * Logout user and clear tokens
    */
   logout(): void {
-    localStorage.removeItem('easymed_token');
-    localStorage.removeItem('easymed_refresh_token');
-    localStorage.removeItem('easymed_user');
-    localStorage.removeItem('easymed_otp_session'); // Clear OTP session as well
+    await storage.removeItem('easymed_token');
+    await storage.removeItem('easymed_refresh_token');
+    await storage.removeItem('easymed_user');
+    await storage.removeItem('easymed_otp_session'); // Clear OTP session as well
   }
 
   /**
    * Check if user is authenticated
    */
-  isAuthenticated(): boolean {
-    const token = localStorage.getItem('easymed_token');
+  async isAuthenticated(): Promise<boolean> {
+    const token = await storage.getItem('easymed_token');
     return !!token;
   }
 
   /**
-   * Get current user from localStorage
+   * Get current user from storage
    */
-  getCurrentUser(): any {
-    const userStr = localStorage.getItem('easymed_user');
+  async getCurrentUser(): Promise<any> {
+    const userStr = await storage.getItem('easymed_user');
     return userStr ? JSON.parse(userStr) : null;
   }
 }

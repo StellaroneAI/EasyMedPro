@@ -10,6 +10,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      '@core': resolve(__dirname, './packages/core/src'),
       // Add this line to resolve React Native components on the web
       'react-native': 'react-native-web',
     },
