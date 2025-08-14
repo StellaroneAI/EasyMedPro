@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { BleManager } from 'react-native-ble-plx';
+import AppleHealthKit, { HealthKitPermissions } from 'react-native-health';
 
 interface WearableDeviceIntegrationProps {
   patientId: string;
@@ -20,9 +22,11 @@ export default function WearableDeviceIntegration({ patientId }: WearableDeviceI
   const [healthData, setHealthData] = useState<HealthData>({});
   const [isConnecting, setIsConnecting] = useState<string | null>(null);
 
+  const bleManager = new BleManager();
+
   // Check for available health APIs
   const isAppleHealthKitAvailable = () => {
-    return typeof window !== 'undefined' && 'HealthKit' in window;
+    return typeof AppleHealthKit !== 'undefined';
   };
 
   const isGoogleFitAvailable = () => {
@@ -36,6 +40,36 @@ export default function WearableDeviceIntegration({ patientId }: WearableDeviceI
   const isFitbitAvailable = () => {
     return typeof window !== 'undefined' && 'Fitbit' in window;
   };
+
+  useEffect(() => {
+    bleManager.startDeviceScan(null, null, (error, device) => {
+      if (error) {
+        console.error('BLE scan error:', error);
+        return;
+      }
+      if (device?.name) {
+        setConnectedDevices(prev => (prev.includes(device.name!) ? prev : [...prev, device.name!]));
+      }
+    });
+
+    if (isAppleHealthKitAvailable()) {
+      const permissions: HealthKitPermissions = {
+        permissions: {
+          read: ['HeartRate', 'StepCount', 'ActiveEnergyBurned'],
+          write: []
+        }
+      };
+      AppleHealthKit.initHealthKit(permissions, error => {
+        if (error) {
+          console.error('HealthKit initialization failed:', error);
+        }
+      });
+    }
+
+    return () => {
+      bleManager.stopDeviceScan();
+    };
+  }, []);
 
   // Apple HealthKit Integration
   const connectAppleHealthKit = async () => {

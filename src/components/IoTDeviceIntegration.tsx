@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { BleManager } from 'react-native-ble-plx';
 
 interface Device {
   id: string;
@@ -101,10 +102,30 @@ export default function IoTDeviceIntegration() {
 
   const [bluetoothSupported, setBluetoothSupported] = useState(false);
   const [isScanning, setIsScanning] = useState(false);
+  const bleManager = new BleManager();
 
   useEffect(() => {
     // Check for Bluetooth support
     setBluetoothSupported('bluetooth' in navigator);
+
+    // Begin BLE device scan
+    bleManager.startDeviceScan(null, null, (error, device) => {
+      if (error) {
+        console.error('BLE scan error:', error);
+        return;
+      }
+      if (device && device.name) {
+        setDevices(prev =>
+          prev.find(d => d.id === device.id)
+            ? prev
+            : [...prev, { id: device.id, name: device.name, type: 'smartwatch', status: 'disconnected', lastSync: 'Never' }]
+        );
+      }
+    });
+
+    return () => {
+      bleManager.stopDeviceScan();
+    };
   }, []);
 
   const getDeviceIcon = (type: Device['type']) => {
