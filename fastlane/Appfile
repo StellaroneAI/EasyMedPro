@@ -1,0 +1,2 @@
+app_identifier("com.easymedpro.app")
+apple_id("apple@example.com")

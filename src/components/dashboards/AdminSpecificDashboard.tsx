@@ -6,7 +6,7 @@ import AdminSidebar from '../admin/AdminSidebar';
 import UserManagement from '../admin/UserManagement';
 import AppointmentManagement from '../admin/AppointmentManagement';
 import SystemSettings from '../admin/SystemSettings';
-import firebaseUserManagement from '../../services/firebaseUserManagement';
+import firebaseUserManagement from '@core/services/firebaseUserManagement';
 
 interface AdminSpecificDashboardProps {
   userInfo: {

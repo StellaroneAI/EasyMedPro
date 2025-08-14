@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { storage } from '@core/storage';
 
 interface OTPLog {
   timestamp: string;
@@ -49,9 +50,10 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
 
   const fetchOTPStats = async () => {
     try {
+      const token = await storage.getItem('accessToken');
       const response = await fetch(`/api/auth/otp-debug/stats?timeframe=${timeframe}`, {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -69,9 +71,10 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
 
   const fetchFirebaseStats = async () => {
     try {
+      const token = await storage.getItem('accessToken');
       const response = await fetch('/api/auth/otp-debug/firebase-stats', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -86,9 +89,10 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
 
   const generateFirebaseReport = async () => {
     try {
+      const token = await storage.getItem('accessToken');
       const response = await fetch('/api/auth/otp-debug/firebase-report', {
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -103,10 +107,11 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
 
   const testFirebaseConfig = async () => {
     try {
+      const token = await storage.getItem('accessToken');
       const response = await fetch('/api/auth/otp-debug/test-firebase', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -128,10 +133,11 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
     }
 
     try {
+      const token = await storage.getItem('accessToken');
       const response = await fetch('/api/auth/otp-debug/reset-counters', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${token}`
         }
       });
       
@@ -156,11 +162,12 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
     }
 
     try {
+      const token = await storage.getItem('accessToken');
       const response = await fetch('/api/auth/otp-debug/test-sms', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           phoneNumber: testPhoneNumber,
@@ -190,11 +197,12 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
     }
 
     try {
+      const token = await storage.getItem('accessToken');
       const response = await fetch('/api/auth/otp-debug/whitelist/add', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           phoneNumber: newWhitelistPhone
@@ -217,11 +225,12 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
 
   const createEmergencyBypass = async (identifier: string, reason: string = 'Emergency access') => {
     try {
+      const token = await storage.getItem('accessToken');
       const response = await fetch('/api/auth/otp-debug/emergency-bypass', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('accessToken')}`
+          'Authorization': `Bearer ${token}`
         },
         body: JSON.stringify({
           identifier,

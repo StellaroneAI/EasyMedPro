@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { ABHAProfile, ABHAHealthRecord, abhaService } from '../services/abhaService';
+import { ABHAProfile, ABHAHealthRecord, abhaService } from '@core/services/abhaService';
+import { storage } from '@core/storage';
 
 interface ABHAContextType {
   abhaProfile: ABHAProfile | null;
@@ -7,8 +8,8 @@ interface ABHAContextType {
   isABHAConnected: boolean;
   isLoading: boolean;
   error: string | null;
-  connectABHA: (profile: ABHAProfile) => void;
-  disconnectABHA: () => void;
+  connectABHA: (profile: ABHAProfile) => Promise<void>;
+  disconnectABHA: () => Promise<void>;
   fetchHealthRecords: () => Promise<void>;
   clearError: () => void;
 }
@@ -25,31 +26,34 @@ export function ABHAProvider({ children }: ABHAProviderProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Load ABHA profile from localStorage on mount
+  // Load ABHA profile from storage on mount
   useEffect(() => {
-    const savedProfile = localStorage.getItem('abha_profile');
-    if (savedProfile) {
-      try {
-        const profile = JSON.parse(savedProfile);
-        setABHAProfile(profile);
-      } catch (error) {
-        console.error('Failed to parse saved ABHA profile:', error);
-        localStorage.removeItem('abha_profile');
+    const loadProfile = async () => {
+      const savedProfile = await storage.getItem('abha_profile');
+      if (savedProfile) {
+        try {
+          const profile = JSON.parse(savedProfile);
+          setABHAProfile(profile);
+        } catch (error) {
+          console.error('Failed to parse saved ABHA profile:', error);
+          await storage.removeItem('abha_profile');
+        }
       }
-    }
+    };
+    loadProfile();
   }, []);
 
-  const connectABHA = (profile: ABHAProfile) => {
+  const connectABHA = async (profile: ABHAProfile) => {
     setABHAProfile(profile);
-    localStorage.setItem('abha_profile', JSON.stringify(profile));
+    await storage.setItem('abha_profile', JSON.stringify(profile));
     setError(null);
   };
 
-  const disconnectABHA = () => {
+  const disconnectABHA = async () => {
     setABHAProfile(null);
     setHealthRecords([]);
-    localStorage.removeItem('abha_profile');
-    localStorage.removeItem('abha_tokens');
+    await storage.removeItem('abha_profile');
+    await storage.removeItem('abha_tokens');
     setError(null);
   };
 
@@ -59,7 +63,7 @@ export function ABHAProvider({ children }: ABHAProviderProps) {
       return;
     }
 
-    const tokens = localStorage.getItem('abha_tokens');
+    const tokens = await storage.getItem('abha_tokens');
     if (!tokens) {
       setError('ABHA authentication tokens not found');
       return;

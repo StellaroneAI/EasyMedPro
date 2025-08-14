@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useABHA } from '../contexts/ABHAContext';
-import { abhaService, TelemedicineSession } from '../services/abhaService';
+import { abhaService, TelemedicineSession } from '@core/services/abhaService';
+import { storage } from '@core/storage';
 
 export default function TelemedicineConsultation() {
   const { currentLanguage } = useLanguage();
@@ -129,7 +130,7 @@ export default function TelemedicineConsultation() {
 
     setIsLoading(true);
     try {
-      const tokens = localStorage.getItem('abha_tokens');
+      const tokens = await storage.getItem('abha_tokens');
       if (tokens) {
         const { accessToken } = JSON.parse(tokens);
         const sessionsData = await abhaService.getTelemedicineSessions(abhaProfile.healthId, accessToken);
@@ -147,7 +148,7 @@ export default function TelemedicineConsultation() {
 
     setIsLoading(true);
     try {
-      const tokens = localStorage.getItem('abha_tokens');
+      const tokens = await storage.getItem('abha_tokens');
       if (tokens) {
         const { accessToken } = JSON.parse(tokens);
         
@@ -184,7 +185,7 @@ export default function TelemedicineConsultation() {
     if (!abhaProfile) return;
 
     try {
-      const tokens = localStorage.getItem('abha_tokens');
+      const tokens = await storage.getItem('abha_tokens');
       if (tokens) {
         const { accessToken } = JSON.parse(tokens);
         const sessionData = await abhaService.joinTelemedicineSession(sessionId, accessToken);
