@@ -4,14 +4,18 @@
  */
 
 import firebaseAuthService from './firebaseAuthService';
+import { storage } from '../storage';
 
 const API_BASE_URL = '/api';
 
 class AuthenticationService {
   constructor() {
-    this.token = localStorage.getItem('easymed_token');
-    this.refreshToken = localStorage.getItem('easymed_refresh_token');
-    this.user = JSON.parse(localStorage.getItem('easymed_user') || 'null');
+    (async () => {
+      this.token = await storage.getItem('easymed_token');
+      this.refreshToken = await storage.getItem('easymed_refresh_token');
+      const userStr = await storage.getItem('easymed_user');
+      this.user = userStr ? JSON.parse(userStr) : null;
+    })();
   }
 
   // API call helper
@@ -68,9 +72,9 @@ class AuthenticationService {
     this.token = tokens.accessToken;
     this.refreshToken = tokens.refreshToken;
 
-    localStorage.setItem('easymed_user', JSON.stringify(user));
-    localStorage.setItem('easymed_token', tokens.accessToken);
-    localStorage.setItem('easymed_refresh_token', tokens.refreshToken);
+    void storage.setItem('easymed_user', JSON.stringify(user));
+    void storage.setItem('easymed_token', tokens.accessToken);
+    void storage.setItem('easymed_refresh_token', tokens.refreshToken);
   }
 
   // Clear authentication data
@@ -79,9 +83,9 @@ class AuthenticationService {
     this.token = null;
     this.refreshToken = null;
 
-    localStorage.removeItem('easymed_user');
-    localStorage.removeItem('easymed_token');
-    localStorage.removeItem('easymed_refresh_token');
+    void storage.removeItem('easymed_user');
+    void storage.removeItem('easymed_token');
+    void storage.removeItem('easymed_refresh_token');
   }
 
   // Register new user
@@ -191,6 +195,7 @@ class AuthenticationService {
 
       if (response.success && response.token) {
         this.token = response.token;
+        void storage.setItem('easymed_token', response.token);
         return { success: true };
       }
 
@@ -248,7 +253,7 @@ class AuthenticationService {
 
       if (response.success && response.user) {
         this.user = response.user;
-        localStorage.setItem('easymed_user', JSON.stringify(response.user));
+        void storage.setItem('easymed_user', JSON.stringify(response.user));
       }
 
       return response;
