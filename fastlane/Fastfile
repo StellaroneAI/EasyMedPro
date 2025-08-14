@@ -1,0 +1,25 @@
+default_platform(:ios)
+
+platform :ios do
+  desc 'Build iOS app and upload to TestFlight'
+  lane :testflight do
+    sh('npm run build:ios')
+    upload_to_testflight(
+      api_key_path: ENV['APP_STORE_CONNECT_API_KEY_PATH'],
+      api_issuer: ENV['APP_STORE_CONNECT_API_ISSUER'],
+      api_key_id: ENV['APP_STORE_CONNECT_API_KEY_ID']
+    )
+  end
+end
+
+platform :android do
+  desc 'Build Android app and upload to internal testing'
+  lane :deploy_internal do
+    sh('npm run build:android')
+    upload_to_play_store(
+      track: 'internal',
+      json_key_data: ENV['GOOGLE_PLAY_JSON_KEY'],
+      aab: 'android/app/build/outputs/bundle/release/app-release.aab'
+    )
+  end
+end
