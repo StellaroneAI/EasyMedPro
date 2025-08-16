@@ -65,10 +65,10 @@
     "expo-file-system": "^16.0.0",
     "expo-media-library": "^15.0.0",
     "react-native-ble-plx": "^2.0.3",
-    "react-native-health": "^1.15.0"
+    "react-native-health": "^1.15.0",
     "expo-av": "^14.0.2",
     "expo-speech": "^11.5.0",
-    "react-native-voice": "^3.2.0"
+    "react-native-voice": "^3.2.0",
     "@react-native-async-storage/async-storage": "^1.21.0",
     "twilio": "^5.8.0"
   },
