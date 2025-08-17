@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import Voice from 'react-native-voice';
+import Voice from '@react-native-voice/voice';
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
 
