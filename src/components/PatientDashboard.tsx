@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { storage } from '@core/storage';
 import VoiceAssistant from './VoiceAssistant';
@@ -58,7 +58,31 @@ interface PatientDashboardProps {
   };
 }
 
-export default function PatientDashboard({ user }: PatientDashboardProps) {
+const HEALTH_TIPS = {
+  english: [
+    "💧 Drink at least 8 glasses of water daily to stay hydrated",
+    "🚶‍♂️ Take a 30-minute walk daily to maintain heart health",
+    "🥗 Include fresh fruits and vegetables in every meal",
+    "😴 Get 7-8 hours of quality sleep for better immunity",
+    "🧘‍♀️ Practice deep breathing for 10 minutes daily to reduce stress"
+  ],
+  hindi: [
+    "💧 स्वस्थ रहने के लिए दिन में कम से कम 8 गिलास पानी पिएं",
+    "🚶‍♂️ हृदय स्वास्थ्य के लिए रोज 30 मिनट टहलें",
+    "🥗 हर भोजन में ताजे फल और सब्जियां शामिल करें",
+    "😴 बेहतर रोग प्रतिरोधक क्षमता के लिए 7-8 घंटे की गुणवत्तापूर्ण नींद लें",
+    "🧘‍♀️ तनाव कम करने के लिए रोज 10 मिनट गहरी सांस लें"
+  ],
+  tamil: [
+    "💧 ஆரோக்கியமாக இருக்க தினமும் குறைந்தது 8 கிளாஸ் தண்ணீர் குடிக்கவும்",
+    "🚶‍♂️ இதய ஆரோக்கியத்திற்காக தினமும் 30 நிமிடங்கள் நடக்கவும்",
+    "🥗 ஒவ்வொரு உணவிலும் புதிய பழங்கள் மற்றும் காய்கறிகள் சேர்க்கவும்",
+    "😴 சிறந்த நோய் எதிர்ப்பு சக்திக்காக 7-8 மணி நேர தரமான தூக்கம்",
+    "🧘‍♀️ மன அழுத்தத்தைக் குறைக்க தினமும் 10 நிமிடங்கள் ஆழமான மூச்சு"
+  ]
+};
+
+function PatientDashboard({ user }: PatientDashboardProps) {
   const { currentLanguage, setLanguage, t } = useLanguage();
   const [currentSection, setCurrentSection] = useState('dashboard');
   const [showChat, setShowChat] = useState(false);
@@ -92,51 +116,26 @@ export default function PatientDashboard({ user }: PatientDashboardProps) {
     }
   });
 
-  // Health tips rotation
-  const healthTips = {
-    english: [
-      "💧 Drink at least 8 glasses of water daily to stay hydrated",
-      "🚶‍♂️ Take a 30-minute walk daily to maintain heart health",
-      "🥗 Include fresh fruits and vegetables in every meal",
-      "😴 Get 7-8 hours of quality sleep for better immunity",
-      "🧘‍♀️ Practice deep breathing for 10 minutes daily to reduce stress"
-    ],
-    hindi: [
-      "💧 स्वस्थ रहने के लिए दिन में कम से कम 8 गिलास पानी पिएं",
-      "🚶‍♂️ हृदय स्वास्थ्य के लिए रोज 30 मिनट टहलें",
-      "🥗 हर भोजन में ताजे फल और सब्जियां शामिल करें",
-      "😴 बेहतर रोग प्रतिरोधक क्षमता के लिए 7-8 घंटे की गुणवत्तापूर्ण नींद लें",
-      "🧘‍♀️ तनाव कम करने के लिए रोज 10 मिनट गहरी सांस लें"
-    ],
-    tamil: [
-      "💧 ஆரோக்கியமாக இருக்க தினமும் குறைந்தது 8 கிளாஸ் தண்ணீர் குடிக்கவும்",
-      "🚶‍♂️ இதய ஆரோக்கியத்திற்காக தினமும் 30 நிமிடங்கள் நடக்கவும்",
-      "🥗 ஒவ்வொரு உணவிலும் புதிய பழங்கள் மற்றும் காய்கறிகள் சேர்க்கவும்",
-      "😴 சிறந்த நோய் எதிர்ப்பு சக்திக்காக 7-8 மணி நேர தரமான தூக்கம்",
-      "🧘‍♀️ மன அழுத்தத்தைக் குறைக்க தினமும் 10 நிமிடங்கள் ஆழமான மூச்சு"
-    ]
-  };
 
-  // Update current time every minute
+  // Combined timer for time updates and health tips rotation
   useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000);
-    return () => clearInterval(timer);
-  }, []);
-
-  // Rotate health tips every 10 seconds
-  useEffect(() => {
-    const tips = healthTips[currentLanguage as keyof typeof healthTips] || healthTips.english;
+    const tips = HEALTH_TIPS[currentLanguage as keyof typeof HEALTH_TIPS] || HEALTH_TIPS.english;
     let tipIndex = 0;
     setHealthTip(tips[0]);
     
-    const tipTimer = setInterval(() => {
-      tipIndex = (tipIndex + 1) % tips.length;
-      setHealthTip(tips[tipIndex]);
-    }, 10000);
+    let tipUpdateCounter = 0;
+    const timer = setInterval(() => {
+      setCurrentTime(new Date());
+      
+      tipUpdateCounter++;
+      if (tipUpdateCounter >= 10) {
+        tipIndex = (tipIndex + 1) % tips.length;
+        setHealthTip(tips[tipIndex]);
+        tipUpdateCounter = 0;
+      }
+    }, 60000);
     
-    return () => clearInterval(tipTimer);
+    return () => clearInterval(timer);
   }, [currentLanguage]);
 
   const handleLogin = (userType: 'patient' | 'asha' | 'doctor' | 'admin', userData: any) => {
@@ -145,7 +144,7 @@ export default function PatientDashboard({ user }: PatientDashboardProps) {
     setCurrentSection('dashboard');
   };
 
-  const handleQuickAction = (action: string) => {
+  const handleQuickAction = useCallback((action: string) => {
     switch (action) {
       case 'emergency':
         setCurrentSection('emergency');
@@ -168,18 +167,18 @@ export default function PatientDashboard({ user }: PatientDashboardProps) {
       default:
         console.log(`Action: ${action}`);
     }
-  };
+  }, []);
 
-  const handleNavigation = (section: string) => {
+  const handleNavigation = useCallback((section: string) => {
     setCurrentSection(section);
     setShowChat(false);
-  };
+  }, []);
 
-  const handleVoiceCommand = (command: string, _language: string) => {
+  const handleVoiceCommand = useCallback((command: string, _language: string) => {
     handleNavigation(command);
-  };
+  }, [handleNavigation]);
 
-  const getGreeting = () => {
+  const getGreeting = useMemo(() => {
     const hour = currentTime.getHours();
     const greetings = {
       english: {
@@ -202,11 +201,11 @@ export default function PatientDashboard({ user }: PatientDashboardProps) {
     const timeOfDay = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
     const langGreetings = greetings[currentLanguage as keyof typeof greetings] || greetings.english;
     return langGreetings[timeOfDay];
-  };
+  }, [currentTime, currentLanguage]);
 
-  const formatTime = () => {
+  const formatTime = useMemo(() => {
     return currentTime.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
+  }, [currentTime]);
 
   // If not logged in, show login page
   if (!isLoggedIn) {
@@ -417,3 +416,5 @@ export default function PatientDashboard({ user }: PatientDashboardProps) {
     </div>
   );
 }
+
+export default React.memo(PatientDashboard);
