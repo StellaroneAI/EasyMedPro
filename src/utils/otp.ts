@@ -10,7 +10,7 @@ export async function sendOtp(phone: string) {
   if (secondsRemaining() > 0) {
     throw new Error('Please wait before requesting another OTP');
   }
-  const res = await fetch('/api/sms/send', {
+  const res = await fetch('/api/sms/send-otp', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ phone })
@@ -21,7 +21,7 @@ export async function sendOtp(phone: string) {
 }
 
 export async function verifyOtp(phone: string, code: string) {
-  const res = await fetch('/api/sms/verify', {
+  const res = await fetch('/api/sms/verify-otp', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ phone, code })
