@@ -27,6 +27,15 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [showEmergencyAccess, setShowEmergencyAccess] = useState(false);
 
   // Removed AI voice (speakMessage)
+  const speakMessage = (text: string) => {
+    // Simple text-to-speech for mobile apps
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = 0.8;
+      utterance.pitch = 1;
+      window.speechSynthesis.speak(utterance);
+    }
+  };
   // Popup message for OTP sent
   const [showPopup, setShowPopup] = useState(false);
   const showOtpPopup = (msg: string) => {
