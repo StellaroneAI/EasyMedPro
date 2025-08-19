@@ -28,14 +28,38 @@ export default defineConfig({
     open: true
   },
   optimizeDeps: {
-    exclude: ['mongodb'] // Exclude MongoDB from browser bundling
+    // Exclude packages that rely on native modules or Node-specific APIs
+    exclude: [
+      'mongodb',
+      'react-native-ble-plx',
+      '@react-native-voice/voice',
+      'expo-av',
+      'expo-camera',
+      'expo-file-system',
+      'expo-media-library',
+      'expo-speech',
+      'react-native-health'
+    ]
   },
   build: {
     target: 'es2015',
     minify: 'esbuild',
     sourcemap: false,
     rollupOptions: {
-      external: ['mongodb', 'crypto', 'util'], // Mark as external for build
+      // Prevent bundling of Node-specific and native-only packages
+      external: [
+        'mongodb',
+        'crypto',
+        'util',
+        'react-native-ble-plx',
+        '@react-native-voice/voice',
+        'expo-av',
+        'expo-camera',
+        'expo-file-system',
+        'expo-media-library',
+        'expo-speech',
+        'react-native-health'
+      ],
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],
