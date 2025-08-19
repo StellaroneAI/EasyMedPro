@@ -11,3 +11,10 @@
     padding-bottom: env(keyboard-inset-bottom);
   }
 }
+
+/* Full-screen container with hidden horizontal overflow */
+.main-screen {
+  width: 100%;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
