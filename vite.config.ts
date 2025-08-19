@@ -11,6 +11,11 @@ export default defineConfig({
     alias: {
       '@': resolve(__dirname, './src'),
       '@core': resolve(__dirname, './packages/core/src'),
+      '@react-native-voice/voice': resolve(__dirname, './src/mocks/voice.ts'),
+      'expo-speech': resolve(__dirname, './src/mocks/expo-speech.ts'),
+      'expo-av': resolve(__dirname, './src/mocks/expo-av.ts'),
+      'react-native-ble-plx': resolve(__dirname, './src/mocks/react-native-ble-plx.ts'),
+      'react-native-health': resolve(__dirname, './src/mocks/react-native-health.ts'),
       // Add this line to resolve React Native components on the web
       'react-native': resolve(__dirname, './src/stubs/react-native'),
       // Stub native modules on the web to avoid build issues
