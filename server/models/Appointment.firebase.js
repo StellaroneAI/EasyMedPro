@@ -1,7 +1,7 @@
 // Firebase Appointment Model (Firestore)
-import admin from '../config/firebase.js';
+import firebaseApp from '../config/firebase.js';
 
-const db = admin.firestore();
+const db = firebaseApp.firestore();
 
 export async function createAppointment(appointment) {
   if (!appointment.appointmentId) throw new Error('appointmentId is required');

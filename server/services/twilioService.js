@@ -11,6 +11,9 @@ class TwilioService {
     if (!this.accountSid || !this.authToken || !this.phoneNumber) {
       console.warn('⚠️ Twilio credentials not configured. SMS features will be disabled.');
       this.client = null;
+    } else if (!this.accountSid.startsWith('AC')) {
+      console.warn('⚠️ Invalid Twilio Account SID format. SMS features will be disabled.');
+      this.client = null;
     } else {
       this.client = twilio(this.accountSid, this.authToken);
       console.log('✅ Twilio service initialized');

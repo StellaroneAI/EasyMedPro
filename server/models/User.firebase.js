@@ -1,7 +1,7 @@
 // Firebase User Model (Firestore)
-import admin from '../config/firebase.js';
+import firebaseApp from '../config/firebase.js';
 
-const db = admin.firestore();
+const db = firebaseApp.firestore();
 
 export async function createUser(user) {
   if (!user.phone) throw new Error('Phone is required');
