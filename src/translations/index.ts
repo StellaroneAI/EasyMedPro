@@ -198,6 +198,8 @@ export interface TranslationData {
     familyHubDesc: string;
     startJourney: string;
     noCreditCard: string;
+    purposeTitle: string;
+    purposeDesc: string;
     // Legacy keys for backward compatibility
     mainHeading: string;
     subHeading: string;
@@ -386,6 +388,8 @@ export const translations: Record<Language, TranslationData> = {
       familyHubDesc: "Monitor and manage the health of your entire family in one place.",
       startJourney: "Start Your Health Journey",
       noCreditCard: "No credit card required. Start your free consultation today.",
+      purposeTitle: "Empowering Healthcare",
+      purposeDesc: "Our mission is to make quality healthcare accessible to everyone, everywhere.",
       
       // Legacy keys for backward compatibility
       mainHeading: "Intelligent Healthcare, Instantly Accessible.",
@@ -573,6 +577,8 @@ export const translations: Record<Language, TranslationData> = {
       familyHubDesc: "एक ही स्थान पर अपने पूरे परिवार के स्वास्थ्य की निगरानी और प्रबंधन करें।",
       startJourney: "अपनी स्वास्थ्य यात्रा शुरू करें",
       noCreditCard: "क्रेडिट कार्ड की आवश्यकता नहीं। आज ही अपनी मुफ्त परामर्श शुरू करें।",
+      purposeTitle: "स्वास्थ्य सेवा को सशक्त बनाना",
+      purposeDesc: "हमारा मिशन गुणवत्तापूर्ण स्वास्थ्य सेवा को हर जगह, हर किसी के लिए सुलभ बनाना है।",
       
       // Legacy keys for backward compatibility
       mainHeading: "बुद्धिमान स्वास्थ्य सेवा, तुरंत सुलभ।",

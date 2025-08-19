@@ -48,8 +48,38 @@ function AppContent() {
     return <LoginPage onLogin={handleLogin} />;
   }
 
-  // This will be replaced with the full dashboard later
-  return <h1>Welcome, {currentUser?.name}!</h1>;
+  // Route to appropriate dashboard based on user type
+  switch (currentUser?.userType) {
+    case 'patient':
+      return <PatientDashboard user={currentUser} />;
+    case 'asha':
+      return <ASHAWorkerHub />;
+    case 'doctor':
+      return <DoctorDashboard user={currentUser as any} />;
+    case 'admin':
+      return <AdminDashboard 
+        userInfo={currentUser as any} 
+        onLogout={() => {
+          setCurrentUser(null);
+          setIsLoggedIn(false);
+          setShowHome(true);
+        }} 
+      />;
+    default:
+      return <div className="flex flex-col items-center justify-center min-h-screen">
+        <h1 className="text-2xl font-bold mb-4">Welcome, {currentUser?.name}!</h1>
+        <button 
+          onClick={() => {
+            setCurrentUser(null);
+            setIsLoggedIn(false);
+            setShowHome(true);
+          }}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+        >
+          Logout
+        </button>
+      </div>;
+  }
 }
 
 function App() {
