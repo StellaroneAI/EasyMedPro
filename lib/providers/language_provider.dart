@@ -36,10 +36,28 @@ class LanguageProvider extends ChangeNotifier {
     LanguageKey.english: {
       'welcome': 'Welcome',
       'voiceCommands': {'greeting': 'Hello'},
+      'patientDashboard': 'Patient Dashboard',
+      'ashaDashboard': 'ASHA Dashboard',
+      'doctorDashboard': 'Doctor Dashboard',
+      'adminDashboard': 'Admin Dashboard',
+      'home': 'Home',
+      'ai': 'AI',
+      'appointments': 'Appointments',
+      'health': 'Health',
+      'profile': 'Profile',
     },
     LanguageKey.hindi: {
       'welcome': '\u0938\u094d\u0935\u093e\u0917\u0924',
       'voiceCommands': {'greeting': '\u0928\u092e\u0938\u094d\u0924\u0947'},
+      'patientDashboard': '\u0930\u094b\u0917\u0940 \u0921\u0948\u0936\u092c\u094b\u0930\u094d\u0921',
+      'ashaDashboard': '\u0906\u0936\u093e \u0921\u0948\u0936\u092c\u094b\u0930\u094d\u0921',
+      'doctorDashboard': '\u0921\u0949\u0915\u094d\u091f\u0930 \u0921\u0948\u0936\u092c\u094b\u0930\u094d\u0921',
+      'adminDashboard': '\u090f\u0921\u092e\u093f\u0928 \u0921\u0948\u0936\u092c\u094b\u0930\u094d\u0921',
+      'home': '\u0939\u094b\u092e',
+      'ai': '\u090f\u0906\u0908',
+      'appointments': '\u0928\u093f\u092f\u0941\u0915\u094d\u0924\u093f\u092f\u093e\u0902',
+      'health': '\u0938\u094d\u0935\u093e\u0938\u094d\u0925\u094d\u092f',
+      'profile': '\u092a\u094d\u0930\u094b\u092b\u093c\u093e\u0907\u0932',
     },
   };
 

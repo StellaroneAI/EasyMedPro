@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/user.dart';
+import '../providers/language_provider.dart';
 
 class AdminDashboard extends StatelessWidget {
   final User user;
@@ -7,9 +9,10 @@ class AdminDashboard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final lang = context.watch<LanguageProvider>();
     return Scaffold(
-      appBar: AppBar(title: const Text('Admin Dashboard')),
-      body: Center(child: Text('Welcome, ${user.name}')),
+      appBar: AppBar(title: Text(lang.t('adminDashboard'))),
+      body: Center(child: Text('${lang.t('welcome')}, ${user.name}')),
     );
   }
 }
