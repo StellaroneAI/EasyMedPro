@@ -1,6 +1,0 @@
-// Cordova plugin variables placeholder
-ext {
-    // Example: MY_API_KEY = ""
-}
-// Placeholder for Cordova plugin variables required by Capacitor plugins.
-// Add plugin-specific variables here if needed.
