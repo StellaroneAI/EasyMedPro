@@ -1,173 +1,171 @@
-/**
- * Camera Component for Prescription and Document Scanning
- * Mobile-optimized camera interface for health document capture
- */
-
-import React, { useState } from 'react';
-import { Camera, ImageIcon, Upload, X, Check } from 'lucide-react';
-import { useCamera } from '../hooks/useMobile';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { Camera, CameraType } from 'expo-camera';
+import * as FileSystem from 'expo-file-system';
+import * as MediaLibrary from 'expo-media-library';
 
 interface CameraComponentProps {
-  onPhotoTaken?: (photo: any) => void;
+  onPhotoTaken?: (uri: string) => void;
   onCancel?: () => void;
-  title?: string;
-  description?: string;
-  className?: string;
+  uploadEndpoint?: string;
 }
 
 const CameraComponent: React.FC<CameraComponentProps> = ({
   onPhotoTaken,
   onCancel,
-  title = "Capture Document",
-  description = "Take a photo of your prescription, medical document, or insurance card",
-  className = ""
+  uploadEndpoint = '/api/upload'
 }) => {
-  const { takePicture, selectFromGallery, isLoading, lastPhoto, clearLastPhoto } = useCamera();
-  const [previewMode, setPreviewMode] = useState(false);
+  const cameraRef = useRef<Camera>(null);
+  const [hasCameraPermission, setHasCameraPermission] = useState<boolean | null>(null);
+  const [hasMediaPermission, setHasMediaPermission] = useState<boolean | null>(null);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
 
-  const handleTakePicture = async () => {
-    try {
-      const photo = await takePicture();
-      if (photo) {
-        setPreviewMode(true);
+  useEffect(() => {
+    (async () => {
+      const camPerm = await Camera.requestCameraPermissionsAsync();
+      const mediaPerm = await MediaLibrary.requestPermissionsAsync();
+      setHasCameraPermission(camPerm.status === 'granted');
+      setHasMediaPermission(mediaPerm.status === 'granted');
+    })();
+  }, []);
+
+  const takePicture = async () => {
+    if (cameraRef.current) {
+      const photo = await cameraRef.current.takePictureAsync();
+      setPhotoUri(photo.uri);
+      if (hasMediaPermission) {
+        await MediaLibrary.createAssetAsync(photo.uri);
       }
-    } catch (error) {
-      console.error('Failed to take picture:', error);
-      alert('Failed to access camera. Please check permissions.');
     }
   };
 
-  const handleSelectFromGallery = async () => {
+  const uploadPhoto = async () => {
+    if (!photoUri) return;
+    setIsUploading(true);
     try {
-      const photo = await selectFromGallery();
-      if (photo) {
-        setPreviewMode(true);
-      }
-    } catch (error) {
-      console.error('Failed to select from gallery:', error);
-      alert('Failed to access gallery. Please check permissions.');
+      const fileInfo = await FileSystem.getInfoAsync(photoUri);
+      const fileName = fileInfo.uri.split('/').pop() || 'photo.jpg';
+      const form = new FormData();
+      form.append('file', {
+        uri: photoUri,
+        name: fileName,
+        type: 'image/jpeg'
+      } as any);
+
+      await fetch(uploadEndpoint, {
+        method: 'POST',
+        body: form
+      });
+
+      onPhotoTaken && onPhotoTaken(photoUri);
+      setPhotoUri(null);
+    } catch (err) {
+      console.error('Upload failed:', err);
+    } finally {
+      setIsUploading(false);
     }
   };
 
-  const handleConfirmPhoto = () => {
-    if (lastPhoto && onPhotoTaken) {
-      onPhotoTaken(lastPhoto);
-    }
-    setPreviewMode(false);
-    clearLastPhoto();
-  };
-
-  const handleRetakePhoto = () => {
-    setPreviewMode(false);
-    clearLastPhoto();
-  };
-
-  const handleCancel = () => {
-    setPreviewMode(false);
-    clearLastPhoto();
-    if (onCancel) {
-      onCancel();
-    }
-  };
-
-  if (previewMode && lastPhoto) {
+  if (hasCameraPermission === null) {
     return (
-      <div className={`bg-white rounded-lg shadow-lg p-6 ${className}`}>
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold text-gray-800">Review Photo</h3>
-          <p className="text-sm text-gray-600">Review and confirm your captured image</p>
-        </div>
+      <View style={styles.center}>
+        <Text>Requesting camera permission...</Text>
+      </View>
+    );
+  }
 
-        <div className="mb-6">
-          <div className="relative bg-gray-100 rounded-lg overflow-hidden">
-            {lastPhoto.dataUrl && (
-              <img
-                src={lastPhoto.dataUrl}
-                alt="Captured document"
-                className="w-full h-64 object-cover"
-              />
-            )}
-          </div>
-        </div>
-
-        <div className="flex space-x-3">
-          <button
-            onClick={handleRetakePhoto}
-            className="flex-1 flex items-center justify-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-            disabled={isLoading}
-          >
-            <Camera className="w-4 h-4 mr-2" />
-            Retake
-          </button>
-          <button
-            onClick={handleConfirmPhoto}
-            className="flex-1 flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            disabled={isLoading}
-          >
-            <Check className="w-4 h-4 mr-2" />
-            Confirm
-          </button>
-        </div>
-
-        <button
-          onClick={handleCancel}
-          className="w-full mt-2 flex items-center justify-center px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          <X className="w-4 h-4 mr-2" />
-          Cancel
-        </button>
-      </div>
+  if (hasCameraPermission === false) {
+    return (
+      <View style={styles.center}>
+        <Text>No access to camera</Text>
+      </View>
     );
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg p-6 ${className}`}>
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">{title}</h3>
-        <p className="text-sm text-gray-600">{description}</p>
-      </div>
-
-      <div className="space-y-3">
-        <button
-          onClick={handleTakePicture}
-          disabled={isLoading}
-          className="w-full flex items-center justify-center px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <Camera className="w-5 h-5 mr-3" />
-          {isLoading ? 'Opening Camera...' : 'Take Photo'}
-        </button>
-
-        <button
-          onClick={handleSelectFromGallery}
-          disabled={isLoading}
-          className="w-full flex items-center justify-center px-4 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <ImageIcon className="w-5 h-5 mr-3" />
-          {isLoading ? 'Opening Gallery...' : 'Choose from Gallery'}
-        </button>
-      </div>
-
-      {onCancel && (
-        <button
-          onClick={handleCancel}
-          className="w-full mt-4 flex items-center justify-center px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
-        >
-          <X className="w-4 h-4 mr-2" />
-          Cancel
-        </button>
+    <View style={styles.container}>
+      {photoUri ? (
+        <>
+          <Image source={{ uri: photoUri }} style={styles.preview} />
+          <View style={styles.actions}>
+            <TouchableOpacity style={styles.button} onPress={() => setPhotoUri(null)}>
+              <Text style={styles.buttonText}>Retake</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.button}
+              onPress={uploadPhoto}
+              disabled={isUploading}
+            >
+              {isUploading ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <Text style={styles.buttonText}>Upload</Text>
+              )}
+            </TouchableOpacity>
+            {onCancel && (
+              <TouchableOpacity style={styles.button} onPress={onCancel}>
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+            )}
+          </View>
+        </>
+      ) : (
+        <>
+          <Camera ref={cameraRef} style={styles.camera} type={CameraType.back} />
+          <TouchableOpacity style={styles.captureButton} onPress={takePicture}>
+            <Text style={styles.buttonText}>Capture</Text>
+          </TouchableOpacity>
+          {onCancel && (
+            <TouchableOpacity style={styles.cancelOverlay} onPress={onCancel}>
+              <Text style={styles.buttonText}>Cancel</Text>
+            </TouchableOpacity>
+          )}
+        </>
       )}
-
-      <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-        <h4 className="text-sm font-medium text-blue-800 mb-2">Tips for best results:</h4>
-        <ul className="text-sm text-blue-700 space-y-1">
-          <li>• Ensure good lighting</li>
-          <li>• Keep the document flat and fully visible</li>
-          <li>• Avoid shadows and reflections</li>
-          <li>• Make sure text is clear and readable</li>
-        </ul>
-      </div>
-    </div>
+    </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: '#000' },
+  camera: { flex: 1 },
+  preview: { flex: 1 },
+  actions: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    padding: 16,
+    backgroundColor: '#000'
+  },
+  button: {
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    backgroundColor: '#2563eb',
+    borderRadius: 8,
+    marginHorizontal: 4
+  },
+  buttonText: { color: '#fff', fontWeight: 'bold' },
+  captureButton: {
+    position: 'absolute',
+    bottom: 32,
+    alignSelf: 'center',
+    backgroundColor: '#2563eb',
+    padding: 20,
+    borderRadius: 50
+  },
+  cancelOverlay: {
+    position: 'absolute',
+    top: 32,
+    right: 16,
+    backgroundColor: '#2563eb',
+    padding: 10,
+    borderRadius: 8
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
+});
 
 export default CameraComponent;

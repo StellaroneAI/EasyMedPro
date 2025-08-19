@@ -10,8 +10,29 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
+      '@core': resolve(__dirname, './packages/core/src'),
+      '@react-native-voice/voice': resolve(__dirname, './src/mocks/voice.ts'),
+      'expo-speech': resolve(__dirname, './src/mocks/expo-speech.ts'),
+      'expo-av': resolve(__dirname, './src/mocks/expo-av.ts'),
+      'react-native-ble-plx': resolve(__dirname, './src/mocks/react-native-ble-plx.ts'),
+      'react-native-health': resolve(__dirname, './src/mocks/react-native-health.ts'),
       // Add this line to resolve React Native components on the web
-      'react-native': 'react-native-web',
+      'react-native': resolve(__dirname, './src/stubs/react-native'),
+      // Stub native modules on the web to avoid build issues
+      'react-native-ble-plx': resolve(__dirname, './src/stubs/react-native-ble-plx'),
+      '@react-native-voice/voice': resolve(__dirname, './src/stubs/react-native-voice'),
+      'expo-av': resolve(__dirname, './src/stubs/expo-av'),
+      'expo-speech': resolve(__dirname, './src/stubs/expo-speech'),
+      'react-native-health': resolve(__dirname, './src/stubs/react-native-health'),
+      'react-native': resolve(__dirname, './src/stubs/react-native.ts'),
+      'react-native-ble-plx': resolve(__dirname, './src/stubs/react-native-ble-plx.ts'),
+      '@react-native-voice/voice': resolve(__dirname, './src/stubs/react-native-voice.ts'),
+      'react-native-health': resolve(__dirname, './src/stubs/react-native-health.ts'),
+      'expo-av': resolve(__dirname, './src/stubs/expo-av.ts'),
+      'expo-camera': resolve(__dirname, './src/stubs/expo-camera.ts'),
+      'expo-file-system': resolve(__dirname, './src/stubs/expo-file-system.ts'),
+      'expo-media-library': resolve(__dirname, './src/stubs/expo-media-library.ts'),
+      'expo-speech': resolve(__dirname, './src/stubs/expo-speech.ts'),
     },
   },
   server: {
@@ -19,14 +40,38 @@ export default defineConfig({
     open: true
   },
   optimizeDeps: {
-    exclude: ['mongodb'] // Exclude MongoDB from browser bundling
+    // Exclude packages that rely on native modules or Node-specific APIs
+    exclude: [
+      'mongodb',
+      'react-native-ble-plx',
+      '@react-native-voice/voice',
+      'expo-av',
+      'expo-camera',
+      'expo-file-system',
+      'expo-media-library',
+      'expo-speech',
+      'react-native-health'
+    ]
   },
   build: {
     target: 'es2015',
     minify: 'esbuild',
     sourcemap: false,
     rollupOptions: {
-      external: ['mongodb', 'crypto', 'util'], // Mark as external for build
+      // Prevent bundling of Node-specific and native-only packages
+      external: [
+        'mongodb',
+        'crypto',
+        'util',
+        'react-native-ble-plx',
+        '@react-native-voice/voice',
+        'expo-av',
+        'expo-camera',
+        'expo-file-system',
+        'expo-media-library',
+        'expo-speech',
+        'react-native-health'
+      ],
       output: {
         manualChunks: {
           vendor: ['react', 'react-dom'],

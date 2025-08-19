@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useABHA } from '../contexts/ABHAContext';
-import { abhaService, ABHAFamilyMember } from '../services/abhaService';
+import { abhaService, ABHAFamilyMember } from '@core/services/abhaService';
+import { storage } from '@core/storage';
 
 export default function FamilyManagement() {
   const { currentLanguage } = useLanguage();
@@ -93,7 +94,7 @@ export default function FamilyManagement() {
 
     setIsLoading(true);
     try {
-      const tokens = localStorage.getItem('abha_tokens');
+      const tokens = await storage.getItem('abha_tokens');
       if (tokens) {
         const { accessToken } = JSON.parse(tokens);
         const members = await abhaService.getFamilyMembers(abhaProfile.healthId, accessToken);
@@ -111,7 +112,7 @@ export default function FamilyManagement() {
 
     setIsLoading(true);
     try {
-      const tokens = localStorage.getItem('abha_tokens');
+      const tokens = await storage.getItem('abha_tokens');
       if (tokens) {
         const { accessToken } = JSON.parse(tokens);
         
@@ -155,7 +156,7 @@ export default function FamilyManagement() {
 
     setIsLoading(true);
     try {
-      const tokens = localStorage.getItem('abha_tokens');
+      const tokens = await storage.getItem('abha_tokens');
       if (tokens) {
         const { accessToken } = JSON.parse(tokens);
         await abhaService.linkFamilyMemberABHA(

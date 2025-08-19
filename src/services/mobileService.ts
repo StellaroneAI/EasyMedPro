@@ -6,7 +6,6 @@
 import { Camera, CameraResultType, CameraSource } from '@capacitor/camera';
 import { Geolocation } from '@capacitor/geolocation';
 import { Device } from '@capacitor/device';
-import { PushNotifications } from '@capacitor/push-notifications';
 import { LocalNotifications } from '@capacitor/local-notifications';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Share } from '@capacitor/share';
@@ -15,6 +14,7 @@ import { Network } from '@capacitor/network';
 import { App } from '@capacitor/app';
 import { Browser } from '@capacitor/browser';
 import { Dialog } from '@capacitor/dialog';
+import { initializePushNotifications, requestPushPermissions as requestPushPermissionService } from './pushNotificationService';
 
 export interface CameraPhoto {
   dataUrl?: string;
@@ -68,12 +68,12 @@ class MobileService {
     if (!this.isNative) return;
 
     try {
-      // Request push notification permissions
-      await this.requestPushPermissions();
-      
+      // Initialize push notifications (FCM/APNs)
+      await initializePushNotifications();
+
       // Request local notification permissions
       await LocalNotifications.requestPermissions();
-      
+
       console.log('Mobile services initialized successfully');
     } catch (error) {
       console.error('Failed to initialize mobile permissions:', error);
@@ -222,12 +222,7 @@ class MobileService {
   // Push Notifications
   async requestPushPermissions(): Promise<boolean> {
     try {
-      const permission = await PushNotifications.requestPermissions();
-      if (permission.receive === 'granted') {
-        await PushNotifications.register();
-        return true;
-      }
-      return false;
+      return await requestPushPermissionService();
     } catch (error) {
       console.error('Error requesting push permissions:', error);
       return false;

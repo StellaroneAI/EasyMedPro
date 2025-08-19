@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useABHA } from '../contexts/ABHAContext';
-import { abhaService, InsuranceClaim } from '../services/abhaService';
+import { abhaService, InsuranceClaim } from '@core/services/abhaService';
+import { storage } from '@core/storage';
 
 export default function InsuranceClaims() {
   const { currentLanguage } = useLanguage();
@@ -145,7 +146,7 @@ export default function InsuranceClaims() {
 
     setIsLoading(true);
     try {
-      const tokens = localStorage.getItem('abha_tokens');
+      const tokens = await storage.getItem('abha_tokens');
       if (tokens) {
         const { accessToken } = JSON.parse(tokens);
         const claimsData = await abhaService.getInsuranceClaims(abhaProfile.healthId, accessToken);
@@ -163,7 +164,7 @@ export default function InsuranceClaims() {
 
     setIsLoading(true);
     try {
-      const tokens = localStorage.getItem('abha_tokens');
+      const tokens = await storage.getItem('abha_tokens');
       if (tokens) {
         const { accessToken } = JSON.parse(tokens);
         
@@ -200,7 +201,7 @@ export default function InsuranceClaims() {
 
     setIsLoading(true);
     try {
-      const tokens = localStorage.getItem('abha_tokens');
+      const tokens = await storage.getItem('abha_tokens');
       if (tokens) {
         const { accessToken } = JSON.parse(tokens);
         const eligibility = await abhaService.checkInsuranceEligibility(
