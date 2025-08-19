@@ -159,4 +159,4 @@ router.get('/', authenticateToken, authorizeUserTypes('admin'), async (req, res)
   }
 });
 
-module.exports = router;
+export default router;

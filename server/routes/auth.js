@@ -83,22 +83,6 @@ router.post('/login', [
     res.status(500).json({ success: false, message: error.message });
   }
 });
-      const user = await User.findOne({ phone });
-      if (!user) {
-        // Log failed attempt
-        otpDebugService.logOTPEvent(phone, 'FAILED', 'User not found', false, {
-          userAgent: req.get('User-Agent'),
-          ip: req.ip,
-          error: 'user_not_found'
-        });
-
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-
-// ...existing code...
 
 // Verify OTP and login
 router.post('/verify-otp', [
@@ -107,12 +91,23 @@ router.post('/verify-otp', [
 ], validateRequest, async (req, res) => {
   try {
     const { phone, otp } = req.body;
-    // Firebase phone OTP verification
-    const user = await require('../services/userService.firebase.js').findUserByPhone(phone);
+    
+    const user = await User.findOne({ phone });
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      // Log failed attempt
+      otpDebugService.logOTPEvent(phone, 'FAILED', 'User not found', false, {
+        userAgent: req.get('User-Agent'),
+        ip: req.ip,
+        error: 'user_not_found'
+      });
+
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
     }
-    // For demo, assume OTP is always valid
+
+    // Firebase phone OTP verification - For demo, assume OTP is always valid
     await require('../services/userService.firebase.js').updateUserProfile(phone, { isPhoneVerified: true });
     // Generate tokens (replace with Firebase Auth tokens if needed)
     const tokens = { accessToken: 'firebase-access-token', refreshToken: 'firebase-refresh-token' };
@@ -1024,4 +1019,4 @@ router.post('/otp-debug/reset-counters', authenticateToken, async (req, res) => 
   }
 });
 
-module.exports = router;
+export default router;

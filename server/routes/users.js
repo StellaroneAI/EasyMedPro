@@ -66,4 +66,4 @@ router.get('/stats/overview', authenticateToken, authorizeUserTypes('admin'), as
   }
 });
 
-module.exports = router;
+export default router;

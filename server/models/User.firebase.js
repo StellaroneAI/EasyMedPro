@@ -1,16 +1,16 @@
 // Firebase User Model (Firestore)
-import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc } from 'firebase-admin/firestore';
+import admin from 'firebase-admin';
 
-const db = getFirestore();
+const db = admin.firestore();
 
 export async function createUser(user) {
   if (!user.phone) throw new Error('Phone is required');
-  await setDoc(doc(db, 'users', user.phone), user);
+  await db.collection('users').doc(user.phone).set(user);
   return user;
 }
 
 export async function getUserByPhone(phone) {
-  const userDoc = await getDoc(doc(db, 'users', phone));
+  const userDoc = await db.collection('users').doc(phone).get();
   return userDoc.exists ? userDoc.data() : null;
 }
 
@@ -22,11 +22,11 @@ export async function getUserByEmail(email) {
 }
 
 export async function updateUser(phone, updates) {
-  await updateDoc(doc(db, 'users', phone), updates);
+  await db.collection('users').doc(phone).update(updates);
 }
 
 export async function deleteUser(phone) {
-  await deleteDoc(doc(db, 'users', phone));
+  await db.collection('users').doc(phone).delete();
 }
 
 export async function getAllUsers() {

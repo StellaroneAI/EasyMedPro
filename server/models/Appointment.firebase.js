@@ -1,29 +1,29 @@
 // Firebase Appointment Model (Firestore)
-import { getFirestore, doc, setDoc, getDoc, updateDoc, deleteDoc, collection, getDocs } from 'firebase-admin/firestore';
+import admin from 'firebase-admin';
 
-const db = getFirestore();
+const db = admin.firestore();
 
 export async function createAppointment(appointment) {
   if (!appointment.appointmentId) throw new Error('appointmentId is required');
-  await setDoc(doc(db, 'appointments', appointment.appointmentId), appointment);
+  await db.collection('appointments').doc(appointment.appointmentId).set(appointment);
   return appointment;
 }
 
 export async function getAppointmentById(appointmentId) {
-  const appointmentDoc = await getDoc(doc(db, 'appointments', appointmentId));
+  const appointmentDoc = await db.collection('appointments').doc(appointmentId).get();
   return appointmentDoc.exists ? appointmentDoc.data() : null;
 }
 
 export async function updateAppointment(appointmentId, updates) {
-  await updateDoc(doc(db, 'appointments', appointmentId), updates);
+  await db.collection('appointments').doc(appointmentId).update(updates);
 }
 
 export async function deleteAppointment(appointmentId) {
-  await deleteDoc(doc(db, 'appointments', appointmentId));
+  await db.collection('appointments').doc(appointmentId).delete();
 }
 
 export async function getAllAppointments() {
-  const appointmentsRef = collection(db, 'appointments');
-  const snapshot = await getDocs(appointmentsRef);
+  const appointmentsRef = db.collection('appointments');
+  const snapshot = await appointmentsRef.get();
   return snapshot.docs.map(doc => doc.data());
 }
