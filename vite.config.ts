@@ -10,8 +10,8 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './src'),
-      '@core': resolve(__dirname, './packages/core/src')
-      , '@react-native-voice/voice': resolve(__dirname, './src/stubs/react-native-voice.ts'),
+      '@core': resolve(__dirname, './packages/core/src'),
+      '@react-native-voice/voice': resolve(__dirname, './src/stubs/react-native-voice.ts'),
     'expo-speech': resolve(__dirname, './src/stubs/expo-speech.ts'),
     'expo-av': resolve(__dirname, './src/stubs/expo-av.ts'),
     'react-native-ble-plx': resolve(__dirname, './src/stubs/react-native-ble-plx.ts'),

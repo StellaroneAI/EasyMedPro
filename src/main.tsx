@@ -15,9 +15,9 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 )
 
 // Connect to live update stream (WebSocket)
-liveUpdateService.connect(import.meta.env.VITE_LIVE_UPDATE_URL || 'ws://localhost:8080')
+// liveUpdateService.connect(import.meta.env.VITE_LIVE_UPDATE_URL || 'ws://localhost:8080')
 
 // Example of mapping cron-style tasks to in-app scheduler
-taskScheduler.scheduleInterval('heartbeat', () => {
-  console.log('Heartbeat task executed')
-}, 60000)
+// taskScheduler.scheduleInterval('heartbeat', () => {
+//   console.log('Heartbeat task executed')
+// }, 60000)

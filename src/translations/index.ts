@@ -174,6 +174,28 @@ export interface TranslationData {
   stableCondition: string;
   emergencyContact: string;
   hospitalAdmission: string;
+
+  // Homepage specific translations
+  homepage: {
+    getStarted: string;
+    mainHeading: string;
+    subHeading: string;
+    feature1Title: string;
+    feature1Desc: string;
+    feature2Title: string;
+    feature2Desc: string;
+    feature3Title: string;
+    feature3Desc: string;
+    feature4Title: string;
+    feature4Desc: string;
+    whyChooseUs: string;
+    why1Title: string;
+    why1Desc: string;
+    why2Title: string;
+    why2Desc: string;
+    why3Title: string;
+    why3Desc: string;
+  }
 }
 
 // Comprehensive translation data for all Indian languages
@@ -318,7 +340,29 @@ export const translations: Record<Language, TranslationData> = {
     criticalCondition: "Critical Condition",
     stableCondition: "Stable Condition",
     emergencyContact: "Emergency Contact",
-    hospitalAdmission: "Hospital Admission"
+    hospitalAdmission: "Hospital Admission",
+
+    // Homepage specific translations
+    homepage: {
+      getStarted: "Get Started",
+      mainHeading: "Intelligent Healthcare, Instantly Accessible.",
+      subHeading: "Welcome to the future of healthcare. Get instant symptom analysis, manage your medications, and receive personalized health insights—all from the comfort of your home.",
+      feature1Title: "24/7 AI Doctor",
+      feature1Desc: "Instant health consultation powered by advanced AI.",
+      feature2Title: "Smart Diagnosis",
+      feature2Desc: "90%+ accuracy in symptom analysis and recommendations.",
+      feature3Title: "7+ Languages",
+      feature3Desc: "Speak in your native language - Hindi, Tamil, Telugu, and more.",
+      feature4Title: "Save 80% on Costs",
+      feature4Desc: "Significantly reduce hospital visits and medical expenses.",
+      whyChooseUs: "Why Choose EasyMed-TeleHealth?",
+      why1Title: "Voice-enabled AI Assistant",
+      why1Desc: "Navigate the app and get health information using your voice.",
+      why2Title: "ABHA Integrated",
+      why2Desc: "Securely manage your health records with your Ayushman Bharat Health Account.",
+      why3Title: "Family Health Hub",
+      why3Desc: "Monitor and manage the health of your entire family in one place."
+    }
   },
   
   [Language.Hindi]: {
@@ -461,7 +505,29 @@ export const translations: Record<Language, TranslationData> = {
     criticalCondition: "गंभीर स्थिति",
     stableCondition: "स्थिर स्थिति",
     emergencyContact: "आपातकालीन संपर्क",
-    hospitalAdmission: "अस्पताल में भर्ती"
+    hospitalAdmission: "अस्पताल में भर्ती",
+
+    // Homepage specific translations
+    homepage: {
+      getStarted: "शुरू करें",
+      mainHeading: "बुद्धिमान स्वास्थ्य सेवा, तुरंत सुलभ।",
+      subHeading: "स्वास्थ्य सेवा के भविष्य में आपका स्वागत है। तुरंत लक्षण विश्लेषण प्राप्त करें, अपनी दवाएं प्रबंधित करें, और व्यक्तिगत स्वास्थ्य जानकारी प्राप्त करें - सब कुछ अपने घर के आराम से।",
+      feature1Title: "24/7 एआई डॉक्टर",
+      feature1Desc: "उन्नत एआई द्वारा संचालित तत्काल स्वास्थ्य परामर्श।",
+      feature2Title: "स्मार्ट निदान",
+      feature2Desc: "लक्षण विश्लेषण और सिफारिशों में 90%+ सटीकता।",
+      feature3Title: "7+ भाषाएँ",
+      feature3Desc: "अपनी मूल भाषा में बोलें - हिंदी, तमिल, तेलुगु, और बहुत कुछ।",
+      feature4Title: "लागत पर 80% बचाएं",
+      feature4Desc: "अस्पताल के दौरे और चिकित्सा खर्चों में उल्लेखनीय कमी।",
+      whyChooseUs: "EasyMed-TeleHealth क्यों चुनें?",
+      why1Title: "आवाज-सक्षम एआई सहायक",
+      why1Desc: "ऐप नेविगेट करें और अपनी आवाज का उपयोग करके स्वास्थ्य जानकारी प्राप्त करें।",
+      why2Title: "आभा एकीकृत",
+      why2Desc: "अपने आयुष्मान भारत स्वास्थ्य खाते के साथ अपने स्वास्थ्य रिकॉर्ड को सुरक्षित रूप से प्रबंधित करें।",
+      why3Title: "पारिवारिक स्वास्थ्य हब",
+      why3Desc: "एक ही स्थान पर अपने पूरे परिवार के स्वास्थ्य की निगरानी और प्रबंधन करें।"
+    }
   },
   
   tamil: {

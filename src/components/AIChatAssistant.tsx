@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
-import Voice from '@react-native-voice/voice';
+// import Voice from '@react-native-voice/voice';
 import * as Speech from 'expo-speech';
 import { Audio } from 'expo-av';
 
@@ -134,22 +134,22 @@ export default function AIChatAssistant({ isOpen, onClose, chatType }: AIChatAss
     };
     requestPermission();
 
-    Voice.onSpeechResults = (event: any) => {
-      const transcript = event.value?.[0] || '';
-      setInputMessage(transcript);
-    };
+    // Voice.onSpeechResults = (event: any) => {
+    //   const transcript = event.value?.[0] || '';
+    //   setInputMessage(transcript);
+    // };
 
-    Voice.onSpeechEnd = () => {
-      setIsListening(false);
-    };
+    // Voice.onSpeechEnd = () => {
+    //   setIsListening(false);
+    // };
 
-    Voice.onSpeechError = () => {
-      setIsListening(false);
-    };
+    // Voice.onSpeechError = () => {
+    //   setIsListening(false);
+    // };
 
-    return () => {
-      Voice.destroy().then(Voice.removeAllListeners);
-    };
+    // return () => {
+    //   Voice.destroy().then(Voice.removeAllListeners);
+    // };
   }, []);
 
   const speakText = (text: string) => {
@@ -171,29 +171,29 @@ export default function AIChatAssistant({ isOpen, onClose, chatType }: AIChatAss
   };
 
   const startVoiceInput = async () => {
-    const langCodes = {
-      english: 'en-US',
-      hindi: 'hi-IN',
-      tamil: 'ta-IN',
-      telugu: 'te-IN',
-      bengali: 'bn-IN',
-      marathi: 'mr-IN',
-      punjabi: 'pa-IN'
-    };
+    // const langCodes = {
+    //   english: 'en-US',
+    //   hindi: 'hi-IN',
+    //   tamil: 'ta-IN',
+    //   telugu: 'te-IN',
+    //   bengali: 'bn-IN',
+    //   marathi: 'mr-IN',
+    //   punjabi: 'pa-IN'
+    // };
 
-    if (!hasMicPermission) {
-      const { status } = await Audio.requestPermissionsAsync();
-      const granted = status === 'granted';
-      setHasMicPermission(granted);
-      if (!granted) return;
-    }
+    // if (!hasMicPermission) {
+    //   const { status } = await Audio.requestPermissionsAsync();
+    //   const granted = status === 'granted';
+    //   setHasMicPermission(granted);
+    //   if (!granted) return;
+    // }
 
-    try {
-      setIsListening(true);
-      await Voice.start(langCodes[currentLanguage as keyof typeof langCodes] || 'en-US');
-    } catch (error) {
-      setIsListening(false);
-    }
+    // try {
+    //   setIsListening(true);
+    //   await Voice.start(langCodes[currentLanguage as keyof typeof langCodes] || 'en-US');
+    // } catch (error) {
+    //   setIsListening(false);
+    // }
   };
 
   const simulateAIResponse = (): string => {

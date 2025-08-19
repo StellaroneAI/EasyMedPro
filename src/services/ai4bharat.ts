@@ -51,7 +51,7 @@ class AI4BharatService {
 
   constructor(config: AI4BharatConfig) {
     this.config = config;
-    this.initializeService();
+    // this.initializeService();
   }
 
   private async initializeService() {
@@ -70,8 +70,7 @@ class AI4BharatService {
     
     try {
       const response = await fetch(this.config.apiEndpoint + '/health', {
-        method: 'GET',
-        timeout: 5000
+        method: 'GET'
       });
       return response.ok;
     } catch {

@@ -24,26 +24,8 @@ interface User {
 
 function AppContent() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [showTeamManagement, setShowTeamManagement] = useState(false);
-  const [showSystemStatus, setShowSystemStatus] = useState(true);
-  const { currentAdmin, logoutAdmin, loginAdmin } = useAdmin();
-  const { currentLanguage, setLanguage, getSupportedLanguages } = useLanguage();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  const languageOptions = getSupportedLanguages();
-
-  // Check for testing mode via URL parameter
-  const urlParams = new URLSearchParams(window.location.search);
-  const isTestingMode = urlParams.get('test') === 'fixes';
-
-  // If in testing mode, show the testing component
-  if (isTestingMode) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <CriticalFixesTester />
-      </div>
-    );
-  }
+  const [showHome, setShowHome] = useState(true);
 
   const handleLogin = (userType: 'patient' | 'asha' | 'doctor' | 'admin', userInfo: any) => {
     const newUser = {
@@ -56,148 +38,18 @@ function AppContent() {
     
     setCurrentUser(newUser);
     setIsLoggedIn(true);
-    
-    // If admin login, also authenticate in AdminContext
-    if (userType === 'admin') {
-      const identifier = userInfo.email || userInfo.phone || userInfo.phoneNumber;
-      if (identifier) {
-        setTimeout(async () => {
-          try {
-            await loginAdmin(identifier, userInfo, 'dummy123');
-          } catch (error) {
-            console.log('Admin context login error:', error);
-          }
-        }, 0);
-      }
-    }
   };
 
-  const handleLogout = () => {
-    setCurrentUser(null);
-    setIsLoggedIn(false);
-    setShowTeamManagement(false);
-    if (currentUser?.userType === 'admin') {
-      logoutAdmin();
-    }
-  };
-
-  // Show HomePage if not logged in
-  const [showHome, setShowHome] = useState(true);
-  if (!isLoggedIn || !currentUser) {
-    if (showHome) {
-      const handleNavigateToLogin = () => setShowHome(false);
-      // Use dynamic import for HomePage to avoid require error
-      // Static import at top for best compatibility
-      // import HomePage from './pages/HomePage';
-      // But for conditional rendering, use below:
-      return (
-        <HomePage onNavigateToLogin={handleNavigateToLogin} />
-      );
-    }
-    return (
-      <div className="min-h-screen bg-white">
-        <LoginPage onLogin={handleLogin} />
-      </div>
-    );
+  if (showHome && !isLoggedIn) {
+    return <HomePage onNavigateToLogin={() => setShowHome(false)} />;
   }
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Admin Header - only show for admin, positioned to not interfere with dashboard */}
-      {currentUser.userType === 'admin' && (
-        <div className="fixed top-0 left-0 right-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white p-4 shadow-lg z-50">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center font-bold">
-                {currentAdmin?.name?.charAt(0) || currentUser.name?.charAt(0) || 'A'}
-              </div>
-              <div>
-                <h2 className="font-semibold">Welcome, {currentAdmin?.name || currentUser.name}</h2>
-                <p className="text-sm text-blue-100">{currentAdmin?.designation || 'Administrator'}</p>
-              </div>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              {/* Language Selector */}
-              <div className="relative">
-                <select 
-                  value={currentLanguage}
-                  onChange={(e) => setLanguage(e.target.value as LanguageKey)}
-                  className="appearance-none bg-white/20 border border-white/30 rounded-lg px-3 py-2 pr-8 text-sm font-medium text-white hover:bg-white/30 focus:outline-none focus:ring-2 focus:ring-white/50 cursor-pointer"
-                >
-                  {languageOptions.map((lang) => (
-                    <option key={lang.code} value={lang.code} className="text-gray-800">
-                      {lang.flag} {lang.name}
-                    </option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
-                  <svg className="w-4 h-4 text-white/70" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path>
-                  </svg>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowTeamManagement(true)}
-                className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
-              >
-                <span>👥</span>
-                <span>Manage Team</span>
-              </button>
-              <button
-                onClick={handleLogout}
-                className="bg-white/20 hover:bg-white/30 px-4 py-2 rounded-lg font-medium transition-all duration-200 flex items-center space-x-2"
-              >
-                <span>🚪</span>
-                <span>Logout</span>
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+  if (!isLoggedIn) {
+    return <LoginPage onLogin={handleLogin} />;
+  }
 
-      {/* Main Content */}
-      <div className={currentUser.userType === 'admin' ? 'pt-20' : ''}>
-        {/* Render appropriate dashboard based on user type */}
-        {currentUser.userType === 'patient' && (
-          <PatientDashboard user={currentUser} />
-        )}
-        {currentUser.userType === 'asha' && (
-          <ASHAWorkerHub />
-        )}
-        {currentUser.userType === 'doctor' && (
-          <DoctorDashboard user={{ userType: 'doctor', name: currentUser.name }} />
-        )}
-        {currentUser.userType === 'admin' && (
-          <AdminDashboard userInfo={{ userType: 'admin', name: currentUser.name, phone: currentUser.phone, email: currentUser.email }} onLogout={handleLogout} />
-        )}
-        
-        {/* AI4Bharat Enhanced Voice Assistant */}
-        <AI4BharatVoiceAssistant 
-          userName={currentUser.name}
-          enableMedicalContext={currentUser.userType === 'patient' || currentUser.userType === 'asha'}
-          ruralMode={currentUser.userType === 'asha' || currentUser.userType === 'patient'}
-          onCommand={(command, language) => {
-            console.log(`Voice command received: ${command} (${language})`);
-          }}
-          onNavigate={(target) => {
-            console.log(`Navigation requested: ${target}`);
-            // Handle navigation based on target
-          }}
-        />
-        
-        {/* Team Management Modal */}
-        {showTeamManagement && (
-          <TeamManagement onClose={() => setShowTeamManagement(false)} />
-        )}
-        
-        {/* System Status Notification */}
-        {showSystemStatus && (
-          <SystemStatus onClose={() => setShowSystemStatus(false)} />
-        )}
-      </div>
-    </div>
-  );
+  // This will be replaced with the full dashboard later
+  return <h1>Welcome, {currentUser?.name}!</h1>;
 }
 
 function App() {
