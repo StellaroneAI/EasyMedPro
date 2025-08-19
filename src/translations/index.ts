@@ -178,6 +178,27 @@ export interface TranslationData {
   // Homepage specific translations
   homepage: {
     getStarted: string;
+    heroTitle1: string;
+    heroTitle2: string;
+    heroDescription: string;
+    ai24Doctor: string;
+    ai24DoctorDesc: string;
+    smartDiagnosis: string;
+    smartDiagnosisDesc: string;
+    multiLanguage: string;
+    multiLanguageDesc: string;
+    saveCosts: string;
+    saveCostsDesc: string;
+    whyChoose: string;
+    voiceAI: string;
+    voiceAIDesc: string;
+    abhaIntegrated: string;
+    abhaIntegratedDesc: string;
+    familyHub: string;
+    familyHubDesc: string;
+    startJourney: string;
+    noCreditCard: string;
+    // Legacy keys for backward compatibility
     mainHeading: string;
     subHeading: string;
     feature1Title: string;
@@ -345,6 +366,28 @@ export const translations: Record<Language, TranslationData> = {
     // Homepage specific translations
     homepage: {
       getStarted: "Get Started",
+      heroTitle1: "Intelligent Healthcare,",
+      heroTitle2: "Instantly Accessible.",
+      heroDescription: "Welcome to the future of healthcare. Get instant symptom analysis, manage your medications, and receive personalized health insights—all from the comfort of your home.",
+      ai24Doctor: "24/7 AI Doctor",
+      ai24DoctorDesc: "Instant health consultation powered by advanced AI.",
+      smartDiagnosis: "Smart Diagnosis",
+      smartDiagnosisDesc: "90%+ accuracy in symptom analysis and recommendations.",
+      multiLanguage: "7+ Languages",
+      multiLanguageDesc: "Speak in your native language - Hindi, Tamil, Telugu, and more.",
+      saveCosts: "Save 80% on Costs",
+      saveCostsDesc: "Significantly reduce hospital visits and medical expenses.",
+      whyChoose: "Why Choose EasyMed-TeleHealth?",
+      voiceAI: "Voice-enabled AI Assistant",
+      voiceAIDesc: "Navigate the app and get health information using your voice.",
+      abhaIntegrated: "ABHA Integrated",
+      abhaIntegratedDesc: "Securely manage your health records with your Ayushman Bharat Health Account.",
+      familyHub: "Family Health Hub",
+      familyHubDesc: "Monitor and manage the health of your entire family in one place.",
+      startJourney: "Start Your Health Journey",
+      noCreditCard: "No credit card required. Start your free consultation today.",
+      
+      // Legacy keys for backward compatibility
       mainHeading: "Intelligent Healthcare, Instantly Accessible.",
       subHeading: "Welcome to the future of healthcare. Get instant symptom analysis, manage your medications, and receive personalized health insights—all from the comfort of your home.",
       feature1Title: "24/7 AI Doctor",
@@ -510,6 +553,28 @@ export const translations: Record<Language, TranslationData> = {
     // Homepage specific translations
     homepage: {
       getStarted: "शुरू करें",
+      heroTitle1: "बुद्धिमान स्वास्थ्य सेवा,",
+      heroTitle2: "तुरंत सुलभ।",
+      heroDescription: "स्वास्थ्य सेवा के भविष्य में आपका स्वागत है। तुरंत लक्षण विश्लेषण प्राप्त करें, अपनी दवाएं प्रबंधित करें, और व्यक्तिगत स्वास्थ्य जानकारी प्राप्त करें - सब कुछ अपने घर के आराम से।",
+      ai24Doctor: "24/7 एआई डॉक्टर",
+      ai24DoctorDesc: "उन्नत एआई द्वारा संचालित तत्काल स्वास्थ्य परामर्श।",
+      smartDiagnosis: "स्मार्ट निदान",
+      smartDiagnosisDesc: "लक्षण विश्लेषण और सिफारिशों में 90%+ सटीकता।",
+      multiLanguage: "7+ भाषाएँ",
+      multiLanguageDesc: "अपनी मूल भाषा में बोलें - हिंदी, तमिल, तेलुगु, और बहुत कुछ।",
+      saveCosts: "लागत पर 80% बचाएं",
+      saveCostsDesc: "अस्पताल के दौरे और चिकित्सा खर्चों में उल्लेखनीय कमी।",
+      whyChoose: "EasyMed-TeleHealth क्यों चुनें?",
+      voiceAI: "आवाज-सक्षम एआई सहायक",
+      voiceAIDesc: "ऐप नेविगेट करें और अपनी आवाज का उपयोग करके स्वास्थ्य जानकारी प्राप्त करें।",
+      abhaIntegrated: "आभा एकीकृत",
+      abhaIntegratedDesc: "अपने आयुष्मान भारत स्वास्थ्य खाते के साथ अपने स्वास्थ्य रिकॉर्ड को सुरक्षित रूप से प्रबंधित करें।",
+      familyHub: "पारिवारिक स्वास्थ्य हब",
+      familyHubDesc: "एक ही स्थान पर अपने पूरे परिवार के स्वास्थ्य की निगरानी और प्रबंधन करें।",
+      startJourney: "अपनी स्वास्थ्य यात्रा शुरू करें",
+      noCreditCard: "क्रेडिट कार्ड की आवश्यकता नहीं। आज ही अपनी मुफ्त परामर्श शुरू करें।",
+      
+      // Legacy keys for backward compatibility
       mainHeading: "बुद्धिमान स्वास्थ्य सेवा, तुरंत सुलभ।",
       subHeading: "स्वास्थ्य सेवा के भविष्य में आपका स्वागत है। तुरंत लक्षण विश्लेषण प्राप्त करें, अपनी दवाएं प्रबंधित करें, और व्यक्तिगत स्वास्थ्य जानकारी प्राप्त करें - सब कुछ अपने घर के आराम से।",
       feature1Title: "24/7 एआई डॉक्टर",
