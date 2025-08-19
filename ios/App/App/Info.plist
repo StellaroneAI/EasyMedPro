@@ -30,19 +30,24 @@
 	<array>
 		<string>armv7</string>
 	</array>
-	<key>UISupportedInterfaceOrientations</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
+	<key>NSCameraUsageDescription</key>
+        <string>EasyMedPro needs camera access for video consultations.</string>
+        <key>NSMicrophoneUsageDescription</key>
+        <string>EasyMedPro needs microphone access for audio/video calls.</string>
+        <key>NSPhotoLibraryAddUsageDescription</key>
+        <string>EasyMedPro may save consultation snapshots and reports.</string>
+        <key>UISupportedInterfaceOrientations</key>
+        <array>
+                <string>UIInterfaceOrientationPortrait</string>
+        </array>
+        <!-- Optional background audio:
+        <key>UIBackgroundModes</key>
+        <array><string>audio</string></array>
+        -->
 	<key>UISupportedInterfaceOrientations~ipad</key>
-	<array>
-		<string>UIInterfaceOrientationPortrait</string>
-		<string>UIInterfaceOrientationPortraitUpsideDown</string>
-		<string>UIInterfaceOrientationLandscapeLeft</string>
-		<string>UIInterfaceOrientationLandscapeRight</string>
-	</array>
+        <array>
+                <string>UIInterfaceOrientationPortrait</string>
+        </array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
 	<true/>
 </dict>
