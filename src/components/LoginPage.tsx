@@ -26,38 +26,22 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [emailValidation, setEmailValidation] = useState<{isValid: boolean; message?: string}>({isValid: false});
   const [showEmergencyAccess, setShowEmergencyAccess] = useState(false);
 
-  // Text-to-speech function
-  const speakMessage = (text: string) => {
-    if ('speechSynthesis' in window) {
-      // Cancel any ongoing speech
-      window.speechSynthesis.cancel();
-      
-      const utterance = new SpeechSynthesisUtterance(text);
-      
-      // Set language for speech synthesis
-      const langMap: { [key: string]: string } = {
-        english: 'en-US',
-        hindi: 'hi-IN',
-        tamil: 'ta-IN',
-        telugu: 'te-IN',
-        bengali: 'bn-IN',
-        marathi: 'mr-IN',
-        punjabi: 'pa-IN',
-        gujarati: 'gu-IN',
-        kannada: 'kn-IN',
-        malayalam: 'ml-IN',
-        odia: 'or-IN',
-        assamese: 'as-IN'
-      };
-      
-      utterance.lang = langMap[currentLanguage] || 'en-US';
-      utterance.rate = 0.9;
-      utterance.pitch = 1.0;
-      utterance.volume = 0.8;
-      
-      window.speechSynthesis.speak(utterance);
-    }
+  // Removed AI voice (speakMessage)
+  // Popup message for OTP sent
+  const [showPopup, setShowPopup] = useState(false);
+  const showOtpPopup = (msg: string) => {
+    setMessage(msg);
+    setShowPopup(true);
+    setTimeout(() => setShowPopup(false), 3500);
   };
+  // ...existing code...
+  // Example usage: showOtpPopup('OTP sent to your phone!');
+  {/* Popup message */}
+  {showPopup && (
+    <div style={{ position: 'fixed', top: '2rem', right: '2rem', zIndex: 9999, background: '#2563eb', color: 'white', padding: '1rem 2rem', borderRadius: '1rem', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}>
+      {message}
+    </div>
+  )}
 
   // Handle Enter key press
   const handleKeyPress = (event: React.KeyboardEvent) => {
@@ -461,7 +445,8 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   };
 
   const handleSignup = () => {
-    alert('Signup functionality will redirect to registration form. For demo, you can login directly with any credentials.');
+    // Redirect to registration page (replace with your route)
+    window.location.href = '/register';
   };
 
   const handleEmergencyLogin = async (credentials: { identifier: string; password: string }) => {

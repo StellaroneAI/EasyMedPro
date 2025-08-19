@@ -1,335 +1,154 @@
-const CACHE_NAME = 'easymedpro-v1.0.0';
-const STATIC_CACHE_NAME = 'easymedpro-static-v1.0.0';
-const DYNAMIC_CACHE_NAME = 'easymedpro-dynamic-v1.0.0';
+/* EasyMedPro SW – resilient install, SPA-safe */
+const SW_VERSION = 'v1.0.4';
+const STATIC_CACHE = `easymedpro-static-${SW_VERSION}`;
+const DYNAMIC_CACHE = `easymedpro-dynamic-${SW_VERSION}`;
 
-// Assets to cache for offline functionality
-const STATIC_ASSETS = [
-  '/',
+const IS_LOCAL = self.location.hostname === 'localhost' || self.location.hostname === '127.0.0.1';
+
+const APP_SHELL = [
+  '/',               // SPA fallback
   '/index.html',
   '/manifest.json',
   '/favicon.ico',
-  '/icon-192.png',
-  '/icon-512.png',
-  // Add Vite build assets dynamically
+  // Add icons back when they are valid files:
+  // '/icon-192.png',
+  // '/icon-512.png',
+  // '/icon-maskable.png',
 ];
 
-// Health data endpoints to cache for offline access
-const HEALTH_DATA_URLS = [
-  '/api/vitals',
-  '/api/medications',
-  '/api/appointments',
-  '/api/health-records',
-  '/api/emergency-contacts',
-  '/api/user-profile',
-  '/api/symptoms',
-  '/api/prescriptions'
-];
+const isStaticAsset = (url) => {
+  const p = url.pathname;
+  return (
+    p.startsWith('/assets/') ||
+    /\.(?:js|css|mjs|map|png|jpg|jpeg|gif|webp|svg|ico|woff2?)$/.test(p)
+  );
+};
 
-// Install event - cache static assets and discover build assets
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
-  
-  event.waitUntil(
-    caches.open(STATIC_CACHE_NAME)
-      .then(async (cache) => {
-        console.log('Service Worker: Caching static assets');
-        
-        // Cache the basic static assets
-        await cache.addAll(STATIC_ASSETS);
-        
-        // Discover and cache Vite build assets
-        try {
-          const response = await fetch('/');
-          const html = await response.text();
-          
-          // Extract CSS and JS files from the HTML
-          const cssMatches = html.match(/href="([^"]*\.css[^"]*)"/g) || [];
-          const jsMatches = html.match(/src="([^"]*\.js[^"]*)"/g) || [];
-          
-          const buildAssets = [
-            ...cssMatches.map(match => match.replace(/href="([^"]*)"/, '$1')),
-            ...jsMatches.map(match => match.replace(/src="([^"]*)"/, '$1'))
-          ];
-          
-          if (buildAssets.length > 0) {
-            console.log('Service Worker: Caching build assets:', buildAssets);
-            await cache.addAll(buildAssets);
-          }
-        } catch (error) {
-          console.warn('Service Worker: Could not cache build assets:', error);
-        }
-        
-        return cache;
-      })
-      .then(() => {
-        console.log('Service Worker: Static assets cached');
-        return self.skipWaiting();
-      })
-      .catch((error) => {
-        console.error('Service Worker: Cache installation failed', error);
-      })
-  );
-});
-
-// Activate event - clean up old caches
-self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
-  
-  event.waitUntil(
-    caches.keys()
-      .then((cacheNames) => {
-        return Promise.all(
-          cacheNames.map((cacheName) => {
-            if (cacheName !== STATIC_CACHE_NAME && cacheName !== DYNAMIC_CACHE_NAME) {
-              console.log('Service Worker: Deleting old cache', cacheName);
-              return caches.delete(cacheName);
-            }
-          })
-        );
-      })
-      .then(() => {
-        console.log('Service Worker: Activated');
-        return self.clients.claim();
-      })
-  );
-});
-
-// Fetch event - implement caching strategies
-self.addEventListener('fetch', (event) => {
-  const { request } = event;
-  const url = new URL(request.url);
-
-  // Handle different types of requests with appropriate strategies
-  if (request.method === 'GET') {
-    // Static assets - Cache First strategy
-    if (STATIC_ASSETS.some(asset => url.pathname === asset)) {
-      event.respondWith(cacheFirst(request));
-    }
-    // Health data - Network First strategy (with offline fallback)
-    else if (HEALTH_DATA_URLS.some(endpoint => url.pathname.includes(endpoint))) {
-      event.respondWith(networkFirst(request));
-    }
-    // API calls - Network First strategy
-    else if (url.pathname.startsWith('/api/')) {
-      event.respondWith(networkFirst(request));
-    }
-    // Images and media - Cache First strategy
-    else if (request.destination === 'image' || request.destination === 'video') {
-      event.respondWith(cacheFirst(request));
-    }
-    // Default - Network First with cache fallback
-    else {
-      event.respondWith(networkFirst(request));
-    }
-  }
-});
-
-// Background sync for offline health data submission
-self.addEventListener('sync', (event) => {
-  console.log('Service Worker: Background sync triggered', event.tag);
-  
-  if (event.tag === 'background-health-sync') {
-    event.waitUntil(syncHealthData());
-  }
-});
-
-// Push notifications for medication reminders and health alerts
-self.addEventListener('push', (event) => {
-  console.log('Service Worker: Push notification received', event);
-  
-  const options = {
-    body: event.data ? event.data.text() : 'EasyMedPro Health Reminder',
-    icon: '/icon-192.png',
-    badge: '/badge-icon.png',
-    vibrate: [100, 50, 100],
-    tag: 'health-reminder',
-    requireInteraction: true,
-    actions: [
-      {
-        action: 'view',
-        title: 'View Details',
-        icon: '/view-icon.png'
-      },
-      {
-        action: 'dismiss',
-        title: 'Dismiss',
-        icon: '/dismiss-icon.png'
+  event.waitUntil((async () => {
+    try {
+      if (IS_LOCAL) {
+        // In dev, don’t precache at all—Vite serves fresh files.
+        console.info('[SW] install: skipping precache on localhost');
+        return;
       }
-    ],
-    data: {
-      url: '/',
-      timestamp: Date.now()
+      const cache = await caches.open(STATIC_CACHE);
+      // Add each asset individually; skip failures
+      for (const url of APP_SHELL) {
+        try {
+          const req = new Request(url, { cache: 'reload' });
+          const res = await fetch(req);
+          if (res && res.ok) await cache.put(req, res.clone());
+        } catch (e) {
+          console.warn('[SW] precache skip:', url, e);
+        }
+      }
+    } catch (e) {
+      console.warn('[SW] install error:', e);
+    } finally {
+      await self.skipWaiting();
     }
-  };
-
-  event.waitUntil(
-    self.registration.showNotification('EasyMedPro Health Alert', options)
-  );
+  })());
 });
 
-// Handle notification clicks
-self.addEventListener('notificationclick', (event) => {
-  console.log('Service Worker: Notification clicked', event);
-  
-  event.notification.close();
-  
-  if (event.action === 'view') {
-    event.waitUntil(
-      clients.openWindow(event.notification.data.url || '/')
-    );
-  } else if (event.action === 'dismiss') {
-    // Handle dismiss action
-    console.log('Notification dismissed');
-  } else {
-    // Default action - open app
-    event.waitUntil(
-      clients.openWindow('/')
-    );
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    try {
+      const names = await caches.keys();
+      await Promise.all(
+        names.map((n) => (n === STATIC_CACHE || n === DYNAMIC_CACHE) ? null : caches.delete(n))
+      );
+      if ('navigationPreload' in self.registration) {
+        try { await self.registration.navigationPreload.enable(); } catch {}
+      }
+    } catch (e) {
+      console.warn('[SW] activate error:', e);
+    } finally {
+      await self.clients.claim();
+    }
+  })());
+});
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
+
+  if (url.origin !== self.location.origin) return;
+
+  // SPA navigations
+  if (req.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        const preload = await event.preloadResponse;
+        if (preload) return preload;
+        const net = await fetch(req);
+        return net;
+      } catch {
+        const cached = await caches.open(STATIC_CACHE).then(c => c.match('/index.html'));
+        return cached || new Response('Offline', { status: 503 });
+      }
+    })());
+    return;
   }
+
+  // Static assets -> Cache First
+  if (req.method === 'GET' && isStaticAsset(url)) {
+    event.respondWith(cacheFirst(req));
+    return;
+  }
+
+  // API & dynamic -> Network First
+  if (req.method === 'GET' && (url.pathname.startsWith('/api/') ||
+                               url.pathname.includes('/vitals') ||
+                               url.pathname.includes('/medications') ||
+                               url.pathname.includes('/appointments') ||
+                               url.pathname.includes('/health-records') ||
+                               url.pathname.includes('/emergency-contacts') ||
+                               url.pathname.includes('/user-profile') ||
+                               url.pathname.includes('/symptoms') ||
+                               url.pathname.includes('/prescriptions'))) {
+    event.respondWith(networkFirst(req));
+    return;
+  }
+
+  // Default
+  event.respondWith(networkFirst(req));
 });
 
-// Caching strategies
-
-// Cache First - good for static assets
 async function cacheFirst(request) {
+  const cached = await caches.match(request);
+  if (cached) return cached;
   try {
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    const networkResponse = await fetch(request);
-    const cache = await caches.open(DYNAMIC_CACHE_NAME);
-    cache.put(request, networkResponse.clone());
-    return networkResponse;
-  } catch (error) {
-    console.error('Cache First strategy failed:', error);
-    return new Response('Offline - Content not available', { status: 503 });
+    const res = await fetch(request);
+    const cache = await caches.open(STATIC_CACHE);
+    cache.put(request, res.clone());
+    return res;
+  } catch {
+    return new Response('Offline - Asset unavailable', { status: 503 });
   }
 }
 
-// Network First - good for dynamic content and API calls
 async function networkFirst(request) {
   try {
-    const networkResponse = await fetch(request);
-    
-    // Cache successful responses
-    if (networkResponse.ok) {
-      const cache = await caches.open(DYNAMIC_CACHE_NAME);
-      cache.put(request, networkResponse.clone());
+    const res = await fetch(request);
+    if (res && res.ok) {
+      const cache = await caches.open(DYNAMIC_CACHE);
+      cache.put(request, res.clone());
     }
-    
-    return networkResponse;
-  } catch (error) {
-    console.log('Network failed, trying cache:', error);
-    
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      return cachedResponse;
-    }
-    
-    // Return offline page or basic error response
+    return res;
+  } catch {
+    const cached = await caches.match(request);
+    if (cached) return cached;
     if (request.destination === 'document') {
-      return caches.match('/') || new Response('Offline', { status: 503 });
+      const shell = await caches.open(STATIC_CACHE).then(c => c.match('/index.html'));
+      if (shell) return shell;
     }
-    
-    return new Response('Offline - Data not available', { status: 503 });
+    return new Response('Offline', { status: 503 });
   }
 }
 
-// Background sync function for health data
-async function syncHealthData() {
-  try {
-    console.log('Service Worker: Syncing health data...');
-    
-    // Get pending health data from IndexedDB or local storage
-    const pendingData = await getPendingHealthData();
-    
-    if (pendingData && pendingData.length > 0) {
-      for (const data of pendingData) {
-        try {
-          const response = await fetch('/api/sync-health-data', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(data)
-          });
-          
-          if (response.ok) {
-            // Remove from pending queue
-            await removePendingHealthData(data.id);
-            console.log('Health data synced successfully:', data.id);
-          }
-        } catch (syncError) {
-          console.error('Failed to sync health data:', syncError);
-        }
-      }
-    }
-    
-    console.log('Service Worker: Health data sync completed');
-  } catch (error) {
-    console.error('Service Worker: Background sync failed:', error);
-  }
-}
-
-// Helper functions for IndexedDB operations
-async function getPendingHealthData() {
-  // Implementation would use IndexedDB to retrieve pending data
-  // This is a placeholder
-  return [];
-}
-
-async function removePendingHealthData(id) {
-  // Implementation would use IndexedDB to remove synced data
-  // This is a placeholder
-  console.log('Removing synced data:', id);
-}
-
-// Periodic background sync for vital signs
-self.addEventListener('periodicsync', (event) => {
-  if (event.tag === 'vital-signs-sync') {
-    event.waitUntil(syncVitalSigns());
-  }
-});
-
-async function syncVitalSigns() {
-  try {
-    console.log('Service Worker: Syncing vital signs...');
-    
-    // Simulate fetching data from connected devices
-    const deviceData = await fetchDeviceData();
-    
-    if (deviceData) {
-      await fetch('/api/vital-signs', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(deviceData)
-      });
-      
-      console.log('Vital signs synced successfully');
-    }
-  } catch (error) {
-    console.error('Vital signs sync failed:', error);
-  }
-}
-
-async function fetchDeviceData() {
-  // Placeholder for device integration
-  return {
-    heartRate: 72,
-    bloodPressure: '120/80',
-    timestamp: Date.now()
-  };
-}
-
-// Handle app updates
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+  if (event.data && event.data.type === 'SKIP_WAITING') self.skipWaiting();
 });
 
-console.log('Service Worker: Loaded successfully');
+console.log('[SW] Loaded', SW_VERSION);

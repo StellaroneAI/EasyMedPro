@@ -1,42 +1,26 @@
 import express from 'express';
 import { authenticateToken, authorizeUserTypes } from '../middleware/auth.js';
 import User from '../models/User.js';
+import {
+  registerUser,
+  findUserByPhone,
+  findUserByEmail,
+  updateUserProfile,
+  removeUser,
+  listAllUsers
+} from '../services/userService.firebase.js';
 
 const router = express.Router();
 
 // Get all users (admin only)
 router.get('/', authenticateToken, authorizeUserTypes('admin'), async (req, res) => {
   try {
-    const { userType, page = 1, limit = 10, search } = req.query;
-    
-    const query = {};
-    if (userType) query.userType = userType;
-    if (search) {
-      query.$or = [
-        { name: { $regex: search, $options: 'i' } },
-        { phone: { $regex: search, $options: 'i' } },
-        { email: { $regex: search, $options: 'i' } }
-      ];
+    try {
+      const users = await listAllUsers();
+      res.json({ success: true, users });
+    } catch (error) {
+      res.status(500).json({ success: false, message: error.message });
     }
-
-    const users = await User.find(query)
-      .select('-password -refreshTokens -otpCode')
-      .limit(limit * 1)
-      .skip((page - 1) * limit)
-      .sort({ createdAt: -1 });
-
-    const total = await User.countDocuments(query);
-
-    res.json({
-      success: true,
-      users,
-      pagination: {
-        page: parseInt(page),
-        limit: parseInt(limit),
-        total,
-        pages: Math.ceil(total / limit)
-      }
-    });
   } catch (error) {
     console.error('Users fetch error:', error);
     res.status(500).json({

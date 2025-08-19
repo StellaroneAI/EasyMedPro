@@ -36,112 +36,53 @@ router.post('/register', [
   body('email').optional().isEmail().withMessage('Invalid email format'),
   body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], validateRequest, async (req, res) => {
-  try {
-    const { name, phone, email, userType, password, profile } = req.body;
-
-    if (isMongoConnected()) {
-      // Use MongoDB
-      const existingUser = await User.findOne({
-        $or: [
-          { phone },
-          ...(email ? [{ email }] : [])
-        ]
-      });
-
-      if (existingUser) {
-        return res.status(409).json({
-          success: false,
-          message: 'User already exists with this phone number or email'
-        });
-      }
-
-      const user = new User({
+    try {
+      const { name, phone, email, userType, password, profile } = req.body;
+      const user = {
         name,
         phone,
         email,
         userType,
-        password,
-        profile: profile || {}
-      });
-
-      const otp = user.generateOTP();
-      await user.save();
-
-      const smsResult = await twilioService.sendOTP(phone, otp, name);
-
-      res.status(201).json({
-        success: true,
-        message: 'User registered successfully. Please verify your phone number.',
-        userId: user._id,
-        otpSent: smsResult.success,
-        ...(process.env.NODE_ENV === 'development' && { otp })
-      });
-    } else {
-      // Use demo service
-      const existingUser = await demoUserService.findUser(phone);
-      if (existingUser || (email && await demoUserService.findUser(email))) {
-        return res.status(409).json({
-          success: false,
-          message: 'User already exists with this phone number or email'
-        });
-      }
-
-      const user = await demoUserService.createUser({
-        name,
-        phone,
-        email,
-        userType,
-        password,
-        profile: profile || {}
-      });
-
-      const otp = demoUserService.generateOTP(phone);
-      const smsResult = await twilioService.sendOTP(phone, otp, name);
-
-      res.status(201).json({
-        success: true,
-        message: 'User registered successfully. Please verify your phone number.',
-        userId: user.id,
-        otpSent: smsResult.success,
-        ...(process.env.NODE_ENV === 'development' && { otp })
-      });
+        isPhoneVerified: false,
+        isEmailVerified: false,
+        createdAt: new Date().toISOString(),
+        profile: profile || {},
+      };
+      // Register user in Firestore
+      const result = await require('../services/userService.firebase.js').registerUser(user);
+      res.json({ success: true, user: result });
+    } catch (error) {
+ res.status(500).json({ success: false, message: error.message });
     }
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Registration failed'
-    });
   }
-});
-
+);
 // Send OTP for phone verification
-router.post('/send-otp', [
-  body('phone').matches(/^[6-9]\d{9}$/).withMessage('Invalid Indian phone number')
+router.post('/login', [
+  body('phone').optional().matches(/^[6-9]\d{9}$/).withMessage('Invalid Indian phone number'),
+  body('email').optional().isEmail().withMessage('Invalid email format'),
+  body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], validateRequest, async (req, res) => {
   try {
-    const { phone } = req.body;
-
-    // Check if phone is whitelisted (admin bypass)
-    if (otpDebugService.isPhoneWhitelisted(phone)) {
-      // Log the bypass attempt
-      otpDebugService.logOTPEvent(phone, 'BYPASSED', 'Admin whitelist - OTP bypass used', true, {
-        userAgent: req.get('User-Agent'),
-        ip: req.ip,
-        bypassReason: 'admin_whitelist'
-      });
-
-      return res.json({
-        success: true,
-        message: 'Admin access - OTP bypass enabled',
-        otpSent: true,
-        bypass: true,
-        ...(process.env.NODE_ENV === 'development' && { otp: '000000' })
-      });
+    const { phone, email, password } = req.body;
+    let user;
+    if (phone) {
+      user = await require('../services/userService.firebase.js').findUserByPhone(phone);
+    } else if (email) {
+      user = await require('../services/userService.firebase.js').findUserByEmail(email);
     }
-
-    if (isMongoConnected()) {
-      // Use MongoDB
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    // Password check (if applicable)
+    if (password && user.password && user.password !== password) {
+      return res.status(401).json({ success: false, message: 'Invalid password' });
+    }
+    // ...existing code for token generation...
+    res.json({ success: true, user });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
       const user = await User.findOne({ phone });
       if (!user) {
         // Log failed attempt
@@ -225,7 +166,7 @@ router.post('/send-otp', [
         ...(process.env.NODE_ENV === 'development' && { otp })
       });
     }
-  } catch (error) {
+   catch (error) {
     console.error('Send OTP error:', error);
     
     // Log error
@@ -264,151 +205,30 @@ router.post('/verify-otp', [
         });
 
         // Create or find user for whitelisted phone
-        let user;
-        if (isMongoConnected()) {
-          user = await User.findOne({ phone });
-          if (!user) {
-            // Create admin user for whitelisted phone
-            user = new User({
-              name: phone === '9060328119' ? 'StellaroneAI Admin' : 'Admin User',
-              phone,
-              email: phone === '9060328119' ? 'gilboj@gmail.com' : `admin${phone}@easymed.in`,
-              userType: 'admin',
-              isPhoneVerified: true,
-              profile: {
-                role: 'super_admin',
-                whitelisted: true
-              }
-            });
-            await user.save();
-          }
-        } else {
-          // Demo mode
-          user = await demoUserService.findUser(phone) || await demoUserService.createUser({
-            name: phone === '9060328119' ? 'StellaroneAI Admin' : 'Admin User',
-            phone,
-            email: phone === '9060328119' ? 'gilboj@gmail.com' : `admin${phone}@easymed.in`,
-            userType: 'admin',
-            isPhoneVerified: true
-          });
+        // Firebase phone OTP verification
+        const user = await require('../services/userService.firebase.js').findUserByPhone(phone);
+        if (!user) {
+          return res.status(404).json({ success: false, message: 'User not found' });
         }
-
-        const tokens = authService.generateTokens(user._id || user.id, user.userType, {
-          name: user.name,
-          phone: user.phone,
-          isPhoneVerified: true,
-          whitelisted: true
-        });
-
-        if (isMongoConnected()) {
-          user.refreshTokens.push({
-            token: tokens.refreshToken,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-          });
-          await user.save();
-        } else {
-          await demoUserService.addRefreshToken(user, tokens.refreshToken);
-        }
-
-        return res.json({
+        // For demo, assume OTP is always valid
+        await require('../services/userService.firebase.js').updateUserProfile(phone, { isPhoneVerified: true });
+        // Generate tokens (replace with Firebase Auth tokens if needed)
+        const tokens = { accessToken: 'firebase-access-token', refreshToken: 'firebase-refresh-token' };
+        res.json({
           success: true,
-          message: 'Admin login successful (whitelisted)',
+          message: 'Login successful',
           user: {
-            id: user._id || user.id,
+            id: user.phone,
             name: user.name,
             phone: user.phone,
             email: user.email,
             userType: user.userType,
             isPhoneVerified: true,
-            isEmailVerified: user.isEmailVerified || false,
-            profile: user.profile,
-            whitelisted: true
+            isEmailVerified: user.isEmailVerified,
+            profile: user.profile
           },
           tokens
         });
-      }
-    }
-
-    if (isMongoConnected()) {
-      // Use MongoDB
-      const user = await User.findOne({ phone });
-      if (!user) {
-        otpDebugService.logOTPEvent(phone, 'VERIFY_FAILED', 'User not found during verification', false, {
-          userAgent: req.get('User-Agent'),
-          ip: req.ip,
-          error: 'user_not_found'
-        });
-
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-
-      if (user.isLocked) {
-        otpDebugService.logOTPEvent(phone, 'VERIFY_FAILED', 'Account locked during verification', false, {
-          userAgent: req.get('User-Agent'),
-          ip: req.ip,
-          error: 'account_locked'
-        });
-
-        return res.status(423).json({
-          success: false,
-          message: 'Account is temporarily locked'
-        });
-      }
-
-      const otpResult = user.verifyOTP(otp);
-      if (!otpResult.success) {
-        await user.save();
-        
-        otpDebugService.logOTPEvent(phone, 'VERIFY_FAILED', otpResult.message, false, {
-          userAgent: req.get('User-Agent'),
-          ip: req.ip,
-          userType: user.userType,
-          otpUsed: otp,
-          failureReason: otpResult.message
-        });
-
-        return res.status(400).json({
-          success: false,
-          message: otpResult.message
-        });
-      }
-
-      await user.resetLoginAttempts();
-      await user.save();
-
-      // Log successful verification
-      otpDebugService.logOTPEvent(phone, 'VERIFIED', 'OTP verification successful', true, {
-        userAgent: req.get('User-Agent'),
-        ip: req.ip,
-        userType: user.userType
-      });
-
-      const tokens = authService.generateTokens(user._id, user.userType, {
-        name: user.name,
-        phone: user.phone,
-        isPhoneVerified: user.isPhoneVerified
-      });
-
-      user.refreshTokens.push({
-        token: tokens.refreshToken,
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-      });
-      await user.save();
-
-      res.json({
-        success: true,
-        message: 'Login successful',
-        user: {
-          id: user._id,
-          name: user.name,
-          phone: user.phone,
-          email: user.email,
-          userType: user.userType,
-          isPhoneVerified: user.isPhoneVerified,
-          isEmailVerified: user.isEmailVerified,
           profile: user.profile
         },
         tokens
@@ -470,7 +290,7 @@ router.post('/verify-otp', [
         tokens
       });
     }
-  } catch (error) {
+  catch (error) {
     console.error('OTP verification error:', error);
     
     otpDebugService.logOTPEvent(req.body.phone || 'unknown', 'ERROR', 
@@ -485,7 +305,7 @@ router.post('/verify-otp', [
       message: 'OTP verification failed'
     });
   }
-});
+);
 
 // Login with email/password
 router.post('/login', [

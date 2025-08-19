@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import PatientDashboard from './components/PatientDashboard';
-import ASHADashboard from './components/ASHAWorkerHub';
+import ASHAWorkerHub from './components/ASHAWorkerHub';
 import DoctorDashboard from './components/dashboards/DoctorSpecificDashboard';
 import AdminDashboard from './components/dashboards/AdminSpecificDashboard';
 import LoginPage from './components/LoginPage';
@@ -9,6 +9,7 @@ import SystemStatus from './components/SystemStatus';
 import AI4BharatVoiceAssistant from './components/AI4BharatVoiceAssistant';
 import CriticalFixesTester from './components/CriticalFixesTester';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
+import HomePage from './pages/HomePage';
 import { AdminProvider, useAdmin } from './contexts/AdminContext';
 import { LanguageKey } from './translations/index';
 import './App.css';
@@ -80,8 +81,19 @@ function AppContent() {
     }
   };
 
-  // Don't force early return - let the component render the main content
+  // Show HomePage if not logged in
+  const [showHome, setShowHome] = useState(true);
   if (!isLoggedIn || !currentUser) {
+    if (showHome) {
+      const handleNavigateToLogin = () => setShowHome(false);
+      // Use dynamic import for HomePage to avoid require error
+      // Static import at top for best compatibility
+      // import HomePage from './pages/HomePage';
+      // But for conditional rendering, use below:
+      return (
+        <HomePage onNavigateToLogin={handleNavigateToLogin} />
+      );
+    }
     return (
       <div className="min-h-screen bg-white">
         <LoginPage onLogin={handleLogin} />
@@ -148,16 +160,16 @@ function AppContent() {
       <div className={currentUser.userType === 'admin' ? 'pt-20' : ''}>
         {/* Render appropriate dashboard based on user type */}
         {currentUser.userType === 'patient' && (
-          <PatientDashboard userInfo={currentUser} onLogout={handleLogout} />
+          <PatientDashboard user={currentUser} />
         )}
         {currentUser.userType === 'asha' && (
-          <ASHADashboard userInfo={currentUser} onLogout={handleLogout} />
+          <ASHAWorkerHub />
         )}
         {currentUser.userType === 'doctor' && (
-          <DoctorDashboard userInfo={currentUser} onLogout={handleLogout} />
+          <DoctorDashboard user={{ userType: 'doctor', name: currentUser.name }} />
         )}
         {currentUser.userType === 'admin' && (
-          <AdminDashboard userInfo={currentUser} onLogout={handleLogout} />
+          <AdminDashboard userInfo={{ userType: 'admin', name: currentUser.name, phone: currentUser.phone, email: currentUser.email }} onLogout={handleLogout} />
         )}
         
         {/* AI4Bharat Enhanced Voice Assistant */}

@@ -4,7 +4,7 @@
  */
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, connectAuthEmulator } from 'firebase/auth';
+import { getAuth } from 'firebase/auth';
 
 // Firebase configuration - using environment variables for security
 const firebaseConfig = {
@@ -22,7 +22,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 
 // Initialize Firebase Authentication and get a reference to the service
-const auth = getAuth(app);
+export const auth = getAuth(app);
 
 // Configure for Indian phone numbers
 auth.languageCode = 'en'; // Can be changed based on user preference
@@ -32,5 +32,31 @@ console.log('🔥 Firebase initialized for EasyMedPro SMS Authentication');
 console.log('📱 Project:', firebaseConfig.projectId);
 console.log('🌍 Environment:', import.meta.env.MODE);
 
-export { auth, app };
+export { app };
 export default auth;
+
+
+// Type declaration for window.confirmationResult
+declare global {
+  interface Window {
+    confirmationResult?: any;
+  }
+}
+
+// Function to confirm OTP
+export function confirmOTP(otpCode: string) {
+  if (window.confirmationResult) {
+    window.confirmationResult.confirm(otpCode)
+      .then((result: any) => {
+        // User signed in successfully.
+        const user = result.user;
+        console.log('User signed in:', user);
+      })
+      .catch((error: any) => {
+        // Handle Errors
+        console.error(error);
+      });
+  } else {
+    console.error('OTP confirmation failed: confirmationResult is undefined. Make sure OTP was sent and signInWithPhoneNumber resolved before calling confirm.');
+  }
+}
