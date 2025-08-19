@@ -29,12 +29,13 @@
       "permissions": [
         "camera",
         "storage"
-      ]
+      ],
+      "presentationStyle": "fullscreen"
     },
     "Geolocation": {
-      "permissions": [
-        "location"
-      ]
+      "permissions": {
+        "location": "When in use"
+      }
     },
     "LocalNotifications": {
       "smallIcon": "ic_notification",
@@ -68,10 +69,14 @@
       "android.permission.CALL_PHONE",
       "android.permission.VIBRATE",
       "android.permission.WAKE_LOCK"
-    ]
+    ],
+    "allowMixedContent": true,
+    "useLegacyBridge": false
   },
   "ios": {
     "scheme": "EasyMedPro",
-    "bundleId": "com.stellarone.easymedpro"
+    "bundleId": "com.stellarone.easymedpro",
+    "contentInset": "automatic",
+    "scrollEnabled": true
   }
 }
