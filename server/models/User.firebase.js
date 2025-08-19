@@ -1,5 +1,5 @@
 // Firebase User Model (Firestore)
-import admin from 'firebase-admin';
+import admin from '../config/firebase.js';
 
 const db = admin.firestore();
 

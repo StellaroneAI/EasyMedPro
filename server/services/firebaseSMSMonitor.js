@@ -31,11 +31,14 @@ class FirebaseSMSMonitor {
 
     // Firebase status tracking
     this.firebaseStatus = {
-      isConfigured: this.validateFirebaseConfig(),
+      isConfigured: false,
       quotaStatus: 'unknown',
       lastChecked: null,
       errors: []
     };
+
+    // Initialize Firebase status
+    this.firebaseStatus.isConfigured = this.validateFirebaseConfig();
 
     console.log('🔥 Firebase SMS Monitor initialized');
     console.log('📊 Configuration status:', this.firebaseStatus.isConfigured ? '✅ Configured' : '❌ Not configured');
