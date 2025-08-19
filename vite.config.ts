@@ -12,6 +12,13 @@ export default defineConfig({
       '@': resolve(__dirname, './src'),
       '@core': resolve(__dirname, './packages/core/src'),
       // Add this line to resolve React Native components on the web
+      'react-native': resolve(__dirname, './src/stubs/react-native'),
+      // Stub native modules on the web to avoid build issues
+      'react-native-ble-plx': resolve(__dirname, './src/stubs/react-native-ble-plx'),
+      '@react-native-voice/voice': resolve(__dirname, './src/stubs/react-native-voice'),
+      'expo-av': resolve(__dirname, './src/stubs/expo-av'),
+      'expo-speech': resolve(__dirname, './src/stubs/expo-speech'),
+      'react-native-health': resolve(__dirname, './src/stubs/react-native-health'),
       'react-native': resolve(__dirname, './src/stubs/react-native.ts'),
       'react-native-ble-plx': resolve(__dirname, './src/stubs/react-native-ble-plx.ts'),
       '@react-native-voice/voice': resolve(__dirname, './src/stubs/react-native-voice.ts'),
