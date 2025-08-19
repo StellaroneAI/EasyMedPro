@@ -22,7 +22,7 @@
     "android:apk": "npm run capacitor:build:android",
     "ios:build": "npm run build && npx cap sync && npx cap build ios",
     "build:firebase": "npm run build && firebase deploy --only hosting",
-    "build:android": "npm run build && npx cap sync android && npx cap build android",
+    "build:android": "npm run build && npx cap sync android && cd android && ./gradlew bundleDebug",
     "build:ios": "npm run build && npx cap sync ios && npx cap build ios",
     "build:all": "npm run build && npx cap sync",
     "dev:android": "npm run build && npx cap sync android && npx cap open android",
