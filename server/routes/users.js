@@ -15,18 +15,10 @@ const router = express.Router();
 // Get all users (admin only)
 router.get('/', authenticateToken, authorizeUserTypes('admin'), async (req, res) => {
   try {
-    try {
-      const users = await listAllUsers();
-      res.json({ success: true, users });
-    } catch (error) {
-      res.status(500).json({ success: false, message: error.message });
-    }
+    const users = await listAllUsers();
+    res.json({ success: true, users });
   } catch (error) {
-    console.error('Users fetch error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch users'
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -34,34 +26,16 @@ router.get('/', authenticateToken, authorizeUserTypes('admin'), async (req, res)
 router.get('/:userId', authenticateToken, async (req, res) => {
   try {
     const { userId } = req.params;
-    
-    // Users can only view their own profile unless they are admin
     if (req.user.userType !== 'admin' && req.user.userId.toString() !== userId) {
-      return res.status(403).json({
-        success: false,
-        message: 'Access denied'
-      });
+      return res.status(403).json({ success: false, message: 'Access denied' });
     }
-
-    const user = await User.findById(userId).select('-password -refreshTokens -otpCode');
-    
+    const user = await findUserByPhone(userId) || await findUserByEmail(userId);
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
-
-    res.json({
-      success: true,
-      user
-    });
+    res.json({ success: true, user });
   } catch (error) {
-    console.error('User fetch error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch user'
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -70,74 +44,26 @@ router.patch('/:userId/status', authenticateToken, authorizeUserTypes('admin'), 
   try {
     const { userId } = req.params;
     const { isActive } = req.body;
-
-    const user = await User.findById(userId);
+    const update = { isActive };
+    const user = await updateUserProfile(userId, update);
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found'
-      });
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
-
-    user.isActive = isActive;
-    await user.save();
-
-    res.json({
-      success: true,
-      message: `User ${isActive ? 'activated' : 'deactivated'} successfully`,
-      user: {
-        id: user._id,
-        name: user.name,
-        phone: user.phone,
-        email: user.email,
-        userType: user.userType,
-        isActive: user.isActive
-      }
-    });
+    res.json({ success: true, message: `User ${isActive ? 'activated' : 'deactivated'} successfully`, user });
   } catch (error) {
-    console.error('User status update error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to update user status'
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
 // Get user statistics (admin only)
 router.get('/stats/overview', authenticateToken, authorizeUserTypes('admin'), async (req, res) => {
   try {
-    const stats = await Promise.all([
-      User.countDocuments({ userType: 'patient' }),
-      User.countDocuments({ userType: 'doctor' }),
-      User.countDocuments({ userType: 'asha' }),
-      User.countDocuments({ userType: 'admin' }),
-      User.countDocuments({ isActive: true }),
-      User.countDocuments({ isPhoneVerified: true }),
-      User.countDocuments({ createdAt: { $gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) } })
-    ]);
-
-    const [patients, doctors, ashaWorkers, admins, activeUsers, verifiedUsers, newUsers] = stats;
-
-    res.json({
-      success: true,
-      stats: {
-        totalUsers: patients + doctors + ashaWorkers + admins,
-        patients,
-        doctors,
-        ashaWorkers,
-        admins,
-        activeUsers,
-        verifiedUsers,
-        newUsersThisMonth: newUsers
-      }
-    });
+    // Implement stats aggregation in Firebase or return a placeholder
+    // For now, return an empty stats object
+    res.json({ success: true, stats: {} });
   } catch (error) {
-    console.error('Stats fetch error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch statistics'
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
-export default router;
+module.exports = router;

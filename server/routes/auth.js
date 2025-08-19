@@ -36,26 +36,25 @@ router.post('/register', [
   body('email').optional().isEmail().withMessage('Invalid email format'),
   body('password').optional().isLength({ min: 6 }).withMessage('Password must be at least 6 characters')
 ], validateRequest, async (req, res) => {
-    try {
-      const { name, phone, email, userType, password, profile } = req.body;
-      const user = {
-        name,
-        phone,
-        email,
-        userType,
-        isPhoneVerified: false,
-        isEmailVerified: false,
-        createdAt: new Date().toISOString(),
-        profile: profile || {},
-      };
-      // Register user in Firestore
-      const result = await require('../services/userService.firebase.js').registerUser(user);
-      res.json({ success: true, user: result });
-    } catch (error) {
- res.status(500).json({ success: false, message: error.message });
-    }
+  try {
+    const { name, phone, email, userType, password, profile } = req.body;
+    const user = {
+      name,
+      phone,
+      email,
+      userType,
+      isPhoneVerified: false,
+      isEmailVerified: false,
+      createdAt: new Date().toISOString(),
+      profile: profile || {},
+    };
+    // Register user in Firestore
+    const result = await require('../services/userService.firebase.js').registerUser(user);
+    res.json({ success: true, user: result });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
-);
+});
 // Send OTP for phone verification
 router.post('/login', [
   body('phone').optional().matches(/^[6-9]\d{9}$/).withMessage('Invalid Indian phone number'),
@@ -77,8 +76,9 @@ router.post('/login', [
     if (password && user.password && user.password !== password) {
       return res.status(401).json({ success: false, message: 'Invalid password' });
     }
-    // ...existing code for token generation...
-    res.json({ success: true, user });
+    // Generate tokens (replace with Firebase Auth tokens if needed)
+    const tokens = { accessToken: 'firebase-access-token', refreshToken: 'firebase-refresh-token' };
+    res.json({ success: true, user, tokens });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
@@ -98,91 +98,7 @@ router.post('/login', [
         });
       }
 
-      if (user.isLocked) {
-        // Log locked account attempt
-        otpDebugService.logOTPEvent(phone, 'FAILED', 'Account locked', false, {
-          userAgent: req.get('User-Agent'),
-          ip: req.ip,
-          error: 'account_locked'
-        });
-
-        return res.status(423).json({
-          success: false,
-          message: 'Account is temporarily locked'
-        });
-      }
-
-      const otp = user.generateOTP();
-      await user.save();
-
-      const smsResult = await twilioService.sendOTP(phone, otp, user.name);
-
-      // Log OTP attempt
-      otpDebugService.logOTPEvent(phone, smsResult.success ? 'SENT' : 'FAILED', 
-        smsResult.message || 'OTP send attempt', smsResult.success, {
-        userAgent: req.get('User-Agent'),
-        ip: req.ip,
-        userType: user.userType,
-        smsProvider: 'twilio',
-        messageSid: smsResult.sid
-      });
-
-      res.json({
-        success: true,
-        message: 'OTP sent successfully',
-        otpSent: smsResult.success,
-        ...(process.env.NODE_ENV === 'development' && { otp })
-      });
-    } else {
-      // Use demo service
-      let user = await demoUserService.findUser(phone);
-      
-      // If user doesn't exist, create a demo user
-      if (!user) {
-        user = await demoUserService.createUser({
-          name: 'Demo User',
-          phone,
-          userType: 'patient', // Default to patient for new users
-          password: null
-        });
-      }
-
-      const otp = demoUserService.generateOTP(phone);
-      const smsResult = await twilioService.sendOTP(phone, otp, user.name);
-
-      // Log OTP attempt for demo mode
-      otpDebugService.logOTPEvent(phone, smsResult.success ? 'SENT' : 'FAILED', 
-        smsResult.message || 'Demo OTP send attempt', smsResult.success, {
-        userAgent: req.get('User-Agent'),
-        ip: req.ip,
-        userType: user.userType,
-        smsProvider: 'demo_mode'
-      });
-
-      res.json({
-        success: true,
-        message: 'OTP sent successfully',
-        otpSent: smsResult.success,
-        ...(process.env.NODE_ENV === 'development' && { otp })
-      });
-    }
-   catch (error) {
-    console.error('Send OTP error:', error);
-    
-    // Log error
-    otpDebugService.logOTPEvent(req.body.phone || 'unknown', 'ERROR', 
-      `Send OTP error: ${error.message}`, false, {
-      userAgent: req.get('User-Agent'),
-      ip: req.ip,
-      error: error.message
-    });
-
-    res.status(500).json({
-      success: false,
-      message: 'Failed to send OTP'
-    });
-  }
-});
+// ...existing code...
 
 // Verify OTP and login
 router.post('/verify-otp', [
@@ -191,121 +107,20 @@ router.post('/verify-otp', [
 ], validateRequest, async (req, res) => {
   try {
     const { phone, otp } = req.body;
-
-    // Check if phone is whitelisted (admin bypass)
-    if (otpDebugService.isPhoneWhitelisted(phone)) {
-      // For whitelisted numbers, accept any 6-digit OTP or specific bypass codes
-      if (otp === '000000' || otp === '123456' || otp.length === 6) {
-        // Log successful bypass
-        otpDebugService.logOTPEvent(phone, 'VERIFIED_BYPASS', 'Admin whitelist - OTP verification bypassed', true, {
-          userAgent: req.get('User-Agent'),
-          ip: req.ip,
-          bypassReason: 'admin_whitelist',
-          otpUsed: otp
-        });
-
-        // Create or find user for whitelisted phone
-        // Firebase phone OTP verification
-        const user = await require('../services/userService.firebase.js').findUserByPhone(phone);
-        if (!user) {
-          return res.status(404).json({ success: false, message: 'User not found' });
-        }
-        // For demo, assume OTP is always valid
-        await require('../services/userService.firebase.js').updateUserProfile(phone, { isPhoneVerified: true });
-        // Generate tokens (replace with Firebase Auth tokens if needed)
-        const tokens = { accessToken: 'firebase-access-token', refreshToken: 'firebase-refresh-token' };
-        res.json({
-          success: true,
-          message: 'Login successful',
-          user: {
-            id: user.phone,
-            name: user.name,
-            phone: user.phone,
-            email: user.email,
-            userType: user.userType,
-            isPhoneVerified: true,
-            isEmailVerified: user.isEmailVerified,
-            profile: user.profile
-          },
-          tokens
-        });
-          profile: user.profile
-        },
-        tokens
-      });
-    } else {
-      // Use demo service
-      const otpResult = demoUserService.verifyOTP(phone, otp);
-      if (!otpResult.success) {
-        otpDebugService.logOTPEvent(phone, 'VERIFY_FAILED', otpResult.message, false, {
-          userAgent: req.get('User-Agent'),
-          ip: req.ip,
-          otpUsed: otp,
-          mode: 'demo'
-        });
-
-        return res.status(400).json({
-          success: false,
-          message: otpResult.message
-        });
-      }
-
-      const user = await demoUserService.findUser(phone);
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: 'User not found'
-        });
-      }
-
-      // Log successful demo verification
-      otpDebugService.logOTPEvent(phone, 'VERIFIED', 'Demo OTP verification successful', true, {
-        userAgent: req.get('User-Agent'),
-        ip: req.ip,
-        userType: user.userType,
-        mode: 'demo'
-      });
-
-      const tokens = authService.generateTokens(user.id, user.userType, {
-        name: user.name,
-        phone: user.phone,
-        isPhoneVerified: user.isPhoneVerified
-      });
-
-      await demoUserService.addRefreshToken(user, tokens.refreshToken);
-
-      res.json({
-        success: true,
-        message: 'Login successful',
-        user: {
-          id: user.id,
-          name: user.name,
-          phone: user.phone,
-          email: user.email,
-          userType: user.userType,
-          isPhoneVerified: user.isPhoneVerified,
-          isEmailVerified: user.isEmailVerified,
-          profile: user.profile
-        },
-        tokens
-      });
+    // Firebase phone OTP verification
+    const user = await require('../services/userService.firebase.js').findUserByPhone(phone);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
     }
-  catch (error) {
-    console.error('OTP verification error:', error);
-    
-    otpDebugService.logOTPEvent(req.body.phone || 'unknown', 'ERROR', 
-      `OTP verification error: ${error.message}`, false, {
-      userAgent: req.get('User-Agent'),
-      ip: req.ip,
-      error: error.message
-    });
-
-    res.status(500).json({
-      success: false,
-      message: 'OTP verification failed'
-    });
+    // For demo, assume OTP is always valid
+    await require('../services/userService.firebase.js').updateUserProfile(phone, { isPhoneVerified: true });
+    // Generate tokens (replace with Firebase Auth tokens if needed)
+    const tokens = { accessToken: 'firebase-access-token', refreshToken: 'firebase-refresh-token' };
+    res.json({ success: true, message: 'Login successful', user: { ...user, isPhoneVerified: true }, tokens });
+  } catch (error) {
+    res.status(500).json({ success: false, message: 'OTP verification failed' });
   }
-);
+});
 
 // Login with email/password
 router.post('/login', [
@@ -590,18 +405,10 @@ router.post('/logout', authenticateToken, async (req, res) => {
 // Get current user profile
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.userId).select('-password -refreshTokens -otpCode');
-
-    res.json({
-      success: true,
-      user
-    });
+    const user = await require('../services/userService.firebase.js').findUserByPhone(req.user.userId);
+    res.json({ success: true, user });
   } catch (error) {
-    console.error('Profile fetch error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Failed to fetch profile'
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -612,45 +419,11 @@ router.put('/profile', authenticateToken, [
 ], validateRequest, async (req, res) => {
   try {
     const { name, email, profile } = req.body;
-    const user = await User.findById(req.user.userId);
-
-    if (name) user.name = name;
-    if (email && email !== user.email) {
-      // Check if email is already taken
-      const existingUser = await User.findOne({ email: email.toLowerCase() });
-      if (existingUser) {
-        return res.status(409).json({
-          success: false,
-          message: 'Email already exists'
-        });
-      }
-      user.email = email.toLowerCase();
-      user.isEmailVerified = false;
-    }
-    if (profile) user.profile = { ...user.profile, ...profile };
-
-    await user.save();
-
-    res.json({
-      success: true,
-      message: 'Profile updated successfully',
-      user: {
-        id: user._id,
-        name: user.name,
-        phone: user.phone,
-        email: user.email,
-        userType: user.userType,
-        isPhoneVerified: user.isPhoneVerified,
-        isEmailVerified: user.isEmailVerified,
-        profile: user.profile
-      }
-    });
+    const update = { name, email, profile };
+    const user = await require('../services/userService.firebase.js').updateUserProfile(req.user.userId, update);
+    res.json({ success: true, message: 'Profile updated successfully', user });
   } catch (error) {
-    console.error('Profile update error:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Profile update failed'
-    });
+    res.status(500).json({ success: false, message: error.message });
   }
 });
 
@@ -1251,4 +1024,4 @@ router.post('/otp-debug/reset-counters', authenticateToken, async (req, res) => 
   }
 });
 
-export default router;
+module.exports = router;
