@@ -13,16 +13,14 @@ class VoiceStub {
   removeAllListeners() {}
 }
 
-export default new VoiceStub();
-export default {
-  onSpeechStart: null,
-  onSpeechEnd: null,
-  onSpeechResults: null,
-  start: async () => {
+const Voice = new VoiceStub();
+
+Voice.start = async () => {
     console.warn('Voice.start is not implemented on web');
-  },
-  stop: async () => {
+  };
+Voice.stop = async () => {
     console.warn('Voice.stop is not implemented on web');
-  },
-  removeAllListeners: () => {},
-};
+  };
+Voice.removeAllListeners = () => {};
+
+export default Voice;
