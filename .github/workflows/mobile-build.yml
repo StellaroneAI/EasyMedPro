@@ -1,44 +1,37 @@
-name: Mobile Build
+name: Mobile Debug Build
 
 on:
   push:
     branches: [main]
+  workflow_dispatch:
 
 jobs:
-  build-android:
+  android:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: 18
           cache: 'npm'
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Setup Java
-        uses: actions/setup-java@v4
+      - run: npm ci
+      - run: npm run build:android
+      - uses: actions/upload-artifact@v4
         with:
-          java-version: '11'
-          distribution: 'temurin'
+          name: android-debug-apk
+          path: android/app/build/outputs/**/*.apk
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Sync Capacitor
-        run: npx cap sync
-
-      - name: Build Android App Bundle
-        run: |
-          cd android
-          ./gradlew bundleDebug
-
-      - name: Upload Android App Bundle
-        uses: actions/upload-artifact@v4
+  ios:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          name: easymedpro-android-aab
-          path: android/app/build/outputs/**/*.aab
+          node-version: 18
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run build:ios
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ios-sync
+          path: ios/App

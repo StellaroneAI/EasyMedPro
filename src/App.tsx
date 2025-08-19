@@ -13,6 +13,7 @@ import HomePage from './pages/HomePage';
 import { AdminProvider, useAdmin } from './contexts/AdminContext';
 import { LanguageKey } from './translations/index';
 import './App.css';
+import LanguageToggle from './components/LanguageToggle';
 
 interface User {
   userType: 'patient' | 'asha' | 'doctor' | 'admin';
@@ -85,6 +86,7 @@ function AppContent() {
 function App() {
   return (
     <LanguageProvider>
+      <div className="p-2 text-right"><LanguageToggle /></div>
       <AdminProvider>
         <AppContent />
       </AdminProvider>
