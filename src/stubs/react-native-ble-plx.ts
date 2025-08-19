@@ -4,21 +4,14 @@ export class BleManager {
     _options: any,
     _listener: (error: any, device: any) => void
   ): void {
-    // no-op stub for web build
-  }
-  stopDeviceScan(): void {
-    // no-op stub
-  }
-}
-export default BleManager;
-  startDeviceScan(_serviceUUIDs: string[] | null, _options: any, _listener: any) {
     // Web stub: Bluetooth scanning not supported
     console.warn('BleManager.startDeviceScan is not implemented on web');
   }
-  stopDeviceScan() {
+  stopDeviceScan(): void {
     // Web stub: nothing to stop
   }
 }
+export default BleManager;
 
 // Export empty enums and types to satisfy imports
 export enum State {}
