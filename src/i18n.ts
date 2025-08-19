@@ -1,36 +1,26 @@
-import { useState, useEffect } from 'react';
-import { translations, Language, TranslationData } from './translations';
+import i18n from 'i18next';
+import { initReactI18next } from 'react-i18next';
 
-let currentLang: Language = Language.English;
-let current: TranslationData = translations[currentLang];
-const listeners: Array<() => void> = [];
+import enCommon from './locales/en/common.json';
+import hiCommon from './locales/hi/common.json';
 
-export const setLanguage = (lang: string) => {
-  const key = (lang.toLowerCase() as Language);
-  if (translations[key]) {
-    currentLang = key;
-    current = translations[key];
-    listeners.forEach(l => l());
-  }
-};
+export const resources = {
+  en: { translation: enCommon },
+  hi: { translation: hiCommon }
+} as const;
 
-export const useI18n = () => {
-  const [t, setT] = useState<TranslationData>(current);
-  const [lang, setLang] = useState<Language>(currentLang);
+void i18n
+  .use(initReactI18next)
+  .init({
+    resources,
+    lng: localStorage.getItem('lang') || 'en',
+    fallbackLng: 'en',
+    interpolation: { escapeValue: false }
+  });
 
-  useEffect(() => {
-    const update = () => {
-      setT(current);
-      setLang(currentLang);
-    };
-    listeners.push(update);
-    return () => {
-      const i = listeners.indexOf(update);
-      if (i >= 0) listeners.splice(i, 1);
-    };
-  }, []);
+export function setLanguage(lang: string) {
+  localStorage.setItem('lang', lang);
+  void i18n.changeLanguage(lang);
+}
 
-  return { t, lang };
-};
-
-export default { setLanguage, useI18n };
+export default i18n;

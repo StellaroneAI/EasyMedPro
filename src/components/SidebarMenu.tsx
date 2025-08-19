@@ -1,4 +1,5 @@
 import { useLanguage } from '../contexts/LanguageContext';
+import LanguageSelector from './LanguageSelector';
 
 interface SidebarMenuProps {
   isOpen: boolean;
@@ -257,7 +258,7 @@ export default function SidebarMenu({ isOpen, onClose, onNavigate, currentSectio
   return (
     <div className="h-full flex flex-col">
       {/* Header */}
-      <div className="p-4 border-b border-white/20">
+      <div className="p-4 border-b border-white/20 flex items-center justify-between">
         <div className={`flex items-center ${!isOpen ? 'justify-center' : 'space-x-3'}`}>
           <div className={`w-10 h-10 bg-gradient-to-r ${userConfig.color} rounded-full flex items-center justify-center`}>
             <span className="text-white text-xl">🏥</span>
@@ -269,6 +270,7 @@ export default function SidebarMenu({ isOpen, onClose, onNavigate, currentSectio
             </div>
           )}
         </div>
+        {isOpen && <LanguageSelector />}
       </div>
 
       {/* Menu Items */}

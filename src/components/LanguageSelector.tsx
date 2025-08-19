@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { LanguageKey } from '../translations';
+import { setLanguage as setI18nLanguage } from '../i18n';
 
 export default function LanguageSelector() {
   const { currentLanguage, setLanguage } = useLanguage();
@@ -22,6 +23,11 @@ export default function LanguageSelector() {
   ];
 
   const currentLang = languageOptions.find(lang => lang.code === currentLanguage) || languageOptions[0];
+
+  const langMap: Record<string, string> = {
+    english: 'en',
+    hindi: 'hi'
+  };
 
   return (
     <div className="relative">
@@ -52,6 +58,7 @@ export default function LanguageSelector() {
                 key={lang.code}
                 onClick={() => {
                   setLanguage(lang.code as LanguageKey);
+                  setI18nLanguage(langMap[lang.code] || 'en');
                   setIsOpen(false);
                 }}
                 className={`w-full flex items-center space-x-3 px-3 py-2 rounded-lg text-left hover:bg-gray-100 transition-colors duration-200 ${

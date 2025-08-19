@@ -1,18 +1,17 @@
 import React from 'react';
-import { setLanguage, useI18n } from '../i18n';
-import { Language } from '../translations';
+import { useTranslation } from 'react-i18next';
+import { setLanguage } from '../i18n';
 
 const options = [
-  { code: Language.English, label: 'English' },
-  { code: Language.Hindi, label: 'Hindi' },
-  { code: Language.Tamil, label: 'Tamil' }
+  { code: 'en', label: 'English' },
+  { code: 'hi', label: 'Hindi' }
 ];
 
 export const LanguageToggle: React.FC = () => {
-  const { lang } = useI18n();
+  const { i18n } = useTranslation();
   return (
     <select
-      value={lang}
+      value={i18n.language}
       onChange={e => setLanguage(e.target.value)}
       className="border rounded p-1 text-sm"
     >
