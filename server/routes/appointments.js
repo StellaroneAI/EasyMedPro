@@ -2,6 +2,13 @@ import express from 'express';
 import { body, validationResult } from 'express-validator';
 import { authenticateToken, authorizeUserTypes } from '../middleware/auth.js';
 import Appointment from '../models/Appointment.js';
+import {
+  bookAppointment,
+  findAppointmentById,
+  updateAppointmentDetails,
+  removeAppointment,
+  listAllAppointments
+} from '../services/appointmentService.firebase.js';
 import User from '../models/User.js';
 import twilioService from '../services/twilioService.js';
 
@@ -61,8 +68,7 @@ router.post('/', authenticateToken, [
       }
     }
 
-    // Create appointment
-    const appointment = new Appointment({
+    const appointment = {
       patient: req.user.userId,
       doctor: doctorId,
       ashaWorker: ashaWorkerId,
@@ -72,30 +78,9 @@ router.post('/', authenticateToken, [
       chiefComplaint,
       symptoms: symptoms || [],
       urgency
-    });
-
-    await appointment.save();
-
-    // Populate the appointment with user details
-    const populatedAppointment = await Appointment.findById(appointment._id)
-      .populate('patient', 'name phone email')
-      .populate('doctor', 'name phone email profile.specialty')
-      .populate('ashaWorker', 'name phone email profile.village');
-
-    // Send confirmation SMS to patient
-    const patient = await User.findById(req.user.userId);
-    await twilioService.sendAppointmentConfirmation(patient.phone, {
-      doctorName: doctor.name,
-      date: scheduledDate,
-      time: scheduledTime,
-      type
-    });
-
-    res.status(201).json({
-      success: true,
-      message: 'Appointment created successfully',
-      appointment: populatedAppointment
-    });
+    };
+    const result = await bookAppointment(appointment);
+    res.json({ success: true, appointment: result });
   } catch (error) {
     console.error('Appointment creation error:', error);
     res.status(500).json({
