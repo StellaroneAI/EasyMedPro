@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { storage } from '@core/storage';
+import useResizeObserver from '@/hooks/useResizeObserver';
 
 interface OTPLog {
   timestamp: string;
@@ -37,6 +38,16 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
   const [diagnosticReport, setDiagnosticReport] = useState<any>(null);
   const [firebaseStats, setFirebaseStats] = useState<any>(null);
   const [firebaseReport, setFirebaseReport] = useState<any>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const chartInstance = useRef<any>(null);
+
+  useResizeObserver(chartRef, () => chartInstance.current?.resize?.());
+
+  useEffect(() => {
+    const handleVisibility = () => chartInstance.current?.resize?.();
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
 
   useEffect(() => {
     fetchOTPStats();
@@ -288,7 +299,10 @@ export default function OTPDiagnosticPanel({ onClose }: OTPDiagnosticPanelProps)
           </div>
         </div>
 
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]">
+        <div
+          ref={chartRef}
+          className="p-6 overflow-y-auto max-h-[calc(90vh-120px)] h-full"
+        >
           {loading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

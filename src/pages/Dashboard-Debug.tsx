@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function Dashboard() {
   return (
-    <div style={{ padding: '20px', backgroundColor: '#f5f5f5', minHeight: '100vh' }}>
+    <div className="main-screen safe-area keyboard-aware" style={{ padding: '20px', backgroundColor: '#f5f5f5' }}>
       <h1 style={{ fontSize: '24px', marginBottom: '20px', color: '#333' }}>
         EasyMedPro Dashboard - Debug Mode
       </h1>

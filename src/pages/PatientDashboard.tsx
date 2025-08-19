@@ -124,7 +124,7 @@ export default function PatientDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-100 via-purple-50 to-cyan-100 pb-20">
+    <div className="main-screen safe-area keyboard-aware bg-gradient-to-br from-indigo-100 via-purple-50 to-cyan-100 pb-20">
       {/* Modern Mobile-First Header */}
       <header className="sticky top-0 z-50 bg-white/90 backdrop-blur-xl border-b border-white/30 shadow-xl">
         <div className="px-4 py-4 sm:px-6 sm:py-5">
