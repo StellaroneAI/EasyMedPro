@@ -1,0 +1,285 @@
+import { getMCPClient } from '../mcp/client.js';
+import {
+  ClaimStatusRequest,
+  ClaimStatus,
+  DenialReasonsRequest,
+  DenialReasonsResponse
+} from '../mcp/types.js';
+
+export class EHRService {
+  private mcpClient;
+
+  constructor() {
+    this.mcpClient = getMCPClient();
+  }
+
+  async getClaimStatus(params: {
+    claimId?: string;
+    patientId?: string;
+    dateRange?: { start: string; end: string };
+  }): Promise<{
+    success: boolean;
+    claims?: ClaimStatus[];
+    message?: string;
+  }> {
+    try {
+      const request: ClaimStatusRequest = {
+        claim_id: params.claimId,
+        patient_id: params.patientId,
+        date_range: params.dateRange
+      };
+
+      const response = await this.mcpClient.callTool<ClaimStatus[]>(
+        'mcp-ehr-rcm',
+        'get_claim_status',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          claims: response.data,
+          message: 'Claim status retrieved successfully'
+        };
+      } else {
+        // Fallback to mock data
+        return this.generateMockClaimData(params);
+      }
+
+    } catch (error) {
+      console.error('[EHR] Claim status retrieval failed, using fallback:', error.message);
+      return this.generateMockClaimData(params);
+    }
+  }
+
+  private generateMockClaimData(params: any): {
+    success: boolean;
+    claims: ClaimStatus[];
+    message: string;
+  } {
+    const mockClaims: ClaimStatus[] = [
+      {
+        claim_id: `CLM_${Date.now()}_001`,
+        patient_id: params.patientId || 'patient_123',
+        status: 'approved',
+        amount: 5500,
+        submission_date: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        last_updated: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        claim_id: `CLM_${Date.now()}_002`,
+        patient_id: params.patientId || 'patient_123',
+        status: 'processing',
+        amount: 12000,
+        submission_date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        last_updated: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+
+    return {
+      success: true,
+      claims: mockClaims,
+      message: 'Mock claim data (MCP unavailable)'
+    };
+  }
+
+  async getDenialReasons(claimId: string): Promise<{
+    success: boolean;
+    denialInfo?: DenialReasonsResponse;
+    message?: string;
+  }> {
+    try {
+      const request: DenialReasonsRequest = {
+        claim_id: claimId
+      };
+
+      const response = await this.mcpClient.callTool<DenialReasonsResponse>(
+        'mcp-ehr-rcm',
+        'get_denial_reasons',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          denialInfo: response.data,
+          message: 'Denial reasons retrieved successfully'
+        };
+      } else {
+        return {
+          success: false,
+          message: response.error?.message || 'Failed to retrieve denial reasons'
+        };
+      }
+
+    } catch (error) {
+      console.error('[EHR] Denial reasons retrieval failed:', error.message);
+      
+      // Fallback denial information
+      return {
+        success: true,
+        denialInfo: {
+          claim_id: claimId,
+          primary_reason: 'Insufficient documentation',
+          secondary_reasons: [
+            'Missing procedure codes',
+            'Invalid date of service'
+          ],
+          recommended_actions: [
+            'Resubmit with complete documentation',
+            'Verify procedure codes with provider',
+            'Contact insurance for clarification'
+          ],
+          appeal_deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        },
+        message: 'Mock denial information (MCP unavailable)'
+      };
+    }
+  }
+
+  async submitClaimAppeal(claimId: string, appealData: {
+    reason: string;
+    documents?: string[];
+    additionalInfo?: string;
+  }): Promise<{
+    success: boolean;
+    appealId?: string;
+    message?: string;
+  }> {
+    try {
+      const response = await this.mcpClient.callTool(
+        'mcp-ehr-rcm',
+        'submit_appeal',
+        {
+          claim_id: claimId,
+          appeal_reason: appealData.reason,
+          documents: appealData.documents || [],
+          additional_information: appealData.additionalInfo
+        }
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          appealId: response.data.appeal_id,
+          message: 'Appeal submitted successfully'
+        };
+      } else {
+        return {
+          success: false,
+          message: response.error?.message || 'Failed to submit appeal'
+        };
+      }
+
+    } catch (error) {
+      console.error('[EHR] Appeal submission failed:', error.message);
+      
+      // Fallback appeal submission
+      const appealId = `APPEAL_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+      
+      return {
+        success: true,
+        appealId,
+        message: 'Mock appeal submitted (MCP unavailable)'
+      };
+    }
+  }
+
+  async getPatientSummary(patientId: string): Promise<{
+    success: boolean;
+    summary?: any;
+    message?: string;
+  }> {
+    try {
+      const response = await this.mcpClient.callTool(
+        'mcp-ehr-rcm',
+        'get_patient_summary',
+        { patient_id: patientId }
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          summary: response.data,
+          message: 'Patient summary retrieved successfully'
+        };
+      } else {
+        // Fallback summary
+        return {
+          success: true,
+          summary: {
+            patient_id: patientId,
+            total_claims: 15,
+            approved_claims: 12,
+            denied_claims: 2,
+            pending_claims: 1,
+            total_amount: 125000,
+            paid_amount: 98000,
+            outstanding_amount: 27000,
+            last_visit: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000).toISOString()
+          },
+          message: 'Mock patient summary (MCP unavailable)'
+        };
+      }
+
+    } catch (error) {
+      console.error('[EHR] Patient summary retrieval failed:', error.message);
+      return {
+        success: false,
+        message: 'Patient summary unavailable'
+      };
+    }
+  }
+
+  async getInsuranceInfo(patientId: string): Promise<{
+    success: boolean;
+    insurance?: any;
+    message?: string;
+  }> {
+    try {
+      const response = await this.mcpClient.callTool(
+        'mcp-ehr-rcm',
+        'get_insurance_info',
+        { patient_id: patientId }
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          insurance: response.data,
+          message: 'Insurance information retrieved successfully'
+        };
+      } else {
+        // Fallback insurance info
+        return {
+          success: true,
+          insurance: {
+            patient_id: patientId,
+            primary_insurance: {
+              provider: 'Health Insurance Corp',
+              policy_number: 'HIC123456789',
+              group_number: 'GRP001',
+              status: 'active',
+              coverage_start: '2024-01-01',
+              coverage_end: '2024-12-31'
+            },
+            coverage_details: {
+              deductible: 10000,
+              out_of_pocket_max: 50000,
+              copay: 500,
+              coverage_percentage: 80
+            }
+          },
+          message: 'Mock insurance information (MCP unavailable)'
+        };
+      }
+
+    } catch (error) {
+      console.error('[EHR] Insurance info retrieval failed:', error.message);
+      return {
+        success: false,
+        message: 'Insurance information unavailable'
+      };
+    }
+  }
+}

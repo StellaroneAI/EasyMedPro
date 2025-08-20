@@ -1,0 +1,240 @@
+import { getMCPClient } from '../mcp/client.js';
+export class TriageService { mcpClient;
+
+  constructor() {
+    this.mcpClient = getMCPClient();
+  }
+
+  async performTriage(params;
+    severityLevel: 'low' | 'medium' | 'high' | 'emergency';
+  }) {
+    try {
+      const request= {
+        symptoms,
+        patient_info,
+        severity_level};
+
+      const response = await this.mcpClient.callTool<TriageResponse>(
+        'mcp-symptoms',
+        'triage_v1',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success,
+          triageResult,
+          message};
+      } else {
+        // Fallback to basic triage logic
+        return this.generateBasicTriage(params.symptoms, params.patientInfo);
+      }
+
+    } catch (error) {
+      console.error('[Triage] MCP triage failed, using fallback, error.message);
+      return this.generateBasicTriage(params.symptoms, params.patientInfo);
+    }
+  } generateBasicTriage(
+    symptoms,
+    patientInfo) {
+    // Basic symptom analysis (simplified)
+    const emergencySymptoms = [
+      'chest pain', 'difficulty breathing', 'severe bleeding', 
+      'unconscious', 'stroke symptoms', 'heart attack'
+    ];
+    
+    const highRiskSymptoms = [
+      'severe pain', 'high fever', 'persistent vomiting',
+      'severe headache', 'vision changes'
+    ];
+
+    const lowercaseSymptoms = symptoms.map(s => s.toLowerCase());
+    
+    let riskLevel= 'low';
+    let confidenceScore = 0.6; // Lower confidence for fallback
+    
+    if (emergencySymptoms.some(es => lowercaseSymptoms.some(s => s.includes(es)))) {
+      riskLevel = 'emergency';
+      confidenceScore = 0.9;
+    } else if (highRiskSymptoms.some(hrs => lowercaseSymptoms.some(s => s.includes(hrs)))) {
+      riskLevel = 'high';
+      confidenceScore = 0.7;
+    } else if (symptoms.length > 3) {
+      riskLevel = 'medium';
+      confidenceScore = 0.6;
+    }
+
+    const recommendations = [];
+    
+    switch (riskLevel) {
+      case 'emergency':
+        recommendations.push({
+          action)',
+          urgency,
+          description});
+        break;
+      case 'high':
+        recommendations.push({
+          action,
+          urgency,
+          description});
+        break;
+      case 'medium':
+        recommendations.push({
+          action,
+          urgency,
+          description});
+        break;
+      default:
+        recommendations.push({
+          action,
+          urgency,
+          description});
+    }
+
+    const triageResult= {
+      triage_id: `fallback_triage_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      risk_level,
+      confidence_score,
+      recommendations,
+      follow_up_questions, riskLevel),
+      disclaimers,
+        'Always consult with a healthcare provider for accurate diagnosis',
+        'Call 108 immediately if you feel this is a medical emergency'
+      ]
+    };
+
+    return {
+      success,
+      triageResult,
+      message)'
+    };
+  } generateFollowUpQuestions(symptoms, riskLevel): string[] {
+    const commonQuestions = [
+      'How long have you been experiencing these symptoms?',
+      'Have the symptoms gotten worse, better, or stayed the same?',
+      'Are you currently taking any medications?'
+    ];
+
+    const riskSpecificQuestions = {
+      emergency, 'Can you breathe normally?'],
+      high, 'Do you have any chronic conditions?'],
+      medium, 'Have you tried any treatments?'],
+      low, 'Have you been feeling stressed lately?']
+    };
+
+    return [...commonQuestions, ...(riskSpecificQuestions[riskLevel] || [])];
+  }
+
+  async submitFollowUpAnswers(
+    triageId,
+    answers, string>
+  ) {
+    try {
+      const request= {
+        triage_id,
+        answers
+      };
+
+      const response = await this.mcpClient.callTool<TriageResponse>(
+        'mcp-symptoms',
+        'followup_questions',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success,
+          updatedTriage,
+          message};
+      } else {
+        return {
+          success,
+          message};
+      }
+
+    } catch (error) {
+      console.error('[Triage] Follow-up processing failed, error.message);
+      return {
+        success,
+        message};
+    }
+  }
+
+  async getDisclaimers() {
+    try {
+      const response = await this.mcpClient.callTool(
+        'mcp-symptoms',
+        'disclaimers',
+        {}
+      );
+
+      if (response.success && response.data) {
+        return {
+          success,
+          disclaimers,
+          message};
+      } else {
+        // Fallback disclaimers
+        return {
+          success,
+          disclaimers,
+            'It does not constitute medical advice, diagnosis, or treatment',
+            'Always consult with qualified healthcare professionals',
+            'In case of emergency, call 108 immediately',
+            'The AI assessment should not delay seeking professional medical care'
+          ],
+          message)'
+        };
+      }
+
+    } catch (error) {
+      console.error('[Triage] Disclaimers retrieval failed, error.message);
+      return {
+        success,
+        disclaimers,
+        message)'
+      };
+    }
+  }
+
+  async getSymptomSuggestions(partialSymptom) {
+    try {
+      const response = await this.mcpClient.callTool(
+        'mcp-symptoms',
+        'symptom_suggestions',
+        { partial_input}
+      );
+
+      if (response.success && response.data) {
+        return {
+          success,
+          suggestions,
+          message};
+      } else {
+        // Fallback suggestions
+        const commonSymptoms = [
+          'headache', 'fever', 'cough', 'sore throat', 'fatigue',
+          'nausea', 'dizziness', 'back pain', 'stomach pain', 'shortness of breath'
+        ];
+        
+        const filtered = commonSymptoms.filter(symptom => 
+          symptom.toLowerCase().includes(partialSymptom.toLowerCase())
+        );
+
+        return {
+          success,
+          suggestions,
+          message)'
+        };
+      }
+
+    } catch (error) {
+      console.error('[Triage] Symptom suggestions failed, error.message);
+      return {
+        success,
+        suggestions,
+        message};
+    }
+  }
+}

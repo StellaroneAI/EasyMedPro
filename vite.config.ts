@@ -23,8 +23,17 @@ export default defineConfig({
     },
   },
   server: {
-    port: 3000,
-    open: true
+    port: 5173,
+    host: true,
+    open: true,
+    cors: {
+      origin: [
+        'https://easymed-8c074.web.app',
+        'http://localhost:5173',
+        'http://localhost:3000'
+      ],
+      credentials: true
+    }
   },
   optimizeDeps: {
     // Exclude packages that rely on native modules or Node-specific APIs

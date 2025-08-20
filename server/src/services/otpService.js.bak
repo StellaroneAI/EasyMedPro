@@ -1,0 +1,178 @@
+import { getMCPClient } from '../mcp/client.js';
+import {
+  SendOTPRequest,
+  SendOTPResponse,
+  SendReminderRequest,
+  SendReminderResponse
+} from '../mcp/types.js';
+
+export class OTPService {
+  constructor() {
+    this.mcpClient = getMCPClient();
+  }
+
+  async sendOTP(phoneNumber: string, userName?: string): Promise<{
+    success: boolean;
+    otpId?: string;
+    message?: string;
+    fallbackUsed?: boolean;
+  }> {
+    try {
+      const request: SendOTPRequest = {
+        phone_number: phoneNumber,
+        message_template: 'EasyMedPro OTP',
+        user_name: userName
+      };
+
+      const response = await this.mcpClient.callTool<SendOTPResponse>(
+        'mcp-auth-comm',
+        'send_otp',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          otpId: response.data.otp_id,
+          message: 'OTP sent successfully via MCP'
+        };
+      } else {
+        // Fallback to local OTP generation
+        return this.fallbackOTPGeneration(phoneNumber, userName);
+      }
+
+    } catch (error) {
+      console.error('[OTP] MCP call failed, using fallback:', error.message);
+      return this.fallbackOTPGeneration(phoneNumber, userName);
+    }
+  }
+
+  private async fallbackOTPGeneration(phoneNumber: string, userName?: string): Promise<{
+    success: boolean;
+    otpId?: string;
+    message?: string;
+    fallbackUsed: boolean;
+  }> {
+    // Generate local OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const otpId = `local_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+
+    // Store in local cache/database (simplified for demo)
+    const otpData = {
+      otp,
+      phoneNumber,
+      userName,
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000), // 5 minutes
+      used: false
+    };
+
+    // In production, store in Redis/database
+    global.otpCache = global.otpCache || new Map();
+    global.otpCache.set(otpId, otpData);
+
+    // Log for development (in production, send via SMS service)
+    console.log(`[OTP] Fallback OTP for ${phoneNumber}: ${otp} (ID: ${otpId})`);
+
+    return {
+      success: true,
+      otpId,
+      message: 'OTP generated (fallback mode)',
+      fallbackUsed: true
+    };
+  }
+
+  async verifyOTP(otpId: string, enteredOTP: string): Promise<{
+    success: boolean;
+    message?: string;
+  }> {
+    // First try MCP verification (if OTP was sent via MCP)
+    if (!otpId.startsWith('local_')) {
+      try {
+        const response = await this.mcpClient.callTool(
+          'mcp-auth-comm',
+          'verify_otp',
+          { otp_id: otpId, otp_code: enteredOTP }
+        );
+
+        if (response.success) {
+          return { success: true, message: 'OTP verified via MCP' };
+        }
+      } catch (error) {
+        console.warn('[OTP] MCP verification failed, checking local cache');
+      }
+    }
+
+    // Fallback to local verification
+    const otpCache = global.otpCache || new Map();
+    const otpData = otpCache.get(otpId);
+
+    if (!otpData) {
+      return { success: false, message: 'Invalid or expired OTP ID' };
+    }
+
+    if (otpData.used) {
+      return { success: false, message: 'OTP already used' };
+    }
+
+    if (new Date() > otpData.expiresAt) {
+      otpCache.delete(otpId);
+      return { success: false, message: 'OTP expired' };
+    }
+
+    if (otpData.otp !== enteredOTP) {
+      return { success: false, message: 'Invalid OTP' };
+    }
+
+    // Mark as used
+    otpData.used = true;
+    otpCache.set(otpId, otpData);
+
+    return { success: true, message: 'OTP verified (fallback mode)' };
+  }
+
+  async sendReminder(
+    recipient: string,
+    type: 'sms' | 'email' | 'push',
+    message: string,
+    scheduledFor?: string
+  ): Promise<{
+    success: boolean;
+    reminderId?: string;
+    message?: string;
+  }> {
+    try {
+      const request: SendReminderRequest = {
+        recipient,
+        type,
+        message,
+        scheduled_for: scheduledFor
+      };
+
+      const response = await this.mcpClient.callTool<SendReminderResponse>(
+        'mcp-auth-comm',
+        'send_reminder',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          reminderId: response.data.reminder_id,
+          message: 'Reminder scheduled successfully'
+        };
+      } else {
+        return {
+          success: false,
+          message: response.error?.message || 'Failed to schedule reminder'
+        };
+      }
+
+    } catch (error) {
+      console.error('[OTP] Reminder scheduling failed:', error.message);
+      return {
+        success: false,
+        message: 'Reminder scheduling failed'
+      };
+    }
+  }
+}

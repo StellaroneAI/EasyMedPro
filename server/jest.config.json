@@ -1,0 +1,20 @@
+{
+  "testEnvironment": "node",
+  "moduleFileExtensions": ["js", "json"],
+  "testMatch": ["**/tests/**/*.test.js"],
+  "collectCoverage": true,
+  "collectCoverageFrom": [
+    "src/**/*.js",
+    "app.js",
+    "!src/mcp/types.js"
+  ],
+  "coverageDirectory": "coverage",
+  "coverageReporters": ["text", "lcov", "html"],
+  "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"],
+  "testTimeout": 30000,
+  "extensionsToTreatAsEsm": [".js"],
+  "globals": {
+    "__dirname": true,
+    "__filename": true
+  }
+}

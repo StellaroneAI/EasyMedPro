@@ -1,0 +1,293 @@
+import { getMCPClient } from '../mcp/client.js';
+import {
+  TriageRequest,
+  TriageResponse,
+  FollowupQuestionsRequest
+} from '../mcp/types.js';
+
+export class TriageService {
+  private mcpClient;
+
+  constructor() {
+    this.mcpClient = getMCPClient();
+  }
+
+  async performTriage(params: {
+    symptoms: string[];
+    patientInfo: {
+      age: number;
+      gender: 'male' | 'female' | 'other';
+      medicalHistory?: string[];
+      currentMedications?: string[];
+    };
+    severityLevel?: 'low' | 'medium' | 'high' | 'emergency';
+  }): Promise<{
+    success: boolean;
+    triageResult?: TriageResponse;
+    message?: string;
+  }> {
+    try {
+      const request: TriageRequest = {
+        symptoms: params.symptoms,
+        patient_info: params.patientInfo,
+        severity_level: params.severityLevel
+      };
+
+      const response = await this.mcpClient.callTool<TriageResponse>(
+        'mcp-symptoms',
+        'triage_v1',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          triageResult: response.data,
+          message: 'Triage completed successfully'
+        };
+      } else {
+        // Fallback to basic triage logic
+        return this.generateBasicTriage(params.symptoms, params.patientInfo);
+      }
+
+    } catch (error) {
+      console.error('[Triage] MCP triage failed, using fallback:', error.message);
+      return this.generateBasicTriage(params.symptoms, params.patientInfo);
+    }
+  }
+
+  private generateBasicTriage(
+    symptoms: string[],
+    patientInfo: any
+  ): {
+    success: boolean;
+    triageResult: TriageResponse;
+    message: string;
+  } {
+    // Basic symptom analysis (simplified)
+    const emergencySymptoms = [
+      'chest pain', 'difficulty breathing', 'severe bleeding', 
+      'unconscious', 'stroke symptoms', 'heart attack'
+    ];
+    
+    const highRiskSymptoms = [
+      'severe pain', 'high fever', 'persistent vomiting',
+      'severe headache', 'vision changes'
+    ];
+
+    const lowercaseSymptoms = symptoms.map(s => s.toLowerCase());
+    
+    let riskLevel: 'low' | 'medium' | 'high' | 'emergency' = 'low';
+    let confidenceScore = 0.6; // Lower confidence for fallback
+    
+    if (emergencySymptoms.some(es => lowercaseSymptoms.some(s => s.includes(es)))) {
+      riskLevel = 'emergency';
+      confidenceScore = 0.9;
+    } else if (highRiskSymptoms.some(hrs => lowercaseSymptoms.some(s => s.includes(hrs)))) {
+      riskLevel = 'high';
+      confidenceScore = 0.7;
+    } else if (symptoms.length > 3) {
+      riskLevel = 'medium';
+      confidenceScore = 0.6;
+    }
+
+    const recommendations = [];
+    
+    switch (riskLevel) {
+      case 'emergency':
+        recommendations.push({
+          action: 'Seek immediate medical attention or call emergency services (108)',
+          urgency: 'immediate' as const,
+          description: 'Your symptoms may indicate a medical emergency'
+        });
+        break;
+      case 'high':
+        recommendations.push({
+          action: 'Consult a doctor within 24 hours',
+          urgency: 'within_24h' as const,
+          description: 'Your symptoms require prompt medical evaluation'
+        });
+        break;
+      case 'medium':
+        recommendations.push({
+          action: 'Schedule an appointment with your healthcare provider',
+          urgency: 'within_week' as const,
+          description: 'Your symptoms should be evaluated by a medical professional'
+        });
+        break;
+      default:
+        recommendations.push({
+          action: 'Monitor symptoms and consider routine consultation',
+          urgency: 'routine' as const,
+          description: 'Keep track of your symptoms and consider scheduling a routine check-up'
+        });
+    }
+
+    const triageResult: TriageResponse = {
+      triage_id: `fallback_triage_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
+      risk_level: riskLevel,
+      confidence_score: confidenceScore,
+      recommendations,
+      follow_up_questions: this.generateFollowUpQuestions(symptoms, riskLevel),
+      disclaimers: [
+        'This is a basic assessment and should not replace professional medical advice',
+        'Always consult with a healthcare provider for accurate diagnosis',
+        'Call 108 immediately if you feel this is a medical emergency'
+      ]
+    };
+
+    return {
+      success: true,
+      triageResult,
+      message: 'Basic triage completed (MCP unavailable)'
+    };
+  }
+
+  private generateFollowUpQuestions(symptoms: string[], riskLevel: string): string[] {
+    const commonQuestions = [
+      'How long have you been experiencing these symptoms?',
+      'Have the symptoms gotten worse, better, or stayed the same?',
+      'Are you currently taking any medications?'
+    ];
+
+    const riskSpecificQuestions = {
+      emergency: ['Are you in severe pain right now?', 'Can you breathe normally?'],
+      high: ['Have you experienced these symptoms before?', 'Do you have any chronic conditions?'],
+      medium: ['Are the symptoms affecting your daily activities?', 'Have you tried any treatments?'],
+      low: ['Do you have any other symptoms?', 'Have you been feeling stressed lately?']
+    };
+
+    return [...commonQuestions, ...(riskSpecificQuestions[riskLevel] || [])];
+  }
+
+  async submitFollowUpAnswers(
+    triageId: string,
+    answers: Record<string, string>
+  ): Promise<{
+    success: boolean;
+    updatedTriage?: TriageResponse;
+    message?: string;
+  }> {
+    try {
+      const request: FollowupQuestionsRequest = {
+        triage_id: triageId,
+        answers
+      };
+
+      const response = await this.mcpClient.callTool<TriageResponse>(
+        'mcp-symptoms',
+        'followup_questions',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          updatedTriage: response.data,
+          message: 'Follow-up answers processed successfully'
+        };
+      } else {
+        return {
+          success: false,
+          message: response.error?.message || 'Failed to process follow-up answers'
+        };
+      }
+
+    } catch (error) {
+      console.error('[Triage] Follow-up processing failed:', error.message);
+      return {
+        success: false,
+        message: 'Follow-up processing failed'
+      };
+    }
+  }
+
+  async getDisclaimers(): Promise<{
+    success: boolean;
+    disclaimers?: string[];
+    message?: string;
+  }> {
+    try {
+      const response = await this.mcpClient.callTool(
+        'mcp-symptoms',
+        'disclaimers',
+        {}
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          disclaimers: response.data,
+          message: 'Disclaimers retrieved successfully'
+        };
+      } else {
+        // Fallback disclaimers
+        return {
+          success: true,
+          disclaimers: [
+            'This AI assessment is for informational purposes only',
+            'It does not constitute medical advice, diagnosis, or treatment',
+            'Always consult with qualified healthcare professionals',
+            'In case of emergency, call 108 immediately',
+            'The AI assessment should not delay seeking professional medical care'
+          ],
+          message: 'Default disclaimers (MCP unavailable)'
+        };
+      }
+
+    } catch (error) {
+      console.error('[Triage] Disclaimers retrieval failed:', error.message);
+      return {
+        success: true,
+        disclaimers: ['Always consult with healthcare professionals for medical advice'],
+        message: 'Basic disclaimers (MCP unavailable)'
+      };
+    }
+  }
+
+  async getSymptomSuggestions(partialSymptom: string): Promise<{
+    success: boolean;
+    suggestions?: string[];
+    message?: string;
+  }> {
+    try {
+      const response = await this.mcpClient.callTool(
+        'mcp-symptoms',
+        'symptom_suggestions',
+        { partial_input: partialSymptom }
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          suggestions: response.data,
+          message: 'Symptom suggestions retrieved'
+        };
+      } else {
+        // Fallback suggestions
+        const commonSymptoms = [
+          'headache', 'fever', 'cough', 'sore throat', 'fatigue',
+          'nausea', 'dizziness', 'back pain', 'stomach pain', 'shortness of breath'
+        ];
+        
+        const filtered = commonSymptoms.filter(symptom => 
+          symptom.toLowerCase().includes(partialSymptom.toLowerCase())
+        );
+
+        return {
+          success: true,
+          suggestions: filtered,
+          message: 'Basic symptom suggestions (MCP unavailable)'
+        };
+      }
+
+    } catch (error) {
+      console.error('[Triage] Symptom suggestions failed:', error.message);
+      return {
+        success: true,
+        suggestions: [],
+        message: 'Symptom suggestions unavailable'
+      };
+    }
+  }
+}

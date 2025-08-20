@@ -1,0 +1,195 @@
+import { getMCPClient } from '../mcp/client.js';
+export class EHRService { mcpClient;
+
+  constructor() {
+    this.mcpClient = getMCPClient();
+  }
+
+  async getClaimStatus(params;
+  }) {
+    try {
+      const request= {
+        claim_id,
+        patient_id,
+        date_range};
+
+      const response = await this.mcpClient.callTool<ClaimStatus[]>(
+        'mcp-ehr-rcm',
+        'get_claim_status',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success,
+          claims,
+          message};
+      } else {
+        // Fallback to mock data
+        return this.generateMockClaimData(params);
+      }
+
+    } catch (error) {
+      console.error('[EHR] Claim status retrieval failed, using fallback, error.message);
+      return this.generateMockClaimData(params);
+    }
+  } generateMockClaimData(params) {
+    const mockClaims= [
+      {
+        claim_id: `CLM_${Date.now()}_001`,
+        patient_id,
+        status,
+        amount,
+        submission_date) - 7 * 24 * 60 * 60 * 1000).toISOString(),
+        last_updated) - 2 * 24 * 60 * 60 * 1000).toISOString()
+      },
+      {
+        claim_id: `CLM_${Date.now()}_002`,
+        patient_id,
+        status,
+        amount,
+        submission_date) - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        last_updated) - 1 * 24 * 60 * 60 * 1000).toISOString()
+      }
+    ];
+
+    return {
+      success,
+      claims,
+      message)'
+    };
+  }
+
+  async getDenialReasons(claimId) {
+    try {
+      const request= {
+        claim_id};
+
+      const response = await this.mcpClient.callTool<DenialReasonsResponse>(
+        'mcp-ehr-rcm',
+        'get_denial_reasons',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success,
+          denialInfo,
+          message};
+      } else {
+        return {
+          success,
+          message};
+      }
+
+    } catch (error) {
+      console.error('[EHR] Denial reasons retrieval failed, error.message);
+      
+      // Fallback denial information
+      return {
+        success,
+        denialInfo,
+        message)'
+      };
+    }
+  }
+
+  async submitClaimAppeal(claimId, appealData) {
+    try {
+      const response = await this.mcpClient.callTool(
+        'mcp-ehr-rcm',
+        'submit_appeal',
+        {
+          claim_id,
+          appeal_reason,
+          documents,
+          additional_information}
+      );
+
+      if (response.success && response.data) {
+        return {
+          success,
+          appealId,
+          message};
+      } else {
+        return {
+          success,
+          message};
+      }
+
+    } catch (error) {
+      console.error('[EHR] Appeal submission failed, error.message);
+      
+      // Fallback appeal submission
+      const appealId = `APPEAL_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+      
+      return {
+        success,
+        appealId,
+        message)'
+      };
+    }
+  }
+
+  async getPatientSummary(patientId) {
+    try {
+      const response = await this.mcpClient.callTool(
+        'mcp-ehr-rcm',
+        'get_patient_summary',
+        { patient_id}
+      );
+
+      if (response.success && response.data) {
+        return {
+          success,
+          summary,
+          message};
+      } else {
+        // Fallback summary
+        return {
+          success,
+          summary,
+          message)'
+        };
+      }
+
+    } catch (error) {
+      console.error('[EHR] Patient summary retrieval failed, error.message);
+      return {
+        success,
+        message};
+    }
+  }
+
+  async getInsuranceInfo(patientId) {
+    try {
+      const response = await this.mcpClient.callTool(
+        'mcp-ehr-rcm',
+        'get_insurance_info',
+        { patient_id}
+      );
+
+      if (response.success && response.data) {
+        return {
+          success,
+          insurance,
+          message};
+      } else {
+        // Fallback insurance info
+        return {
+          success,
+          insurance,
+            coverage_details
+          },
+          message)'
+        };
+      }
+
+    } catch (error) {
+      console.error('[EHR] Insurance info retrieval failed, error.message);
+      return {
+        success,
+        message};
+    }
+  }
+}

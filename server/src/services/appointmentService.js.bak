@@ -1,0 +1,318 @@
+import { getMCPClient } from '../mcp/client.js';
+import {
+  SearchSlotsRequest,
+  AppointmentSlot,
+  BookAppointmentRequest,
+  BookAppointmentResponse,
+  CancelAppointmentRequest,
+  CreateMeetingLinkRequest,
+  CreateMeetingLinkResponse
+} from '../mcp/types.js';
+
+export class AppointmentService {
+  private mcpClient;
+
+  constructor() {
+    this.mcpClient = getMCPClient();
+  }
+
+  async searchAvailableSlots(params: {
+    providerId?: string;
+    specialty?: string;
+    dateRange: { start: string; end: string };
+    location?: { latitude: number; longitude: number; radius_km: number };
+  }): Promise<{
+    success: boolean;
+    slots?: AppointmentSlot[];
+    message?: string;
+  }> {
+    try {
+      const request: SearchSlotsRequest = {
+        provider_id: params.providerId,
+        specialty: params.specialty,
+        date_range: params.dateRange,
+        location: params.location
+      };
+
+      const response = await this.mcpClient.callTool<AppointmentSlot[]>(
+        'mcp-appointments',
+        'search_slots',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          slots: response.data,
+          message: `Found ${response.data.length} available slots`
+        };
+      } else {
+        // Fallback to mock data
+        return this.generateMockSlots(params);
+      }
+
+    } catch (error) {
+      console.error('[Appointments] Search failed, using fallback:', error.message);
+      return this.generateMockSlots(params);
+    }
+  }
+
+  private generateMockSlots(params: any): {
+    success: boolean;
+    slots: AppointmentSlot[];
+    message: string;
+  } {
+    const mockSlots: AppointmentSlot[] = [
+      {
+        slot_id: `mock_${Date.now()}_1`,
+        provider_id: 'dr_sharma_001',
+        provider_name: 'Dr. Priya Sharma',
+        specialty: params.specialty || 'General Medicine',
+        datetime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        duration_minutes: 30,
+        price: 500,
+        location: {
+          name: 'HealthCare Plus Clinic',
+          address: 'MG Road, Bangalore, Karnataka',
+          latitude: 12.9716,
+          longitude: 77.5946
+        },
+        availability: 'available'
+      },
+      {
+        slot_id: `mock_${Date.now()}_2`,
+        provider_id: 'dr_kumar_002',
+        provider_name: 'Dr. Rajesh Kumar',
+        specialty: params.specialty || 'Cardiology',
+        datetime: new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString(),
+        duration_minutes: 45,
+        price: 800,
+        location: {
+          name: 'Apollo Hospitals',
+          address: 'Greams Road, Chennai, Tamil Nadu',
+          latitude: 13.0827,
+          longitude: 80.2707
+        },
+        availability: 'available'
+      }
+    ];
+
+    return {
+      success: true,
+      slots: mockSlots,
+      message: 'Mock appointments (MCP unavailable)'
+    };
+  }
+
+  async bookAppointment(
+    slotId: string,
+    patientId: string,
+    notes?: string,
+    paymentMethod?: 'online' | 'cash' | 'insurance'
+  ): Promise<{
+    success: boolean;
+    appointmentId?: string;
+    confirmationCode?: string;
+    meetingLink?: string;
+    message?: string;
+  }> {
+    try {
+      const request: BookAppointmentRequest = {
+        slot_id: slotId,
+        patient_id: patientId,
+        notes,
+        payment_method: paymentMethod || 'online'
+      };
+
+      const response = await this.mcpClient.callTool<BookAppointmentResponse>(
+        'mcp-appointments',
+        'book_appointment',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          appointmentId: response.data.appointment_id,
+          confirmationCode: response.data.confirmation_code,
+          meetingLink: response.data.meeting_link,
+          message: 'Appointment booked successfully'
+        };
+      } else {
+        // Fallback booking
+        return this.generateMockBooking(slotId, patientId);
+      }
+
+    } catch (error) {
+      console.error('[Appointments] Booking failed, using fallback:', error.message);
+      return this.generateMockBooking(slotId, patientId);
+    }
+  }
+
+  private generateMockBooking(slotId: string, patientId: string): {
+    success: boolean;
+    appointmentId: string;
+    confirmationCode: string;
+    meetingLink?: string;
+    message: string;
+  } {
+    const appointmentId = `mock_appt_${Date.now()}_${Math.random().toString(36).substr(2, 6)}`;
+    const confirmationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+    // Store mock booking
+    global.appointmentCache = global.appointmentCache || new Map();
+    global.appointmentCache.set(appointmentId, {
+      slotId,
+      patientId,
+      confirmationCode,
+      status: 'confirmed',
+      createdAt: new Date().toISOString()
+    });
+
+    return {
+      success: true,
+      appointmentId,
+      confirmationCode,
+      meetingLink: `https://meet.easymedpro.com/${appointmentId}`,
+      message: 'Mock appointment booked (MCP unavailable)'
+    };
+  }
+
+  async cancelAppointment(
+    appointmentId: string,
+    reason?: string
+  ): Promise<{
+    success: boolean;
+    message?: string;
+  }> {
+    try {
+      const request: CancelAppointmentRequest = {
+        appointment_id: appointmentId,
+        reason
+      };
+
+      const response = await this.mcpClient.callTool(
+        'mcp-appointments',
+        'cancel_appointment',
+        request
+      );
+
+      if (response.success) {
+        return {
+          success: true,
+          message: 'Appointment cancelled successfully'
+        };
+      } else {
+        return {
+          success: false,
+          message: response.error?.message || 'Failed to cancel appointment'
+        };
+      }
+
+    } catch (error) {
+      console.error('[Appointments] Cancellation failed:', error.message);
+      
+      // Fallback cancellation
+      const appointmentCache = global.appointmentCache || new Map();
+      if (appointmentCache.has(appointmentId)) {
+        appointmentCache.delete(appointmentId);
+        return {
+          success: true,
+          message: 'Mock appointment cancelled (MCP unavailable)'
+        };
+      }
+
+      return {
+        success: false,
+        message: 'Appointment not found'
+      };
+    }
+  }
+
+  async createMeetingLink(
+    appointmentId: string,
+    durationMinutes?: number
+  ): Promise<{
+    success: boolean;
+    meetingLink?: string;
+    meetingId?: string;
+    expiresAt?: string;
+    message?: string;
+  }> {
+    try {
+      const request: CreateMeetingLinkRequest = {
+        appointment_id: appointmentId,
+        duration_minutes: durationMinutes || 60
+      };
+
+      const response = await this.mcpClient.callTool<CreateMeetingLinkResponse>(
+        'mcp-appointments',
+        'create_meeting_link',
+        request
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          meetingLink: response.data.meeting_link,
+          meetingId: response.data.meeting_id,
+          expiresAt: response.data.expires_at,
+          message: 'Meeting link created successfully'
+        };
+      } else {
+        // Fallback meeting link
+        return {
+          success: true,
+          meetingLink: `https://meet.easymedpro.com/${appointmentId}`,
+          meetingId: `mock_meeting_${appointmentId}`,
+          expiresAt: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+          message: 'Mock meeting link created (MCP unavailable)'
+        };
+      }
+
+    } catch (error) {
+      console.error('[Appointments] Meeting link creation failed:', error.message);
+      return {
+        success: false,
+        message: 'Failed to create meeting link'
+      };
+    }
+  }
+
+  async getAppointmentHistory(patientId: string): Promise<{
+    success: boolean;
+    appointments?: any[];
+    message?: string;
+  }> {
+    try {
+      const response = await this.mcpClient.callTool(
+        'mcp-appointments',
+        'get_patient_appointments',
+        { patient_id: patientId }
+      );
+
+      if (response.success && response.data) {
+        return {
+          success: true,
+          appointments: response.data,
+          message: 'Appointment history retrieved'
+        };
+      } else {
+        // Fallback to mock history
+        return {
+          success: true,
+          appointments: [],
+          message: 'No appointment history available'
+        };
+      }
+
+    } catch (error) {
+      console.error('[Appointments] History retrieval failed:', error.message);
+      return {
+        success: true,
+        appointments: [],
+        message: 'Mock appointment history (MCP unavailable)'
+      };
+    }
+  }
+}

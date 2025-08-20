@@ -1,53 +1,272 @@
-# EasyMedPro Backend API Server
+# EasyMedPro API Server
 
-A comprehensive healthcare authentication and management API server built with Node.js, Express, and MongoDB.
+Backend API server for the EasyMedPro healthcare platform with integrated Model Context Protocol (MCP) services.
 
 ## 🚀 Features
 
-### Authentication System
-- **JWT-based Authentication** with access and refresh tokens
-- **Multi-method Login**: Phone OTP and Email/Password
-- **User Registration** with phone number verification
-- **Secure Password Hashing** using bcrypt
-- **Account Security**: Login attempt limits and account lockout protection
-- **Session Management**: Token refresh and logout functionality
+- **MCP Integration**: Complete integration with remote MCP gateway for healthcare services
+- **Authentication**: OTP-based authentication with Twilio SMS
+- **Appointments**: Search, book, cancel appointments with meeting link generation
+- **Triage System**: AI-powered symptom analysis and health assessment
+- **EHR/Claims**: Insurance claims management and patient records
+- **Security**: Helmet, CORS, rate limiting, and JWT authentication
+- **Testing**: Comprehensive test suite with Jest and Supertest
+- **Graceful Fallbacks**: Offline functionality when MCP services are unavailable
 
-### SMS Integration
-- **Twilio Integration** for SMS-based OTP verification
-- **Appointment Notifications**: Confirmations and reminders
-- **Emergency Alerts**: SMS-based emergency communication
-- **Configurable Templates**: Customizable SMS messages
+## 🏗️ Architecture
 
-### User Management
-- **Multi-role Support**: Patient, Doctor, ASHA Worker, Admin
-- **Profile Management**: Comprehensive user profiles with role-specific data
-- **User Statistics**: Admin dashboard analytics
-- **Account Status Management**: Active/inactive user controls
+```
+server/
+├── app.js                 # Main Express application
+├── package.json           # Dependencies and scripts
+├── jest.config.json       # Jest test configuration
+├── .env.test             # Test environment variables
+├── src/
+│   ├── mcp/
+│   │   ├── client.js     # MCP client with retry logic
+│   │   └── types.js      # TypeScript-style type definitions
+│   └── services/
+│       ├── otpService.js        # OTP generation and verification
+│       ├── appointmentService.js # Appointment booking and management
+│       ├── triageService.js     # Symptom analysis and triage
+│       └── ehrService.js        # EHR and claims management
+└── tests/
+    ├── setup.js          # Jest test setup
+    └── api.test.js       # API endpoint tests
+```
 
-### Security Features
-- **CORS Protection** with configurable origins
-- **Rate Limiting** to prevent abuse
-- **Input Validation** and sanitization
-- **Helmet Security Headers**
-- **Environment-based Configuration**
+## 🛠️ Installation
 
-### Database Support
-- **MongoDB Integration** with Mongoose ODM
-- **Demo Mode Fallback** when MongoDB unavailable
-- **In-memory Storage** for development and testing
-- **Data Persistence** and backup strategies
-
-## 📋 Prerequisites
-
-- Node.js 18+ 
-- MongoDB (optional - demo mode available)
-- Twilio Account (optional - demo mode available)
-
-## 🛠 Installation
-
-1. **Clone the repository**
+1. **Install dependencies:**
    ```bash
-   git clone <repository-url>
+   npm install
+   ```
+
+2. **Set up environment variables:**
+   Copy `.env.example` from the root directory and configure:
+   ```bash
+   cp ../.env.example .env
+   ```
+
+3. **Configure required services:**
+   - MCP Gateway credentials
+   - Twilio account for SMS
+   - Firebase project settings
+   - MongoDB connection string
+
+## 🚦 Running the Server
+
+### Development Mode
+```bash
+npm run dev
+```
+
+### Production Mode
+```bash
+npm start
+```
+
+### Running Tests
+```bash
+# Run all tests
+npm test
+
+# Run tests in watch mode
+npm run test:watch
+
+# Run with coverage
+npm test -- --coverage
+```
+
+## 📡 API Endpoints
+
+### Health Check
+- `GET /health` - Server health and service status
+
+### Authentication/OTP
+- `POST /api/otp/send` - Send OTP via SMS
+- `POST /api/otp/verify` - Verify OTP code
+- `POST /api/reminders/send` - Send appointment reminders
+
+### Appointments
+- `POST /api/appointments/search` - Search available appointment slots
+- `POST /api/appointments/book` - Book an appointment
+- `POST /api/appointments/cancel` - Cancel an appointment
+- `POST /api/appointments/meeting-link` - Generate meeting link
+- `GET /api/appointments/history/:patientId` - Get appointment history
+
+### Triage/Symptoms
+- `POST /api/triage/analyze` - Analyze symptoms and perform triage
+- `POST /api/triage/followup` - Submit follow-up answers
+- `GET /api/triage/disclaimers` - Get medical disclaimers
+- `GET /api/symptoms/suggestions` - Get symptom suggestions
+
+### EHR/Claims
+- `GET /api/claims/status` - Get claim status information
+- `GET /api/claims/denial-reasons/:claimId` - Get claim denial reasons
+- `POST /api/claims/appeal` - Submit claim appeal
+- `GET /api/patient/summary/:patientId` - Get patient summary
+- `GET /api/patient/insurance/:patientId` - Get insurance information
+
+## 🔒 Security Features
+
+- **Helmet**: Security headers protection
+- **CORS**: Configured for specific origins only
+- **Rate Limiting**: 100 requests per 15 minutes per IP
+- **Input Validation**: Request body validation
+- **PHI Protection**: Patient data masking in logs
+- **JWT Authentication**: Secure token-based auth
+
+## 🌐 MCP Integration
+
+The server integrates with the Model Context Protocol (MCP) gateway for healthcare services:
+
+- **Base URL**: `https://mcp.stellarone.health`
+- **Authentication**: JWT-based with API keys
+- **Services**: Auth/Comm, Appointments, Symptoms, EHR/RCM
+- **Fallbacks**: Local mock data when MCP is unavailable
+- **Retry Logic**: Automatic retry with exponential backoff
+
+### MCP Service Modules
+
+1. **OTP Service** (`otpService.js`)
+   - SMS-based authentication
+   - OTP generation and verification
+   - Appointment reminders
+
+2. **Appointment Service** (`appointmentService.js`)
+   - Provider search and scheduling
+   - Meeting link generation
+   - Appointment history
+
+3. **Triage Service** (`triageService.js`)
+   - AI-powered symptom analysis
+   - Risk assessment
+   - Follow-up questions
+
+4. **EHR Service** (`ehrService.js`)
+   - Insurance claims management
+   - Patient records
+   - Claims appeals
+
+## 🧪 Testing
+
+The test suite includes:
+
+- **Unit Tests**: Individual service testing
+- **Integration Tests**: API endpoint testing
+- **Error Handling**: Edge case validation
+- **CORS Testing**: Cross-origin request validation
+- **Mock Services**: MCP service mocking for offline testing
+
+### Test Coverage
+
+Run tests with coverage reporting:
+```bash
+npm test -- --coverage
+```
+
+Coverage reports are generated in the `coverage/` directory.
+
+## 📝 Environment Variables
+
+Required environment variables:
+
+```env
+# Server Configuration
+NODE_ENV=development
+PORT=5000
+
+# CORS Origins
+CORS_ORIGINS=https://easymed-8c074.web.app,http://localhost:5173
+
+# MCP Gateway
+MCP_GATEWAY_BASE_URL=https://mcp.stellarone.health
+MCP_API_KEY=your-mcp-api-key
+MCP_CLIENT_ID=your-mcp-client-id
+MCP_CLIENT_SECRET=your-mcp-client-secret
+
+# Security
+JWT_SECRET=your-jwt-secret-key
+ENCRYPTION_KEY=your-32-character-encryption-key
+
+# Twilio
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
+TWILIO_PHONE_NUMBER=your-twilio-phone-number
+
+# Firebase
+FIREBASE_PROJECT_ID=easymed-8c074
+FIREBASE_CLIENT_EMAIL=your-firebase-client-email
+FIREBASE_PRIVATE_KEY=your-firebase-private-key
+
+# Database
+MONGODB_URI=mongodb://localhost:27017/easymedpro
+```
+
+## 🚀 Deployment
+
+### Local Development
+1. Install dependencies: `npm install`
+2. Configure environment variables
+3. Start development server: `npm run dev`
+
+### Production Deployment
+1. Set `NODE_ENV=production`
+2. Configure production environment variables
+3. Run: `npm start`
+
+### Docker Deployment
+```bash
+# Build Docker image
+docker build -t easymedpro-api .
+
+# Run container
+docker run -p 5000:5000 --env-file .env easymedpro-api
+```
+
+## 📊 Monitoring
+
+- **Health Endpoint**: `/health` provides service status
+- **Error Logging**: Comprehensive error tracking
+- **Rate Limiting**: Request throttling with monitoring
+- **Performance**: Request timing and response monitoring
+
+## � Development
+
+### Code Style
+- ESLint configuration for code quality
+- Prettier for code formatting
+- Jest for testing
+
+### Scripts
+- `npm run dev` - Development with hot reload
+- `npm run lint` - Run ESLint
+- `npm run lint:fix` - Fix ESLint issues
+- `npm test` - Run tests
+- `npm start` - Production server
+
+## 📚 Documentation
+
+- API documentation available at `/health` endpoint
+- Service documentation in individual service files
+- Test documentation in `tests/` directory
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make changes with tests
+4. Run test suite
+5. Submit pull request
+
+## 📄 License
+
+MIT License - see LICENSE file for details.
+
+---
+
+**EasyMedPro API Server** - Powering modern healthcare with reliable, secure, and scalable backend services.
    cd EasyMedPro/server
    ```
 

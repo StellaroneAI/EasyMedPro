@@ -1,0 +1,236 @@
+import jwt from 'jsonwebtoken';
+import fetch from 'node-fetch';
+import { 
+  MCPRequest, 
+  MCPResponse, 
+  MCPError, 
+  MCPTimeoutError, 
+  MCPConnectionError 
+} from './types.js';
+
+export class MCPClient {
+  private baseUrl: string;
+  private jwtSecret: string;
+  private defaultTimeout: number = 30000; // 30 seconds
+  private maxRetries: number = 3;
+  private retryDelay: number = 1000; // 1 second
+
+  constructor(baseUrl: string, jwtSecret: string) {
+    this.baseUrl = baseUrl.replace(/\/$/, ''); // Remove trailing slash
+    this.jwtSecret = jwtSecret;
+  }
+
+  private generateToken(payload: any): string {
+    return jwt.sign(payload, this.jwtSecret, { 
+      expiresIn: '5m',
+      issuer: 'easymedpro-backend'
+    });
+  }
+
+  private async sleep(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+
+  private async callWithRetry<T>(
+    url: string, 
+    options: any, 
+    attempt: number = 1
+  ): Promise<MCPResponse<T>> {
+    const startTime = Date.now();
+    
+    try {
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), this.defaultTimeout);
+
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+      const latency = Date.now() - startTime;
+
+      if (!response.ok) {
+        throw new MCPError(
+          'MCP_HTTP_ERROR',
+          `HTTP ${response.status}: ${response.statusText}`,
+          { status: response.status, statusText: response.statusText }
+        );
+      }
+
+      const data = await response.json();
+      
+      return {
+        success: true,
+        data,
+        timestamp: new Date().toISOString(),
+        latency_ms: latency
+      };
+
+    } catch (error: any) {
+      const latency = Date.now() - startTime;
+
+      // Handle timeout
+      if (error.name === 'AbortError') {
+        throw new MCPTimeoutError('MCP_CALL', this.defaultTimeout);
+      }
+
+      // Handle connection errors
+      if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
+        if (attempt < this.maxRetries) {
+          console.warn(`MCP connection failed (attempt ${attempt}/${this.maxRetries}), retrying...`);
+          await this.sleep(this.retryDelay * attempt);
+          return this.callWithRetry(url, options, attempt + 1);
+        }
+        throw new MCPConnectionError(`Failed to connect to MCP server after ${this.maxRetries} attempts`);
+      }
+
+      // Re-throw MCP errors
+      if (error instanceof MCPError) {
+        throw error;
+      }
+
+      // Wrap other errors
+      throw new MCPError(
+        'MCP_UNKNOWN_ERROR',
+        error.message || 'Unknown MCP error',
+        { originalError: error, latency_ms: latency }
+      );
+    }
+  }
+
+  async callTool<T = any>(
+    server: string,
+    tool: string,
+    parameters: Record<string, any>,
+    userId?: string
+  ): Promise<MCPResponse<T>> {
+    const startTime = Date.now();
+
+    try {
+      const request: MCPRequest = {
+        tool,
+        parameters,
+        user_id: userId,
+        session_id: `session_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      };
+
+      const token = this.generateToken({
+        server,
+        tool,
+        user_id: userId,
+        iat: Math.floor(Date.now() / 1000)
+      });
+
+      const url = `${this.baseUrl}/${server}/${tool}`;
+      const options = {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'X-EasyMed-Client': 'backend-proxy',
+          'X-EasyMed-Version': '1.0.0'
+        },
+        body: JSON.stringify(request)
+      };
+
+      // Log the call (mask PHI)
+      this.logMCPCall(server, tool, userId, startTime);
+
+      const response = await this.callWithRetry<T>(url, options);
+
+      // Log successful response
+      this.logMCPResponse(server, tool, userId, response.latency_ms, true);
+
+      return response;
+
+    } catch (error) {
+      const latency = Date.now() - startTime;
+      
+      // Log failed response
+      this.logMCPResponse(server, tool, userId, latency, false, error);
+
+      // Return graceful error response
+      return {
+        success: false,
+        error: {
+          code: error instanceof MCPError ? error.code : 'MCP_CALL_FAILED',
+          message: error.message || 'MCP call failed',
+          details: error instanceof MCPError ? error.details : undefined
+        },
+        timestamp: new Date().toISOString(),
+        latency_ms: latency
+      };
+    }
+  }
+
+  private logMCPCall(server: string, tool: string, userId?: string, startTime?: number): void {
+    const maskedUserId = userId ? `user_${userId.substr(-4)}` : 'anonymous';
+    console.log(`[MCP] CALL ${server}/${tool} user=${maskedUserId} timestamp=${new Date().toISOString()}`);
+  }
+
+  private logMCPResponse(
+    server: string, 
+    tool: string, 
+    userId?: string, 
+    latency?: number, 
+    success?: boolean, 
+    error?: any
+  ): void {
+    const maskedUserId = userId ? `user_${userId.substr(-4)}` : 'anonymous';
+    const status = success ? 'SUCCESS' : 'FAILED';
+    const errorInfo = error ? ` error=${error.code || 'UNKNOWN'}` : '';
+    
+    console.log(`[MCP] RESPONSE ${server}/${tool} user=${maskedUserId} status=${status} latency=${latency}ms${errorInfo}`);
+  }
+
+  // Health check method
+  async healthCheck(): Promise<boolean> {
+    try {
+      const response = await fetch(`${this.baseUrl}/health`, {
+        method: 'GET',
+        timeout: 5000
+      });
+      return response.ok;
+    } catch {
+      return false;
+    }
+  }
+
+  // Graceful fallback wrapper
+  async callWithFallback<T>(
+    server: string,
+    tool: string,
+    parameters: Record<string, any>,
+    fallbackValue: T,
+    userId?: string
+  ): Promise<T> {
+    try {
+      const response = await this.callTool<T>(server, tool, parameters, userId);
+      
+      if (response.success && response.data) {
+        return response.data;
+      } else {
+        console.warn(`[MCP] Fallback used for ${server}/${tool}:`, response.error?.message);
+        return fallbackValue;
+      }
+    } catch (error) {
+      console.warn(`[MCP] Fallback used for ${server}/${tool}:`, error.message);
+      return fallbackValue;
+    }
+  }
+}
+
+// Singleton instance
+let mcpClient: MCPClient | null = null;
+
+export function getMCPClient(): MCPClient {
+  if (!mcpClient) {
+    const baseUrl = process.env.MCP_GATEWAY_BASE_URL || 'https://mcp.stellarone.health';
+    const jwtSecret = process.env.MCP_JWT_SIGNING_KEY || 'development-secret-change-in-production';
+    
+    mcpClient = new MCPClient(baseUrl, jwtSecret);
+  }
+  
+  return mcpClient;
+}
