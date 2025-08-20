@@ -3,6 +3,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useAdmin } from '../contexts/AdminContext';
 import authService from '@core/services/authService';
 import firebaseAuthService from '@core/services/firebaseAuthService';
+import { sendOtp, verifyOtp, secondsRemaining } from '@/utils/otp';
 import EmergencyAdminAccess from './admin/EmergencyAdminAccess';
 import { loginTexts, type LoginLanguageKey, type LoginTranslationKey } from '../translations/loginTexts';
 
@@ -25,6 +26,12 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [phoneValidation, setPhoneValidation] = useState<{isValid: boolean; message?: string}>({isValid: false});
   const [emailValidation, setEmailValidation] = useState<{isValid: boolean; message?: string}>({isValid: false});
   const [showEmergencyAccess, setShowEmergencyAccess] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => setCooldown(secondsRemaining()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Removed AI voice (speakMessage)
   const speakMessage = (text: string) => {
@@ -176,18 +183,16 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   };
 
   const handleSendOTP = async () => {
-    // Validate phone number using Firebase service
     const validation = firebaseAuthService.validatePhoneNumber(phoneNumber);
-    
+
     if (!validation.isValid) {
       alert(validation.error || 'Please enter a valid Indian mobile number (10 digits starting with 6-9)');
       return;
     }
 
     setIsLoading(true);
-    
+
     try {
-      // Special case for admin phone number - skip Firebase SMS for testing
       if (activeTab === 'admin' && phoneNumber === '9060328119') {
         setShowOTP(true);
         setMessage('Admin phone detected. Use OTP: 123456 for testing.');
@@ -196,23 +201,14 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         return;
       }
 
-      // Use Firebase authentication service to send OTP for all other cases
-      const result = await authService.sendOTP(validation.formatted!, activeTab, currentLanguage);
-      
-      if (result.success) {
-        setShowOTP(true);
-        
-        // Set and speak multilingual message
-        const message = otpMessages[currentLanguage as keyof typeof otpMessages] || otpMessages.english;
-        setMessage(message);
-        
-        // Show success message
-        alert(`📱 Real SMS OTP sent to ${validation.formatted}\n\nPlease check your phone for the verification code.\n\nValid for 10 minutes.`);
-      } else {
-        // Show error message
-        setMessage(`Error: ${result.message}`);
-        alert(`❌ Failed to send OTP: ${result.message}`);
-      }
+      await sendOtp(validation.formatted!);
+      setShowOTP(true);
+      setCooldown(secondsRemaining());
+
+      const message = otpMessages[currentLanguage as keyof typeof otpMessages] || otpMessages.english;
+      setMessage(message);
+
+      alert(`📱 Real SMS OTP sent to ${validation.formatted}\n\nPlease check your phone for the verification code.\n\nValid for 10 minutes.`);
     } catch (error) {
       console.error('OTP send error:', error);
       setMessage('Network error occurred. Please try again.');
@@ -276,7 +272,6 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
       // Handle all user types uniformly through Firebase authentication
       if (loginMethod === 'phone' && showOTP && otp) {
-        // Special case for admin phone number with test OTP
         if (activeTab === 'admin' && phoneNumber === '9060328119' && otp === '123456') {
           result = {
             success: true,
@@ -293,9 +288,33 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
             userType: 'admin'
           };
         } else {
-          // Phone login with OTP verification using Firebase (works for all user types)
-          console.log('Attempting Firebase OTP verification:', { phoneNumber, activeTab });
-          result = await authService.verifyOTP(phoneNumber, otp, activeTab);
+          try {
+            const response = await verifyOtp(phoneNumber, otp);
+            if (response.success) {
+              authService.storeAuthData(response.user, { accessToken: response.token, refreshToken: response.refreshToken });
+              result = {
+                success: true,
+                message: response.message,
+                user: response.user,
+                userType: response.user.userType || activeTab
+              };
+            } else {
+              result = {
+                success: false,
+                message: response.message,
+                user: null,
+                userType: activeTab
+              };
+            }
+          } catch (error) {
+            console.error('OTP verification error:', error);
+            result = {
+              success: false,
+              message: 'OTP verification failed',
+              user: null,
+              userType: activeTab
+            };
+          }
         }
       } else if (loginMethod === 'emailOTP' && showOTP && otp) {
         // Email OTP verification
@@ -696,10 +715,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                       setShowOTP(false);
                       handleSendOTP();
                     }}
-                    disabled={isLoading}
+                    disabled={isLoading || cooldown > 0}
                     className="w-full py-2 text-blue-600 font-medium hover:text-blue-700 transition-colors disabled:opacity-50"
                   >
-                    Didn't receive OTP? Resend
+                    {cooldown > 0 ? `Resend OTP in ${cooldown}s` : "Didn't receive OTP? Resend"}
                   </button>
                 </div>
               )}

@@ -17,6 +17,10 @@ export const resources = {
   kn: { translation: knCommon },
   ml: { translation: mlCommon },
   mr: { translation: mrCommon }
+
+export const resources = {
+  en: { translation: enCommon },
+  hi: { translation: hiCommon }
 } as const;
 
 void i18n

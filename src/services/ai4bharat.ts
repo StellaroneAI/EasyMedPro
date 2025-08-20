@@ -4,6 +4,8 @@
  * including IndicTrans, IndicBERT, IndicNLG, IndicWav2Vec, and IndicTTS
  */
 
+import { SpeechRecognition } from '@capacitor-community/speech-recognition';
+
 export interface AI4BharatConfig {
   apiEndpoint: string;
   apiKey?: string;
@@ -393,39 +395,25 @@ class AI4BharatService {
 
   private async offlineSpeechRecognition(request: VoiceRequest): Promise<AI4BharatResponse<string>> {
     // Fallback to browser speech recognition with language hints
-    return new Promise((resolve) => {
-      try {
-        const recognition = new (window as any).webkitSpeechRecognition();
-        recognition.lang = this.getBrowserLanguageCode(request.language);
-        recognition.continuous = false;
-        recognition.interimResults = false;
-
-        recognition.onresult = (event: any) => {
-          const transcript = event.results[0][0].transcript;
-          resolve({
-            success: true,
-            data: transcript,
-            offlineMode: true
-          });
-        };
-
-        recognition.onerror = () => {
-          resolve({
-            success: false,
-            error: 'Speech recognition failed',
-            offlineMode: true
-          });
-        };
-
-        recognition.start();
-      } catch (error) {
-        resolve({
-          success: false,
-          error: 'Speech recognition not supported',
-          offlineMode: true
-        });
-      }
-    });
+    try {
+      const result = await SpeechRecognition.start({
+        language: this.getBrowserLanguageCode(request.language),
+        popup: false
+      });
+      await SpeechRecognition.stop();
+      const text = (result as any).value || '';
+      return {
+        success: true,
+        data: Array.isArray(text) ? text.join(' ') : text,
+        offlineMode: true
+      };
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Speech recognition failed',
+        offlineMode: true
+      };
+    }
   }
 
   private async offlineTextToSpeech(request: VoiceRequest): Promise<AI4BharatResponse<Blob>> {

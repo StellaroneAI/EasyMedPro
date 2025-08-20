@@ -3,6 +3,7 @@ import { useLanguage } from '../contexts/LanguageContext';
 import { useAdmin } from '../contexts/AdminContext';
 import { dbService } from '../services/mockDatabase';
 import { loginTexts, type LoginLanguageKey, type LoginTranslationKey } from '../translations/loginTexts';
+import { sendOtp, verifyOtp, secondsRemaining } from '@/utils/otp';
 
 interface LoginPageProps {
   onLogin: (userType: 'patient' | 'asha' | 'doctor' | 'admin', userInfo: any) => void;
@@ -19,8 +20,13 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [otp, setOtp] = useState('');
   const [showOTP, setShowOTP] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [generatedOTP, setGeneratedOTP] = useState('');
+  const [cooldown, setCooldown] = useState(0);
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const timer = setInterval(() => setCooldown(secondsRemaining()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Text-to-speech function
   const speakMessage = (text: string) => {
@@ -71,9 +77,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
 
   // Handle OTP verification
   const handleVerifyOTP = async () => {
-    if (otp === generatedOTP || otp === '123456') {
+    try {
+      await verifyOtp(phoneNumber, otp);
       await handleLogin();
-    } else {
+    } catch {
       const errorMsg = currentLanguage === 'hindi' ? 'गलत OTP। कृपया पुनः प्रयास करें।' :
                       currentLanguage === 'tamil' ? 'தவறான OTP. தயவுசெய்து மீண்டும் முயற்சிக்கவும்.' :
                       'Invalid OTP. Please try again.';
@@ -161,8 +168,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const handleSendOTP = async () => {
     if (phoneNumber.length >= 10) {
       setIsLoading(true);
-      
-      // Auto-login for your admin number
+
       if (phoneNumber === '9060328119' && activeTab === 'admin') {
         setTimeout(() => {
           setIsLoading(false);
@@ -170,22 +176,19 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         }, 1000);
         return;
       }
-      
-      // Simulate OTP sending with realistic delay for other numbers
-      setTimeout(() => {
+
+      try {
+        await sendOtp(phoneNumber);
         setShowOTP(true);
-        setIsLoading(false);
-        
-        // For demo, use simple OTP: 123456 for any phone number
-        const otpCode = '123456';
-        setGeneratedOTP(otpCode);
-        console.log(`Demo OTP for ${phoneNumber}: ${otpCode}`);
-        
-        // Set and speak multilingual message
+        setCooldown(secondsRemaining());
         const message = otpMessages[currentLanguage as keyof typeof otpMessages] || otpMessages.english;
         setMessage(message);
-        alert(`📱 OTP sent successfully!\n\nFor demo: Enter 123456 as your OTP\n\n(In production, you would receive this via SMS)`);
-      }, 1000);
+        alert('📱 OTP sent successfully!');
+      } catch (error) {
+        alert('Failed to send OTP');
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       alert('Please enter a valid 10-digit phone number');
     }
@@ -264,22 +267,20 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         let userInfo: any = {};
         
         if (loginMethod === 'phone' && showOTP && otp) {
-          // For phone login with OTP, validate OTP
-          console.log('Phone OTP validation:', { phoneNumber, otp, generatedOTP, showOTP });
-          
           if (otp.length < 6) {
             alert('Please enter the complete 6-digit OTP');
             setIsLoading(false);
             return;
           }
-          
-          // For demo, accept 123456 or the generated OTP
-          if (otp !== '123456' && generatedOTP && otp !== generatedOTP) {
-            alert('❌ Invalid OTP\n\nFor demo, please enter: 123456\n\n(Or check console for actual OTP)');
+
+          try {
+            await verifyOtp(phoneNumber, otp);
+          } catch (error) {
+            alert('❌ Invalid OTP');
             setIsLoading(false);
             return;
           }
-          
+
           // Try to find user in database
           try {
             const dbUser = await dbService.authenticateUser(phoneNumber, activeTab);
@@ -598,10 +599,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
                       setShowOTP(false);
                       handleSendOTP();
                     }}
-                    disabled={isLoading}
+                    disabled={isLoading || cooldown > 0}
                     className="w-full py-2 text-blue-600 font-medium hover:text-blue-700 transition-colors disabled:opacity-50"
                   >
-                    Didn't receive OTP? Resend
+                    {cooldown > 0 ? `Resend OTP in ${cooldown}s` : "Didn't receive OTP? Resend"}
                   </button>
                 </div>
               )}

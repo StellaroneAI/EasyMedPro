@@ -40,7 +40,7 @@ const HomePage: React.FC<HomePageProps> = ({ onNavigateToLogin }) => {
     setExpandedSection(expandedSection === section ? null : section);
   };
   return (
-    <div className="bg-gray-50 min-h-screen">
+    <div className="main-screen safe-area keyboard-aware bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8">
