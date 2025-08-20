@@ -6,7 +6,8 @@
 import firebaseAuthService from './firebaseAuthService';
 import { storage } from '../storage';
 
-const API_BASE_URL = '/api';
+// Base URL for API requests, configurable via environment variable
+const API_BASE_URL = import.meta.env.VITE_API_BASE || '/api';
 
 class AuthenticationService {
   constructor() {
