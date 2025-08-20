@@ -1,3 +1,7 @@
+:root {
+  --app-header: 56px;
+}
+
 /* Mobile specific utilities */
 .safe-area {
   padding-top: env(safe-area-inset-top);
@@ -14,7 +18,16 @@
 
 /* Full-screen container with hidden horizontal overflow */
 .main-screen {
-  width: 100%;
-  min-height: 100vh;
-  overflow-x: hidden;
+  min-height: calc(100dvh - var(--app-header));
+  padding-bottom: env(safe-area-inset-bottom);
+  overflow: auto;
+}
+
+.touch {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.text-base {
+  font-size: 16px;
 }
