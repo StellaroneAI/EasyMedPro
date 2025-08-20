@@ -17,6 +17,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   const [activeTab, setActiveTab] = useState<'patient' | 'asha' | 'doctor' | 'admin'>('patient');
   const [loginMethod, setLoginMethod] = useState<'phone' | 'email' | 'emailOTP' | 'social'>('phone');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [formattedPhone, setFormattedPhone] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
@@ -201,6 +202,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         return;
       }
 
+      setFormattedPhone(validation.formatted || '');
       await sendOtp(validation.formatted!);
       setShowOTP(true);
       setCooldown(secondsRemaining());
@@ -289,7 +291,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
           };
         } else {
           try {
-            const response = await verifyOtp(phoneNumber, otp);
+            const response = await verifyOtp(formattedPhone, otp);
             if (response.success) {
               authService.storeAuthData(response.user, { accessToken: response.token, refreshToken: response.refreshToken });
               result = {
@@ -421,9 +423,10 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
         // Set and speak success message
         const successMsg = successMessages[currentLanguage as keyof typeof successMessages] || successMessages.english;
         setMessage(successMsg);
-        
+
         setTimeout(() => {
           onLogin(result.userType || activeTab, result.user);
+          window.location.assign('/dashboard');
         }, 1000);
       } else {
         console.error('❌ Login failed:', result.message);
