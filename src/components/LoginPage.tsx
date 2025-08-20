@@ -504,7 +504,7 @@ export default function LoginPage({ onLogin }: LoginPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="main-screen min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
       {/* Hidden reCAPTCHA container for Firebase phone auth */}
       <div id="recaptcha-container" style={{ display: 'none' }}></div>
       
