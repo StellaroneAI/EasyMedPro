@@ -26,7 +26,12 @@ export default function LanguageSelector() {
 
   const langMap: Record<string, string> = {
     english: 'en',
-    hindi: 'hi'
+    hindi: 'hi',
+    tamil: 'ta',
+    telugu: 'te',
+    kannada: 'kn',
+    malayalam: 'ml',
+    marathi: 'mr'
   };
 
   return (
