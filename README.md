@@ -354,5 +354,11 @@ We've included a `vercel.json` to handle all unmatched routes and send them to `
 
 ---
 
+## 🗃️ Archive
+
+Legacy projects and experiments have been moved to the `archive/` directory to keep the codebase lean.
+
+---
+
 EasyMed - Transforming Healthcare Through AI Innovation  
 Built with ❤️ for India's Healthcare Future
