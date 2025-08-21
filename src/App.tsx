@@ -1,96 +1,47 @@
-import { useState } from 'react';
-import PatientDashboard from './components/PatientDashboard';
-import ASHAWorkerHub from './components/ASHAWorkerHub';
-import DoctorDashboard from './components/dashboards/DoctorSpecificDashboard';
-import AdminDashboard from './components/dashboards/AdminSpecificDashboard';
-import LoginPage from './components/LoginPage';
-import TeamManagement from './components/TeamManagement';
-import SystemStatus from './components/SystemStatus';
-import AI4BharatVoiceAssistant from './components/AI4BharatVoiceAssistant';
-import CriticalFixesTester from './components/CriticalFixesTester';
-import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
-import HomePage from './pages/HomePage';
-import { AdminProvider, useAdmin } from './contexts/AdminContext';
-import { LanguageKey } from './translations/index';
-import './App.css';
-import LanguageToggle from './components/LanguageToggle';
+import React, { Suspense } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Skeleton } from '@/components/ui/Skeleton';
 
-interface User {
-  userType: 'patient' | 'asha' | 'doctor' | 'admin';
-  name: string;
-  phone?: string;
-  email?: string;
-  role?: string;
-}
+// Eagerly load common pages
+import HomePage from '@/pages/Home';
+import LoginPage from '@/pages/Login';
 
-function AppContent() {
-  const [currentUser, setCurrentUser] = useState<User | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [showHome, setShowHome] = useState(true);
+// Lazy-load heavy dashboard components
+const PatientDashboard = React.lazy(() => import('@/pages/patient/PatientDashboard'));
+const DoctorDashboard = React.lazy(() => import('@/pages/doctor/DoctorDashboard'));
+const ASHAWorkerHub = React.lazy(() => import('@/pages/asha/ASHAWorkerHub'));
+const AdminDashboard = React.lazy(() => import('@/pages/admin/AdminDashboard'));
 
-  const handleLogin = (userType: 'patient' | 'asha' | 'doctor' | 'admin', userInfo: any) => {
-    const newUser = {
-      userType,
-      name: userInfo.name,
-      phone: userInfo.phone,
-      email: userInfo.email,
-      role: userInfo.role
-    };
-    
-    setCurrentUser(newUser);
-    setIsLoggedIn(true);
-  };
-
-  if (showHome && !isLoggedIn) {
-    return <HomePage onNavigateToLogin={() => setShowHome(false)} />;
-  }
-
-  if (!isLoggedIn) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
-
-  // Route to appropriate dashboard based on user type
-  switch (currentUser?.userType) {
-    case 'patient':
-      return <PatientDashboard user={currentUser} />;
-    case 'asha':
-      return <ASHAWorkerHub />;
-    case 'doctor':
-      return <DoctorDashboard user={currentUser as any} />;
-    case 'admin':
-      return <AdminDashboard 
-        userInfo={currentUser as any} 
-        onLogout={() => {
-          setCurrentUser(null);
-          setIsLoggedIn(false);
-          setShowHome(true);
-        }} 
-      />;
-    default:
-      return <div className="flex flex-col items-center justify-center min-h-screen">
-        <h1 className="text-2xl font-bold mb-4">Welcome, {currentUser?.name}!</h1>
-        <button 
-          onClick={() => {
-            setCurrentUser(null);
-            setIsLoggedIn(false);
-            setShowHome(true);
-          }}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-        >
-          Logout
-        </button>
-      </div>;
-  }
-}
+const FullPageLoader = () => (
+  <div className="w-full min-h-screen p-8">
+    <Skeleton className="h-16 w-full mb-8" />
+    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-32 w-full" />
+      <Skeleton className="h-32 w-full" />
+    </div>
+  </div>
+);
 
 function App() {
   return (
-    <LanguageProvider>
-      <div className="p-2 text-right"><LanguageToggle /></div>
-      <AdminProvider>
-        <AppContent />
-      </AdminProvider>
-    </LanguageProvider>
+    <Router>
+      <Suspense fallback={<FullPageLoader />}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+
+          {/* Dashboard Routes */}
+          <Route path="/patient/dashboard" element={<PatientDashboard />} />
+          <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+          <Route path="/asha/hub" element={<ASHAWorkerHub />} />
+          <Route path="/admin/dashboard" element={<AdminDashboard />} />
+
+          {/* Redirect any other path to home */}
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </Suspense>
+    </Router>
   );
 }
 

@@ -1,51 +1,106 @@
-import { useState } from 'react';
-import useVoice from '@/hooks/useVoice';
+import { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
+import { Mic, MicOff, PlayCircle } from 'lucide-react';
+import { toast } from 'react-hot-toast';
 
-interface VoiceAssistantProps {
-  userName?: string;
-  onCommand?: (command: string, language: string) => void;
-}
+import { speechService } from '@/utils/speech';
+import { Button } from '@/components/ui/Button';
+import { cn } from '@/lib/utils';
 
-export default function VoiceAssistant({ onCommand }: VoiceAssistantProps) {
-  const { listening, start, stop, speak } = useVoice();
-  const [text, setText] = useState('');
+type PermissionState = 'prompt' | 'granted' | 'denied';
 
-  const handleStart = async () => {
-    const result = await start();
-    if (result) {
-      const spoken = Array.isArray(result) ? result.join(' ') : String(result);
-      setText(spoken);
-      onCommand?.(spoken, 'en-US');
+export const VoiceAssistant = () => {
+  const { t, i18n } = useTranslation('common');
+  const [permission, setPermission] = useState<PermissionState>('prompt');
+  const [isListening, setIsListening] = useState(false);
+  const [hasWelcomed, setHasWelcomed] = useState(false);
+
+  // Check initial permission status on mount for Capacitor
+  useEffect(() => {
+    if (speechService.isSupported()) {
+      speechService.requestPermission?.().then(granted => {
+        if (granted) setPermission('granted');
+      });
+    }
+  }, []);
+
+  const handleWelcome = async () => {
+    if (!speechService.isSupported()) {
+      toast.error(t('voice.notSupported'));
+      return;
+    }
+
+    const granted = await speechService.requestPermission?.();
+    if (!granted) {
+      setPermission('denied');
+      toast.error(t('voice.permissionDenied'));
+      return;
+    }
+    
+    setPermission('granted');
+    setHasWelcomed(true);
+    await speechService.speak({
+      text: t('voice.welcomeMessage'),
+      language: i18n.language,
+    });
+  };
+
+  const handleToggleListening = async () => {
+    if (isListening) {
+      await speechService.stopListening();
+      setIsListening(false);
+    } else {
+      setIsListening(true);
+      await speechService.startListening({
+        language: i18n.language,
+        onResult: (transcription) => {
+          console.log('User said:', transcription);
+          // In a real app, you would process the command here.
+          // For this scaffold, we just show a toast.
+          toast(`You said: ${transcription}`);
+        },
+        onEndOfSpeech: () => {
+          setIsListening(false);
+        },
+        onError: (error) => {
+          console.error('Speech recognition error:', error);
+          if (error !== 'no-match') { // "no-match" is common, don't always toast it
+            toast.error(t('voice.error'));
+          }
+          setIsListening(false);
+        }
+      });
     }
   };
 
-  const handleStop = async () => {
-    await stop();
-  };
+  if (!hasWelcomed) {
+    return (
+      <div className="fixed bottom-4 right-4 z-50">
+        <Button onClick={handleWelcome} size="lg" className="rounded-full shadow-lg">
+          <PlayCircle className="mr-2 h-5 w-5" />
+          {t('voice.tapToWelcome')}
+        </Button>
+      </div>
+    );
+  }
 
-  const handleSpeak = () => {
-    if (text) {
-      speak(text);
-    }
-  };
+  if (permission !== 'granted') {
+    return null; // Don't show the mic if permission is denied after the welcome attempt.
+  }
 
   return (
-    <div className="flex flex-col space-y-2">
-      <div className="flex space-x-2">
-        <button onClick={listening ? handleStop : handleStart}>
-          {listening ? 'Stop' : 'Start'}
-        </button>
-        <button onClick={handleSpeak} disabled={!text}>
-          Speak
-        </button>
-      </div>
-      <textarea
-        className="border p-2"
-        value={text}
-        placeholder="Speech will appear here"
-        readOnly
-      />
+    <div className="fixed bottom-4 right-4 z-50">
+      <Button
+        onClick={handleToggleListening}
+        size="icon"
+        className={cn(
+          'rounded-full h-14 w-14 shadow-lg transition-all duration-300',
+          isListening ? 'bg-red-500 hover:bg-red-600 scale-110' : 'bg-primary hover:bg-primary/90'
+        )}
+        aria-label={isListening ? t('voice.stopListening') : t('voice.startListening')}
+      >
+        {isListening ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+      </Button>
     </div>
   );
-}
-
+};
