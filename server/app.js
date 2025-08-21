@@ -9,6 +9,11 @@ import { TriageService } from './src/services/triageService.js';
 import { EHRService } from './src/services/ehrService.js';
 
 // Load environment variables
+// First attempt to load environment-specific file (e.g., `.env.production`)
+if (process.env.NODE_ENV) {
+  config({ path: `.env.${process.env.NODE_ENV}`, override: true });
+}
+// Then load base `.env` as fallback
 config();
 
 const app = express();
