@@ -1,0 +1,55 @@
+{
+  "patient": {
+    "title": "रोगी डैशबोर्ड",
+    "role": "रोगी",
+    "bookAppointment": "नया अपॉइंटमेंट बुक करें",
+    "noAppointmentsTitle": "कोई अपॉइंटमेंट नहीं मिला",
+    "noAppointmentsDescription": "आपके पास कोई आगामी अपॉइंटमेंट नहीं है। आरंभ करने के लिए एक बुक करें।",
+    "appointmentWith": "{{doctor}} के साथ अपॉइंटमेंट"
+  },
+  "doctor": {
+    "title": "डॉक्टर डैशबोर्ड",
+    "role": "डॉक्टर",
+    "noAppointmentsTitle": "कोई आगामी अपॉइंटमेंट नहीं",
+    "noAppointmentsDescription": "आज के लिए आपका शेड्यूल खाली है।"
+  },
+  "asha": {
+    "title": "आशा कार्यकर्ता हब",
+    "role": "आशा कार्यकर्ता",
+    "noTasksTitle": "कोई कार्य असाइन नहीं",
+    "noTasksDescription": "आज आपके पास कोई कार्य नहीं है। अच्छा काम!",
+    "taskStatus": {
+      "completed": "पूरा",
+      "pending": "लंबित"
+    }
+  },
+  "admin": {
+    "title": "एडमिन डैशबोर्ड",
+    "role": "एडमिन",
+    "systemOverview": "सिस्टम अवलोकन",
+    "userActivity": "उपयोगकर्ता गतिविधि",
+    "stats": {
+      "totalUsers": "कुल उपयोगकर्ता",
+      "activeSessions": "सक्रिय सत्र",
+      "newSignups": "नई पंजीकरण (24 घंटे)"
+    }
+  },
+  "chat": {
+    "title": "एआई स्वास्थ्य सहायक",
+    "textPlaceholder": "चित्र के बारे में एक नोट जोड़ें या प्रश्न पूछें...",
+    "uploadImage": "छवि अपलोड करें",
+    "imageSelectError": "छवि चयन विफल हुआ। कृपया पुनः प्रयास करें।",
+    "analysisError": "विश्लेषण के दौरान त्रुटि हुई। कृपया पुनः प्रयास करें।",
+    "consentLabel": "मैं स्वीकार करता/करती हूं कि यह एक चिकित्सा उपकरण नहीं है।",
+    "consentDisclaimer": "विश्लेषण केवल सूचनात्मक उद्देश्यों के लिए है और चिकित्सा निदान नहीं है। चिकित्सा सलाह के लिए डॉक्टर से परामर्श करें।",
+    "analyzeButton": "छवि विश्लेषण करें",
+    "analyzing": "विश्लेषण हो रहा है...",
+    "results": {
+      "summary": "एआई सारांश",
+      "confidence": "विश्वास"
+    },
+    "compressingImage": "छवि संकुचित की जा रही है...",
+    "compressingSuccess": "छवि तैयार!",
+    "compressingError": "छवि संकुचित नहीं हो सकी।"
+  }
+}
