@@ -1,0 +1,55 @@
+{
+  "patient": {
+    "title": "Patient Dashboard",
+    "role": "Patient",
+    "bookAppointment": "Book New Appointment",
+    "noAppointmentsTitle": "No Appointments Found",
+    "noAppointmentsDescription": "You don't have any upcoming appointments. Book one to get started.",
+    "appointmentWith": "Appointment with {{doctor}}"
+  },
+  "doctor": {
+    "title": "Doctor Dashboard",
+    "role": "Doctor",
+    "noAppointmentsTitle": "No Upcoming Appointments",
+    "noAppointmentsDescription": "Your schedule is clear for today."
+  },
+  "asha": {
+    "title": "ASHA Worker Hub",
+    "role": "ASHA Worker",
+    "noTasksTitle": "No Tasks Assigned",
+    "noTasksDescription": "You have no tasks for today. Great job!",
+    "taskStatus": {
+      "completed": "Completed",
+      "pending": "Pending"
+    }
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "role": "Admin",
+    "systemOverview": "System Overview",
+    "userActivity": "User Activity",
+    "stats": {
+      "totalUsers": "Total Users",
+      "activeSessions": "Active Sessions",
+      "newSignups": "New Signups (24h)"
+    }
+  },
+  "chat": {
+    "title": "AI Health Assistant",
+    "textPlaceholder": "Add a note or ask a question about the image...",
+    "uploadImage": "Upload Image",
+    "imageSelectError": "Failed to select image. Please try again.",
+    "analysisError": "An error occurred during analysis. Please try again.",
+    "consentLabel": "I acknowledge this is not a medical device.",
+    "consentDisclaimer": "The analysis is for informational purposes only and does not constitute a medical diagnosis. Consult a doctor for medical advice.",
+    "analyzeButton": "Analyze Image",
+    "analyzing": "Analyzing...",
+    "results": {
+      "summary": "AI Summary",
+      "confidence": "Confidence"
+    },
+    "compressingImage": "Compressing image...",
+    "compressingSuccess": "Image ready!",
+    "compressingError": "Could not compress image."
+  }
+}

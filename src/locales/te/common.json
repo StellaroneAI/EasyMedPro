@@ -1,4 +1,20 @@
 {
+  "appName": "EasyMedPro",
+  "logout": "Logout",
+  "loading": "Loading...",
+  "featureNotImplemented": "This feature is not yet implemented.",
+  "placeholders": {
+    "chartData": "Chart data would be displayed here."
+  },
+  "voice": {
+    "tapToWelcome": "Tap for Voice Assistant",
+    "welcomeMessage": "Hello! How can I assist you with EasyMedPro today?",
+    "permissionDenied": "Microphone access was denied. Please enable it in your browser or system settings to use the voice assistant.",
+    "notSupported": "Voice assistant is not supported on this device or browser.",
+    "error": "Sorry, I didn't catch that. Please try again.",
+    "startListening": "Start listening",
+    "stopListening": "Stop listening"
+  },
   "welcome": "EasyMed కు స్వాగతం",
   "dashboard": "డాష్‌బోర్డ్",
   "appointments": "అపాయింట్‌మెంట్‌లు",
