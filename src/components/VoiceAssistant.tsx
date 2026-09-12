@@ -104,3 +104,5 @@ export const VoiceAssistant = () => {
     </div>
   );
 };
+
+export default VoiceAssistant;

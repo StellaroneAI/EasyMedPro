@@ -1,4 +1,4 @@
-import React from 'react';
+import * as React from 'react';
 import { act } from 'react-dom/test-utils';
 import { createRoot } from 'react-dom/client';
 import useResizeObserver from '../hooks/useResizeObserver';

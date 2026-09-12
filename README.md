@@ -257,10 +257,9 @@ npm run build:ios
 
 ## 📖 Documentation
 
-- **[Mobile Deployment Guide](./MOBILE_DEPLOYMENT_GUIDE.md)**: Complete setup and deployment instructions
-- **[Firebase Setup Guide](./FIREBASE_AUTHENTICATION_GUIDE.md)**: Firebase configuration
-- **[Voice Assistant Setup](./VOICE_SETUP_GUIDE.md)**: Voice feature configuration
-- **[Authentication Setup](./AUTHENTICATION_SETUP.md)**: User authentication setup
+- **[Environment Guide](./ENV.md)**: Runtime configuration and environment variables
+- **[ABHA Integration](./docs/ABHA_INTEGRATION.md)**: ABHA integration notes
+- **[Mobile Testing Guide](./MOBILE_TESTING_GUIDE.md)**: Mobile test workflow
 
 ---
 
@@ -325,34 +324,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 🏥 **EasyMedPro** - *Transforming healthcare with technology*  
 📱 *Available everywhere, accessible to everyone*
-
-1. Push this code to GitHub.
-2. Go to [Vercel](https://vercel.com).
-3. Import your GitHub repo.
-4. Use the following build settings:
-   - **Framework Preset**: Create React App
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `build`
-
-**SPA Routing Fix:**  
-We've included a `vercel.json` to handle all unmatched routes and send them to `index.html`:
-
-```json
-"routes": [
-  { "src": "/(.*)", "dest": "/" }
-]
-```
-
----
-
-## 🛠 Tech Stack
-
-- React
-- Tailwind CSS
-- Lucide Icons
-- Vercel (Hosting)
-
----
-
-EasyMed - Transforming Healthcare Through AI Innovation  
-Built with ❤️ for India's Healthcare Future

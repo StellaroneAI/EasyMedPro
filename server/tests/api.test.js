@@ -1,6 +1,7 @@
 import request from 'supertest';
 import app from '../app.js';
 
+
 describe('EasyMedPro API Tests', () => {
   // Health check test
   describe('GET /health', () => {
@@ -234,8 +235,8 @@ describe('EasyMedPro API Tests', () => {
         .set('Origin', 'https://easymed-8c074.web.app')
         .expect(204);
 
-      expect(response.headers).toHaveProperty('access-control-allow-origin');
       expect(response.headers).toHaveProperty('access-control-allow-methods');
+      expect(response.headers).toHaveProperty('access-control-allow-credentials', 'true');
     });
   });
 });
