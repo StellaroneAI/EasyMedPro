@@ -36,6 +36,16 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
+      '@core': path.resolve(__dirname, './packages/core/src'),
+      'react-native': path.resolve(__dirname, './src/stubs/react-native.ts'),
+      '@react-native-voice/voice': path.resolve(__dirname, './src/stubs/react-native-voice.ts'),
+      'react-native-ble-plx': path.resolve(__dirname, './src/stubs/react-native-ble-plx.ts'),
+      'react-native-health': path.resolve(__dirname, './src/stubs/react-native-health.ts'),
+      'expo-camera': path.resolve(__dirname, './src/stubs/expo-camera.ts'),
+      'expo-file-system': path.resolve(__dirname, './src/stubs/expo-file-system.ts'),
+      'expo-media-library': path.resolve(__dirname, './src/stubs/expo-media-library.ts'),
+      'expo-speech': path.resolve(__dirname, './src/stubs/expo-speech.ts'),
+      'expo-av': path.resolve(__dirname, './src/stubs/expo-av.ts'),
     },
   },
 })

@@ -7,17 +7,9 @@ import auth_en from './locales/en/auth.json';
 import common_en from './locales/en/common.json';
 import dashboard_en from './locales/en/dashboard.json';
 
-import auth_hi from './locales/hi/auth.json';
 import common_hi from './locales/hi/common.json';
-import dashboard_hi from './locales/hi/dashboard.json';
-
-import auth_ta from './locales/ta/auth.json';
 import common_ta from './locales/ta/common.json';
-import dashboard_ta from './locales/ta/dashboard.json';
-
-import auth_te from './locales/te/auth.json';
 import common_te from './locales/te/common.json';
-import dashboard_te from './locales/te/dashboard.json';
 
 export const resources = {
   en: {
@@ -26,19 +18,19 @@ export const resources = {
     dashboard: dashboard_en,
   },
   hi: {
-    auth: auth_hi,
+    auth: auth_en,
     common: common_hi,
-    dashboard: dashboard_hi,
+    dashboard: dashboard_en,
   },
   ta: {
-    auth: auth_ta,
+    auth: auth_en,
     common: common_ta,
-    dashboard: dashboard_ta,
+    dashboard: dashboard_en,
   },
   te: {
-    auth: auth_te,
+    auth: auth_en,
     common: common_te,
-    dashboard: dashboard_te,
+    dashboard: dashboard_en,
   },
 };
 
@@ -48,12 +40,14 @@ i18n
   .init({
     resources,
     fallbackLng: 'en',
-    debug: import.meta.env.DEV, // Enable debug mode in development
+    debug: import.meta.env.DEV,
     interpolation: {
-      escapeValue: false, // React already protects from xss
+      escapeValue: false,
     },
     ns: ['common', 'auth', 'dashboard'],
     defaultNS: 'common',
   });
+
+export const setLanguage = (language: string) => i18n.changeLanguage(language);
 
 export default i18n;
