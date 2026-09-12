@@ -36,7 +36,10 @@
     "serve:firebase": "firebase serve --only hosting",
     "emulate:firebase": "firebase emulators:start",
     "lint": "echo 'No linting configured'",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest"
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest",
+    "test:frontend": "NODE_OPTIONS=--experimental-vm-modules jest --runInBand",
+    "test:server": "npm --prefix server test -- --runInBand",
+    "test:all": "npm run test:frontend && npm run test:server"
   },
   "dependencies": {
     "@capacitor-community/speech-recognition": "^7.0.1",
