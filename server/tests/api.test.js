@@ -1,6 +1,7 @@
 import request from 'supertest';
 import app from '../app.js';
 
+
 describe('EasyMedPro API Tests', () => {
   // Health check test
   describe('GET /health', () => {
