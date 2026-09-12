@@ -1,1 +1,1 @@
-import '@testing-library/jest-native/extend-expect';
+// Jest setup for web/Node tests.
