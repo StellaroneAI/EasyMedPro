@@ -40,7 +40,12 @@ i18n
   .init({
     resources,
     fallbackLng: 'en',
-    debug: import.meta.env.DEV,
+    debug: process.env.NODE_ENV !== 'production',
+    detection: {
+      order: ['localStorage', 'navigator'],
+      lookupLocalStorage: 'lang',
+      caches: ['localStorage'],
+    },
     interpolation: {
       escapeValue: false,
     },
